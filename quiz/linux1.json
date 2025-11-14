@@ -1,0 +1,212 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Which command most directly prints a non-interactive snapshot summary of total, used, and free physical memory in human-readable units?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "df -h", "isCorrect": false },
+        { "id": "b", "text": "free -h", "isCorrect": true },
+        { "id": "c", "text": "top", "isCorrect": false },
+        { "id": "d", "text": "vmstat 1", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q2",
+      "question": "Which of the following commands are appropriate ways to inspect overall memory pressure and swapping behaviour on a Linux server?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "vmstat 1", "isCorrect": true },
+        { "id": "b", "text": "sar -W 1", "isCorrect": true },
+        { "id": "c", "text": "cat /proc/meminfo", "isCorrect": true },
+        { "id": "d", "text": "iostat -xm 1", "isCorrect": false },
+        { "id": "e", "text": "uname -a", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q3",
+      "question": "You want to know how full the root filesystem '/' is. Which command is best suited for this?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "df -h /", "isCorrect": true },
+        { "id": "b", "text": "du -sh /", "isCorrect": false },
+        { "id": "c", "text": "ls -lh /", "isCorrect": false },
+        { "id": "d", "text": "fdisk -l", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q4",
+      "question": "Which commands correctly follow a log file as it grows, showing new lines as they are written?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "tail -f /var/log/app.log", "isCorrect": true },
+        { "id": "b", "text": "tail -F /var/log/app.log", "isCorrect": true },
+        { "id": "c", "text": "less +F /var/log/app.log", "isCorrect": true },
+        { "id": "d", "text": "head -f /var/log/app.log", "isCorrect": false },
+        { "id": "e", "text": "cat /var/log/app.log", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q5",
+      "question": "You suspect '/var' contains some huge files. Which command pipeline will list the 10 largest files or directories under '/var' in human-readable form?",
+      "mode": "radio",
+      "options": [
+        {
+          "id": "a",
+          "text": "sudo du -ah /var | sort -rh | head -n 10",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "df -h /var | sort -rh | head -n 10",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "ls -lhR /var | head -n 10",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "find /var -size +10M",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q6",
+      "question": "System I/O wait is high. Which tools can you use to help diagnose disk I/O bottlenecks and identify heavy readers/writers?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "iotop", "isCorrect": true },
+        { "id": "b", "text": "pidstat -d 1", "isCorrect": true },
+        { "id": "c", "text": "iostat -x 1", "isCorrect": true },
+        { "id": "d", "text": "top -p 1", "isCorrect": false },
+        { "id": "e", "text": "lsblk", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q7",
+      "question": "A filesystem is reported as 100% full. You delete a huge log file, but 'df -h' still shows the filesystem as full. What is the most likely cause?",
+      "mode": "radio",
+      "options": [
+        {
+          "id": "a",
+          "text": "The log file is still held open by a running process.",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "The filesystem journal needs to be manually flushed.",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "There is a kernel bug in the filesystem driver.",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "You must run 'sync' after every 'rm' for space to be freed.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q8",
+      "question": "You need to quickly inspect the end of a gzipped log file '/var/log/app.log.gz' without permanently decompressing it. Which commands will work?",
+      "mode": "check",
+      "options": [
+        {
+          "id": "a",
+          "text": "zcat /var/log/app.log.gz | tail -n 100",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "zless /var/log/app.log.gz",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "gunzip /var/log/app.log.gz && tail -n 100 /var/log/app.log",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "tail -n 100 /var/log/app.log.gz",
+          "isCorrect": false
+        },
+        {
+          "id": "e",
+          "text": "zgrep \"ERROR\" /var/log/app.log.gz | tail -n 100",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "q9",
+      "question": "Which commands can be used to list all open file descriptors for a process with PID 1234?",
+      "mode": "check",
+      "options": [
+        {
+          "id": "a",
+          "text": "ls -l /proc/1234/fd",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "lsof -p 1234",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "cat /proc/1234/fd",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "ps -p 1234",
+          "isCorrect": false
+        },
+        {
+          "id": "e",
+          "text": "stat /proc/1234",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q10",
+      "question": "A kdb+ process on Linux suddenly becomes very slow and CPU-bound in production. Which tools are reasonable first steps to understand what it is doing, without restarting it?",
+      "mode": "check",
+      "options": [
+        {
+          "id": "a",
+          "text": "top -p <pid>",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "strace -p <pid>",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "perf top -p <pid>",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "kill -9 <pid>",
+          "isCorrect": false
+        },
+        {
+          "id": "e",
+          "text": "shutdown -r now",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}
