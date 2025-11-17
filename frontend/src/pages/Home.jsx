@@ -1,75 +1,42 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
+import { useNavigate, Link } from "react-router-dom";
 
 export default function Home() {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser) navigate("/");
-      else setUser(currentUser);
+    const un = onAuthStateChanged(auth, (u) => {
+      if (!u) navigate("/");
+      setUser(u);
     });
+    return () => un();
+  }, []);
 
-    return () => unsub();
-  }, [navigate]);
-
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/");
-  };
+  if (!user) return null;
 
   return (
-    <div className="min-h-screen w-full text-white flex flex-col items-center justify-center px-6 py-10 font-sora">
+    <div className="min-h-[calc(100vh-64px)] flex flex-col items-center justify-center text-center px-4">
+      <h1 className="text-3xl md:text-5xl font-bold mb-10 max-w-[90%] break-words leading-tight">
+        Welcome, {user.email}!
+      </h1>
 
-      {/* Welcome */}
-      <div className="animate-fadeIn text-center mb-10">
-        <h1 className="text-4xl md:text-5xl font-extrabold">
-          Welcome{user ? `, ${user.email}!` : "!"}
-        </h1>
-      </div>
-
-      {/* Button Row */}
-      <div className="flex flex-wrap gap-4 animate-slideUp">
-
-        <button
-          onClick={() => navigate("/quiz")}
-          className="
-            bg-white text-black 
-            px-6 py-3 rounded-xl font-semibold
-            hover:bg-white/80
-            transition-all duration-200
-          "
+      <div className="flex flex-col md:flex-row gap-4 items-center">
+        <Link
+          to="/quiz"
+          className="w-full max-w-xs px-6 py-3 bg-blue-600 text-white rounded-md shadow hover:bg-blue-500 transition text-center"
         >
           Start Quiz
-        </button>
+        </Link>
 
-        <button
-          onClick={() => navigate("/history")}
-          className="
-            bg-white text-black
-            px-6 py-3 rounded-xl font-semibold
-            hover:bg-white/80
-            transition-all duration-200
-          "
+        <Link
+          to="/history"
+          className="w-full max-w-xs px-6 py-3 bg-white text-black rounded-md shadow hover:bg-gray-200 transition text-center"
         >
           View History
-        </button>
-
-        <button
-          onClick={handleLogout}
-          className="
-            bg-white text-black
-            px-6 py-3 rounded-xl font-semibold
-            hover:bg-white/80
-            transition-all duration-200
-          "
-        >
-          Logout
-        </button>
-
+        </Link>
       </div>
     </div>
   );

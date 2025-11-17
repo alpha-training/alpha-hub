@@ -1,12 +1,17 @@
-module.exports = {
+/** @type {import('tailwindcss').Config} */
+export default {
     content: ["./index.html", "./src/**/*.{js,jsx}"],
-    theme: {
-      extend: {
-        fontFamily: {
-          sora: ["Sora", "sans-serif"],
-        },
-      },
+  
+    // ⭐ Force classic Tailwind engine
+    presets: [require("tailwindcss/preset")()],
+  
+    // ⭐ Disable the new Tailwind 4 Design System
+    experimental: {
+      disableDesignSystem: true,
     },
-    plugins: [],
+  
+    theme: {
+      extend: {},
+    },
   };
   
