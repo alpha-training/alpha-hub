@@ -12,7 +12,7 @@
     },
     {
       "id": "q2",
-      "question": "What might one find at the root level of a date partitioned hdb directory?",
+      "question": "What might one find at the top level of a date partitioned hdb directory?",
       "options": [
         { "id": "a", "text": "sym file", "isCorrect": true },
         { "id": "b", "text": "table folders", "isCorrect": false },
@@ -148,6 +148,156 @@
         { "id": "b", "text": "insert may fail unless the left argument is an unkeyed table name", "isCorrect": false },
         { "id": "c", "d": "insert expects the right argument to be a table or a list of column data", "isCorrect": true },
         { "id": "d", "text": "upsert epects the right argument to be a table or a list of row data", "isCorrect": true }
+      ]
+    },
+    {
+      "id": "q16",
+      "question": "If I run h(+;4;`hey) from process A on a remote process B, and the error trap is not set on A or B:",
+      "options": [
+        { "id": "a", "text": "There will be no error because the error trap has not been set on either process", "isCorrect": false },
+        { "id": "b", "text": "There will be a type error on B but nothing on A", "isCorrect": false },
+        { "id": "c", "d": "There will be a type error on A but nothing on B", "isCorrect": true },
+        { "id": "d", "text": "There will be an error on both because type always throws an error", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q17",
+      "question": "If I run h(+;4;`hey) from process A on a remote process B, and the error trap is set on A and B:",
+      "options": [
+        { "id": "a", "text": "There will no error on either because type does not throw an error over a handle", "isCorrect": false },
+        { "id": "b", "text": "There will be a type error on B and A will hang", "isCorrect": true },
+        { "id": "c", "d": "There will be a type error on A and B will hang", "isCorrect": false },
+        { "id": "d", "text": "There will be an error on both because type always throws an error", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q18",
+      "question": "If I run h(+;4;`hey) from process A on a remote process B, and the error trap is set on A and B:",
+      "options": [
+        { "id": "a", "text": "There will no error on either because type does not throw an error over a handle", "isCorrect": false },
+        { "id": "b", "text": "There will be a type error on B and A will hang", "isCorrect": true },
+        { "id": "c", "d": "There will be a type error on A and B will hang", "isCorrect": false },
+        { "id": "d", "text": "There will be an error on both because type always throws an error", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q19",
+      "question": "What would be returned by: 0-\\10 40 70",
+      "options": [
+        { "id": "a", "text": "10 30 30", "isCorrect": false },
+        { "id": "c", "d": "-10 -50 -120", "isCorrect": true },
+        { "id": "b", "text": "'length'", "isCorrect": false },
+        { "id": "d", "text": "0 10 30 30", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q20",
+      "question": "What would be returned by: 0 10+20 30 40",
+      "options": [
+        { "id": "a", "text": "0 30 40 50", "isCorrect": false },
+        { "id": "c", "d": "'length", "isCorrect": true },
+        { "id": "b", "text": "'rank'", "isCorrect": false },
+        { "id": "d", "text": "0 10 20 30 40", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q21",
+      "question": "What would be returned by: iasc 2 1 3 4",
+      "options": [
+        { "id": "a", "text": "1 0 2 3", "isCorrect": true },
+        { "id": "c", "d": "'length", "isCorrect": false },
+        { "id": "b", "text": "3 2 0 1'", "isCorrect": false },
+        { "id": "d", "text": "`s#1 2 3 4", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q22",
+      "question": "Which of the following would split s:`JPM.N into `JPM`N",
+      "options": [
+        { "id": "a", "text": "` vs s", "isCorrect": true },
+        { "id": "c", "d": "` vs each s", "isCorrect": true },
+        { "id": "b", "text": "` sv's`", "isCorrect": false },
+        { "id": "d", "text": "` sv each s`", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q23",
+      "question": "Which of the following would split s:`JPM.N into `JPM`N",
+      "options": [
+        { "id": "a", "text": "` vs s", "isCorrect": true },
+        { "id": "c", "d": "` vs each s", "isCorrect": true },
+        { "id": "b", "text": "` sv's`", "isCorrect": false },
+        { "id": "d", "text": "` sv each s`", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q24",
+      "question": "Which of the following is the equivalent of select n:count i by sym from trade",
+      "options": [
+        { "id": "a", "text": "?[trade;enlist[`sym]!enlist`sym;enlist[`n]!enlist(count;`i);()]", "isCorrect": true },
+        { "id": "c", "d": "?[trade;enlist[`n]!enlist(count;`x);enlist[`sym]!enlist`sym;()]", "isCorrect": true },
+        { "id": "b", "text": "?[trade;enlist[`sym]!enlist`sym;enlist[`n]!enlist(count;`x);()]", "isCorrect": false },
+        { "id": "d", "text": "?[trade;();enlist[`sym]!enlist`sym;enlist[`n]!enlist(count;`i)]", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q25",
+      "question": "What do the following functional select fields mean: ?[t;c;b;a]",
+      "options": [
+        { "id": "a", "text": "table, columns, by, attributes", "isCorrect": true },
+        { "id": "c", "d": "table, constraints, by, attributes", "isCorrect": true },
+        { "id": "b", "text": "table, columns, by, aggregations", "isCorrect": false },
+        { "id": "d", "text": "table, constraints, by, aggregations", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q26",
+      "question": "What does the 5th field of a functional select allow me to do?",
+      "options": [
+        { "id": "a", "text": "You cannot have a fifth field", "isCorrect": false },
+        { "id": "c", "d": "Sort the table by this column", "isCorrect": false },
+        { "id": "b", "text": "Select the first n or last (-n) records from the table", "isCorrect": true },
+        { "id": "d", "text": "Select specific indices from the table", "isCorrect": true }
+      ]
+    },
+    {
+      "id": "q27",
+      "question": "What does the 6th field of a functional select allow me to do?",
+      "options": [
+        { "id": "a", "text": "You cannot have a sixth field", "isCorrect": false },
+        { "id": "c", "d": "Sort the table by this column", "isCorrect": true },
+        { "id": "b", "text": "Select the first n or last (-n) records from the table", "isCorrect": false },
+        { "id": "d", "text": "Select specific indices from the table", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q28",
+      "question": "What is the difference between moving into a namespace .test with \\d to define a function foo, and just defining it with .test.foo:?",
+      "options": [
+        { "id": "a", "text": "They are similar but with \\d you need to use :: when defining foo", "isCorrect": false },
+        { "id": "c", "d": "There is no difference", "isCorrect": false },
+        { "id": "b", "text": "In the \\d case, foo will look in .test for global variables, in the other case it looks in the root namespace", "isCorrect": true },
+        { "id": "d", "text": "In the \\d case, foo will look in the root namespace for global variables, in the other case it looks in the .test namespace", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q29",
+      "question": "If I hit a breakpoint in a function due to a remote call from another process, how do I find the handle of the caller?",
+      "options": [
+        { "id": "a", "text": ".z.w", "isCorrect": true },
+        { "id": "c", "d": ".Q.w[]", "isCorrect": false },
+        { "id": "b", "text": ".Q.W[]", "isCorrect": false },
+        { "id": "d", "text": ".z.W", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q30",
+      "question": "How do I get a dictionary of IPC handles with the number of bytes waiting in their output queues?",
+      "options": [
+        { "id": "a", "text": ".z.w", "isCorrect": false },
+        { "id": "c", "d": ".Q.w[]", "isCorrect": false },
+        { "id": "b", "text": ".Q.W[]", "isCorrect": false },
+        { "id": "d", "text": ".z.W", "isCorrect": true }
       ]
     }
   ]
