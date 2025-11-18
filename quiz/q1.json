@@ -499,6 +499,16 @@
         { "id": "c", "d": "UTC time with millisecond precision", "isCorrect": false },
         { "id": "d", "text": "Local date+time with nanosecond precision", "isCorrect": false }
       ]
+    },
+    {
+      "id": "q51",
+      "question": "If I want to write 10 20 30 to `:zfile with the compression parameters (17;2;6), I can do",
+      "options": [
+        { "id": "a", "text": "-21!(`:zfile;17 2 6;10 20 30)", "isCorrect": false },
+        { "id": "b", "text": "(`:zfile;17;2;6) set 10 20 30", "isCorrect": true },
+        { "id": "c", "d": ".z.zd:17 2 6;  (and then do set as normal)", "isCorrect": true },
+        { "id": "d", "text": ".z.zf:17 2 6; (and then do set as normal)", "isCorrect": false }
+      ]
     }
   ]
 }
