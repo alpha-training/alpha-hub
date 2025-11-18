@@ -1,0 +1,84 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Which of the following can be used to asynchronously send a command over a list handles?",
+      "options": [
+        { "id": "a", "text": "neg[handles](`func;10;20)", "isCorrect": false },
+        { "id": "b", "text": "-25!(handles;(`func;10;20))", "isCorrect": true },
+        { "id": "c", "text": "neg[handles]@\\:(`func;10;20)", "isCorrect": true },
+        { "id": "d", "text": "neg[handles]each(`func;10;20)", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q2",
+      "question": "What might one find at the root level of a date partitioned hdb directory?",
+      "options": [
+        { "id": "a", "text": "sym file", "isCorrect": true },
+        { "id": "b", "text": "table folders", "isCorrect": false },
+        { "id": "c", "d": "date partition folders", "isCorrect": true },
+        { "id": "d", "text": "par.txt", "isCorrect": true }
+      ]
+    },
+    {
+      "id": "q3",
+      "question": "How might I get the unique elements across two lists L1 and L2?",
+      "options": [
+        { "id": "a", "text": "L1 inter L2", "isCorrect": false },
+        { "id": "b", "text": "L1,L2", "isCorrect": false },
+        { "id": "c", "d": "distinct L1,L2", "isCorrect": true },
+        { "id": "d", "text": "L1 union L2", "isCorrect": true }
+      ]
+    },
+    {
+      "id": "q4",
+      "question": "How do I find the number of healthy chunks in a log file L?",
+      "options": [
+        { "id": "a", "text": "-11!L", "isCorrect": false },
+        { "id": "b", "text": "-11!(-2;L)", "isCorrect": true },
+        { "id": "c", "d": "-11!(-1;L)", "isCorrect": false },
+        { "id": "d", "text": "-11!(n;L)", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q5",
+      "question": "How do I flush a handle to ensure any queued messaged leave now rather than at the end of the current chain of execution?",
+      "options": [
+        { "id": "a", "text": "h`", "isCorrect": false },
+        { "id": "b", "text": "neg[h][]", "isCorrect": true },
+        { "id": "c", "d": "neg[h](::)", "isCorrect": true },
+        { "id": "d", "text": "h(::)", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q6",
+      "question": "Which attribute(s) do not carry any overhead?",
+      "options": [
+        { "id": "a", "text": "grouped (`g#)", "isCorrect": false },
+        { "id": "b", "text": "sorted (`s#)", "isCorrect": true },
+        { "id": "c", "d": "unique (`u#)", "isCorrect": false },
+        { "id": "d", "text": "parted (`p#)", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q7",
+      "question": "What would be the result of ` sv `a`b",
+      "options": [
+        { "id": "a", "text": "`:a/b", "isCorrect": false },
+        { "id": "b", "text": "`:a/b/", "isCorrect": false },
+        { "id": "c", "d": "`a.b", "isCorrect": true },
+        { "id": "d", "text": "'length", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q8",
+      "question": "What would be the result of ` sv `:a`b",
+      "options": [
+        { "id": "a", "text": "`:a/b", "isCorrect": true },
+        { "id": "b", "text": "length", "isCorrect": false },
+        { "id": "c", "d": "`a.b", "isCorrect": false },
+        { "id": "d", "text": "`:a/b/", "isCorrect": false }
+      ]
+    }
+  ]
+}

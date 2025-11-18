@@ -1,0 +1,654 @@
+{
+  "questions": [
+    {
+      "id": "l1",
+      "question": "Which command-line argument for `chown` is required to change the ownership of a directory and all of its contents (files and subdirectories) recursively?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "-R", "isCorrect": true },
+        { "id": "b", "text": "-c", "isCorrect": false },
+        { "id": "c", "text": "-v", "isCorrect": false },
+        { "id": "d", "text": "-h", "isCorrect": false }
+      ],
+      "hint": "The flag needed for this operation is standard across many Linux commands when applied to directories.",
+      "rationale": "The `-R` or `--recursive` option is used to change the ownership of all files and directories starting from the specified directory downward."
+    },
+    {
+      "id": "l2",
+      "question": "Which numeric mode(s) for `chmod` would grant **read, write, and execute** permissions only to the file's **owner**?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "700", "isCorrect": true },
+        { "id": "b", "text": "u=rwx", "isCorrect": true },
+        { "id": "c", "text": "777", "isCorrect": false },
+        { "id": "d", "text": "400", "isCorrect": false }
+      ],
+      "hint": "Remember the octal values for read (4), write (2), and execute (1), and how they are summed for the owner, group, and others.",
+      "rationale": "700 grants rwx to the user (owner) and no permissions to the group or others; u=rwx is the symbolic equivalent for the user (owner)."
+    },
+    {
+      "id": "l3",
+      "question": "What is the specific effect of setting the **Set Group ID (SGID)** bit on a directory (indicated by an 's' in the group position, e.g., `drwxr-sr-x`)?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "All files created in the directory will have the SGID owner.", "isCorrect": false },
+        { "id": "b", "text": "All files created in the directory will inherit the directory's group ownership.", "isCorrect": true },
+        { "id": "c", "d": "The directory is protected from deletion by non-owners.", "isCorrect": false },
+        { "id": "d", "text": "The owner's permissions are elevated when executing files within.", "isCorrect": false }
+      ],
+      "hint": "This permission is frequently used in shared directories where group collaboration is important.",
+      "rationale": "When the SGID bit is set on a directory, new files and subdirectories created within it will automatically belong to the group that owns the directory."
+    },
+    {
+      "id": "l4",
+      "question": "What is the resulting default permission mask applied to a new file created after setting the umask to `0077`?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "rw-rw-rw- (666)", "isCorrect": false },
+        { "id": "b", "text": "rw------- (600)", "isCorrect": true },
+        { "id": "c", "d": "rwxrwxrwx (777)", "isCorrect": false },
+        { "id": "d", "text": "rwxrwx--- (770)", "isCorrect": false }
+      ],
+      "hint": "The umask value is subtracted from the default file creation permission (666 for files, 777 for directories).",
+      "rationale": "Default file permissions are 666. Subtracting umask 077 (no permissions for group/others) results in 600, which is rw-------."
+    },
+    {
+      "id": "l5",
+      "question": "In the standard `ls -l` output, what is the meaning of the file permission string `lrwxrwxrwx`?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "The file is a directory.", "isCorrect": false },
+        { "id": "b", "text": "The file is a symbolic link.", "isCorrect": true },
+        { "id": "c", "d": "Everyone (owner, group, others) has read, write, and execute permissions.", "isCorrect": true },
+        { "id": "d", "text": "The file has the sticky bit set.", "isCorrect": false }
+      ],
+      "hint": "Look closely at the very first character of the permission string.",
+      "rationale": "The leading 'l' indicates a symbolic link, and the following 'rwxrwxrwx' (777) means all user classes have all three permissions."
+    },
+    {
+      "id": "l6",
+      "question": "Which command is used to create a **hard link** to an existing file named `original.txt`, with the new link named `link.txt`?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "ln -s original.txt link.txt", "isCorrect": false },
+        { "id": "b", "text": "ln original.txt link.txt", "isCorrect": true },
+        { "id": "c", "d": "cp -l original.txt link.txt", "isCorrect": false },
+        { "id": "d", "text": "link original.txt link.txt", "isCorrect": false }
+      ],
+      "hint": "The utility is named after its function, but the symbolic flag is omitted for a hard link.",
+      "rationale": "The `ln` command without the `-s` (symbolic) flag creates a hard link, which is a new directory entry pointing to the same inode as the original file."
+    },
+    {
+      "id": "l7",
+      "question": "How do you change a file's access timestamp to the current time without modifying the file's contents or its modification timestamp?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "touch -m <file>", "isCorrect": false },
+        { "id": "b", "text": "touch -a <file>", "isCorrect": true },
+        { "id": "c", "d": "stat --atime <file>", "isCorrect": false },
+        { "id": "d", "text": "chmod --atime <file>", "isCorrect": false }
+      ],
+      "hint": "The flag for access time is the first letter of the word 'access'.",
+      "rationale": "The `touch` utility is used to update timestamps; the `-a` option specifically targets the access time (atime), while `-m` targets the modification time (mtime)."
+    },
+    {
+      "id": "l8",
+      "question": "Which command line argument for `userdel` is required to delete the user's home directory along with the account?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "-h", "isCorrect": false },
+        { "id": "b", "text": "-d", "isCorrect": false },
+        { "id": "c", "d": "-r", "isCorrect": true },
+        { "id": "d", "text": "-f", "isCorrect": false }
+      ],
+      "hint": "The flag stands for 'remove'.",
+      "rationale": "The `userdel -r` command deletes the user account and recursively removes the home directory and mail spool."
+    },
+    {
+      "id": "l9",
+      "question": "What is the primary function of the **Sticky Bit** (indicated by a 't' or 'T' in the others position) when set on a world-writable directory like `/tmp`?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "It forces all new files to be owned by the root user.", "isCorrect": false },
+        { "id": "b", "text": "It prevents users from deleting or renaming files in the directory unless they own them or the directory.", "isCorrect": true },
+        { "id": "c", "d": "It makes the directory immutable (unchangeable).", "isCorrect": false },
+        { "id": "d", "text": "It speeds up file access time for all users.", "isCorrect": false }
+      ],
+      "hint": "This permission is essential for directories used by multiple users, such as the temporary file system.",
+      "rationale": "The Sticky Bit ensures that only the file's owner (or the directory owner/root) can delete or rename files within the directory, even if other users have write permissions to the directory."
+    },
+    {
+      "id": "l10",
+      "question": "Which options can be used with the `usermod` command to add a user to the secondary group 'devs'?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "-G devs", "isCorrect": true },
+        { "id": "b", "text": "-g devs", "isCorrect": false },
+        { "id": "c", "d": "-aG devs", "isCorrect": true },
+        { "id": "d", "text": "--group devs", "isCorrect": false }
+      ],
+      "hint": "One flag sets the primary group, while the other (often combined with another flag) manages supplementary groups.",
+      "rationale": "The `-G` flag specifies supplementary groups, and the `-a` flag must be used with `-G` to append the new group without removing the user from existing supplementary groups."
+    },
+    {
+      "id": "l11",
+      "question": "Which environment variable(s) determine(s) the location of executable programs searched by the shell?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "$HOME", "isCorrect": false },
+        { "id": "b", "text": "$PATH", "isCorrect": true },
+        { "id": "c", "d": "$PWD", "isCorrect": false },
+        { "id": "d", "text": "$IFS", "isCorrect": false }
+      ],
+      "hint": "This variable is a colon-separated list of directories.",
+      "rationale": "The $PATH variable contains a list of directories the shell searches when a command is executed without a full path, allowing the user to simply type the command name."
+    },
+    {
+      "id": "l12",
+      "question": "Which `systemctl` command is used to prevent a service from being started manually or automatically, even by other dependent services?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "systemctl disable <service>", "isCorrect": false },
+        { "id": "b", "text": "systemctl stop <service>", "isCorrect": false },
+        { "id": "c", "d": "systemctl mask <service>", "isCorrect": true },
+        { "id": "d", "text": "systemctl isolate <service>", "isCorrect": false }
+      ],
+      "hint": "This action creates a symbolic link to `/dev/null` for the service unit file.",
+      "rationale": "The `systemctl mask` command places a symlink in the `/etc/systemd/system` directory, pointing the unit name to `/dev/null`, which effectively makes it impossible to start."
+    },
+    {
+      "id": "l13",
+      "question": "To display the last time the system was started (boot time), which command is most direct and accurate?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "cat /proc/uptime", "isCorrect": false },
+        { "id": "b", "text": "systemctl status", "isCorrect": false },
+        { "id": "c", "d": "uptime -s", "isCorrect": true },
+        { "id": "d", "text": "who -r", "isCorrect": false }
+      ],
+      "hint": "The utility that shows how long the system has been running also offers a flag to show the start time.",
+      "rationale": "The `uptime -s` command displays the time the system was last booted, which is more direct than calculating it from total uptime."
+    },
+    {
+      "id": "l14",
+      "question": "Which command(s) can be used to run a script in the background and ensure it continues to run even after the user logs out of the terminal session?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "nohup ./script.sh &", "isCorrect": true },
+        { "id": "b", "text": "./script.sh &", "isCorrect": false },
+        { "id": "c", "d": "disown ./script.sh", "isCorrect": true },
+        { "id": "d", "text": "bg ./script.sh", "isCorrect": false }
+      ],
+      "hint": "One utility explicitly ignores hangup signals, while a shell built-in removes the job from the shell's job control list.",
+      "rationale": "`nohup` prevents the SIGHUP signal from terminating the process upon logout. `disown` removes the job from the shell's job table, also preventing SIGHUP from affecting it."
+    },
+    {
+      "id": "l15",
+      "question": "Which command is used to display the currently scheduled cron jobs for the user who executes it?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "crontab -e", "isCorrect": false },
+        { "id": "b", "text": "cron -l", "isCorrect": false },
+        { "id": "c", "d": "crontab -l", "isCorrect": true },
+        { "id": "d", "text": "cat /etc/cron.d/*", "isCorrect": false }
+      ],
+      "hint": "The flag is the first letter of the verb 'list'.",
+      "rationale": "The `crontab -l` command lists the current contents of the user's crontab file, which holds their scheduled jobs."
+    },
+    {
+      "id": "l16",
+      "question": "Which are valid runlevel names (or systemd targets) that specify a system state with a functional network and multi-user login capability?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "runlevel 0", "isCorrect": false },
+        { "id": "b", "text": "multi-user.target", "isCorrect": true },
+        { "id": "c", "d": "runlevel 3", "isCorrect": true },
+        { "id": "d", "text": "rescue.target", "isCorrect": false }
+      ],
+      "hint": "Consider the difference between a command-line interface and a full desktop environment.",
+      "rationale": "Runlevel 3 (System V init) and `multi-user.target` (systemd) both provide a multi-user, non-graphical system with networking capabilities."
+    },
+    {
+      "id": "l17",
+      "question": "What is the correct way to set an environment variable `DEBUG` to `true` for only the execution of `my_script.sh`?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "export DEBUG=true; ./my_script.sh", "isCorrect": false },
+        { "id": "b", "text": "set DEBUG=true; ./my_script.sh", "isCorrect": false },
+        { "id": "c", "d": "DEBUG=true ./my_script.sh", "isCorrect": true },
+        { "id": "d", "text": "./my_script.sh $DEBUG=true", "isCorrect": false }
+      ],
+      "hint": "This is achieved by placing the assignment directly before the command on the same line.",
+      "rationale": "Placing the variable assignment directly before the command makes it a temporary environment variable that is only available to that single command and its child processes, not the current shell."
+    },
+    {
+      "id": "l18",
+      "question": "On modern Linux systems using systemd, which process typically holds **Process ID (PID) 1**?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "The kernel process", "isCorrect": false },
+        { "id": "b", "text": "The login shell (e.g., bash)", "isCorrect": false },
+        { "id": "c", "d": "systemd (the initial system and services manager)", "isCorrect": true },
+        { "id": "d", "text": "The system monitor (e.g., top or htop)", "isCorrect": false }
+      ],
+      "hint": "This is the very first user-space process started by the kernel.",
+      "rationale": "PID 1 is reserved for the initial process, which is responsible for bootstrapping the rest of the user-space environment. On modern Linux, this is typically `systemd`."
+    },
+    {
+      "id": "l19",
+      "question": "What is the output of the shell command `echo $?` immediately after a successful execution of a previous command?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "-1", "isCorrect": false },
+        { "id": "b", "text": "The PID of the previous command", "isCorrect": false },
+        { "id": "c", "d": "0", "isCorrect": true },
+        { "id": "d", "text": "The number of arguments", "isCorrect": false }
+      ],
+      "hint": "In programming conventions, a zero return value often indicates a specific outcome.",
+      "rationale": "The special variable `$?` holds the exit status of the most recently executed foreground command. By convention, an exit status of 0 indicates successful execution."
+    },
+    {
+      "id": "l20",
+      "question": "Which signal(s) sent by the `kill` command can be **caught, handled, or ignored** by a process, allowing for graceful shutdown?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "SIGKILL (9)", "isCorrect": false },
+        { "id": "b", "text": "SIGTERM (15)", "isCorrect": true },
+        { "id": "c", "d": "SIGHUP (1)", "isCorrect": true },
+        { "id": "d", "text": "SIGSTOP (19)", "isCorrect": false }
+      ],
+      "hint": "The signals that cannot be caught are the ones that must be used for forceful, immediate termination.",
+      "rationale": "SIGKILL (9) and SIGSTOP (19) cannot be caught or ignored. SIGTERM (15) and SIGHUP (1) are standard signals that programs can intercept to perform cleanup before exiting."
+    },
+    {
+      "id": "l21",
+      "question": "Which command is used to test connectivity to a network host using the Internet Control Message Protocol (ICMP)?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "telnet", "isCorrect": false },
+        { "id": "b", "text": "ping", "isCorrect": true },
+        { "id": "c", "d": "netstat", "isCorrect": false },
+        { "id": "d", "text": "traceroute", "isCorrect": false }
+      ],
+      "hint": "The name of the tool is onomatopoeic, referencing the sound of a sonar pulse.",
+      "rationale": "The `ping` command sends ICMP Echo Request packets to a target host and measures the response time, confirming basic network reachability."
+    },
+    {
+      "id": "l22",
+      "question": "Which commands can be used to download a file from a remote server using HTTP/HTTPS from the command line?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "wget", "isCorrect": true },
+        { "id": "b", "text": "scp", "isCorrect": false },
+        { "id": "c", "d": "curl", "isCorrect": true },
+        { "id": "d", "text": "ftp", "isCorrect": true }
+      ],
+      "hint": "Two of these are general-purpose client tools, while one is a specific file transfer protocol often available via a client tool.",
+      "rationale": "`wget` is a non-interactive downloader, `curl` is a versatile data transfer tool, and `ftp` is a protocol often implemented as a command-line client, all of which can download files."
+    },
+    {
+      "id": "l23",
+      "question": "Which command displays the kernel's network routing table, showing how packets for different destinations are forwarded?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "ip neighbor", "isCorrect": false },
+        { "id": "b", "text": "ip route show", "isCorrect": true },
+        { "id": "c", "d": "netstat -r", "isCorrect": false },
+        { "id": "d", "text": "ip link show", "isCorrect": false }
+      ],
+      "hint": "The modern Linux networking utility starts with 'ip' and specifies the table it is viewing.",
+      "rationale": "The modern way to view the routing table is `ip route show` (or `ip r`), replacing the deprecated `route` and `netstat -r`."
+    },
+    {
+      "id": "l24",
+      "question": "Which file contains the IP addresses of the DNS servers used by the system for name resolution?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "/etc/hosts", "isCorrect": false },
+        { "id": "b", "text": "/etc/network/interfaces", "isCorrect": false },
+        { "id": "c", "d": "/etc/resolv.conf", "isCorrect": true },
+        { "id": "d", "text": "/etc/nsswitch.conf", "isCorrect": false }
+      ],
+      "hint": "The file name suggests its function: 'resolve configuration'.",
+      "rationale": "The `/etc/resolv.conf` file is a configuration file for the Domain Name System (DNS) resolver library, specifying the nameservers to query."
+    },
+    {
+      "id": "l25",
+      "question": "Which well-known port numbers are conventionally associated with secure web browsing (HTTPS)?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "80", "isCorrect": false },
+        { "id": "b", "text": "22", "isCorrect": false },
+        { "id": "c", "d": "443", "isCorrect": true },
+        { "id": "d", "text": "8443", "isCorrect": true }
+      ],
+      "hint": "Standard HTTPS uses a specific port, but some non-standard applications use a slightly higher, commonly reserved port for secure connections.",
+      "rationale": "Port 443 is the standard well-known port for HTTPS/TLS, while 8443 is often used for alternate or non-standard HTTPS applications like management consoles."
+    },
+    {
+      "id": "l26",
+      "question": "Which `ss` command (or equivalent) will show you a list of all currently listening TCP sockets in numerical form (no name resolution)?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "ss -ant", "isCorrect": false },
+        { "id": "b", "text": "ss -lnt", "isCorrect": true },
+        { "id": "c", "d": "ss -u", "isCorrect": false },
+        { "id": "d", "text": "ss -s", "isCorrect": false }
+      ],
+      "hint": "The flags need to specify listening, numerical, and TCP protocols.",
+      "rationale": "The flags mean: `-l` (listening sockets), `-n` (numerical addresses/ports), and `-t` (TCP protocol)."
+    },
+    {
+      "id": "l27",
+      "question": "Which command is used to capture and analyze packets passing through a network interface in real-time?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "ip monitor", "isCorrect": false },
+        { "id": "b", "text": "netstat -c", "isCorrect": false },
+        { "id": "c", "d": "tcpdump", "isCorrect": true },
+        { "id": "d", "text": "wireshark (cli)", "isCorrect": false }
+      ],
+      "hint": "The command is named for the protocol and the action it performs.",
+      "rationale": "`tcpdump` is the standard command-line utility for capturing and filtering network traffic based on given expressions."
+    },
+    {
+      "id": "l28",
+      "question": "Which command should be used to permanently open port 80/tcp using `firewalld` (the default firewall on RHEL/CentOS 7+ and Fedora)?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "firewall-cmd --add-port=80/tcp", "isCorrect": false },
+        { "id": "b", "text": "firewall-cmd --zone=public --add-port=80/tcp --permanent", "isCorrect": true },
+        { "id": "c", "d": "iptables -A INPUT -p tcp --dport 80 -j ACCEPT", "isCorrect": false },
+        { "id": "d", "text": "ufw allow 80/tcp", "isCorrect": false }
+      ],
+      "hint": "To make a change survive a reboot, a specific flag must be used in conjunction with the desired zone.",
+      "rationale": "For `firewall-cmd`, the `--permanent` flag is required to save the change to the configuration files, and it must be reloaded (or the system rebooted) to take effect."
+    },
+    {
+      "id": "l29",
+      "question": "Which `curl` option is used to retrieve only the HTTP headers from a URL without downloading the entire page content?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "-v", "isCorrect": false },
+        { "id": "b", "text": "-s", "isCorrect": false },
+        { "id": "c", "d": "-I", "isCorrect": true },
+        { "id": "d", "text": "-o", "isCorrect": false }
+      ],
+      "hint": "The flag is the first letter of 'Information' or 'Include'.",
+      "rationale": "The `-I` or `--head` option tells `curl` to send a HEAD request, which requests only the headers and not the body content."
+    },
+    {
+      "id": "l30",
+      "question": "In a modern Linux environment, what is the best command to display the IP address and MAC address of a network interface named `eth0`?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "ip addr show eth0", "isCorrect": true },
+        { "id": "b", "text": "ifconfig eth0", "isCorrect": false },
+        { "id": "c", "d": "netstat -i eth0", "isCorrect": false },
+        { "id": "d", "text": "route -n", "isCorrect": false }
+      ],
+      "hint": "While an older utility might work, the standard and preferred utility begins with 'ip'.",
+      "rationale": "The `ip addr show` (or `ip a`) command is the modern, preferred utility to display address and link information, including the MAC address (link/ether) and IP address."
+    },
+    {
+      "id": "l31",
+      "question": "Which `tar` command options should be used together to create a new archive, compress it using **gzip**, and specify the name of the output file?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "-c", "isCorrect": true },
+        { "id": "b", "text": "-x", "isCorrect": false },
+        { "id": "c", "d": "-z", "isCorrect": true },
+        { "id": "d", "text": "-f", "isCorrect": true }
+      ],
+      "hint": "The flags stand for 'Create', 'gZip', and 'File name'.",
+      "rationale": "The combination of flags is: `-c` (create), `-z` (gzip compression), and `-f` (specify file name)."
+    },
+    {
+      "id": "l32",
+      "question": "Which command is used to display a list of all packages installed on a Debian/Ubuntu system, along with their status?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "apt list", "isCorrect": false },
+        { "id": "b", "text": "dpkg -l", "isCorrect": true },
+        { "id": "c", "d": "rpm -qa", "isCorrect": false },
+        { "id": "d", "text": "apt-cache showinstalled", "isCorrect": false }
+      ],
+      "hint": "The utility is the low-level manager for the package files themselves.",
+      "rationale": "`dpkg -l` (list) queries the database for installed packages, while `apt list --installed` is also an option, `dpkg -l` is the most common for full status."
+    },
+    {
+      "id": "l33",
+      "question": "Which command is the modern, standard way to decompress a file compressed using the `xz` utility (e.g., `archive.tar.xz`)?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "gunzip", "isCorrect": false },
+        { "id": "b", "text": "unxz", "isCorrect": true },
+        { "id": "c", "d": "bzip2 -d", "isCorrect": false },
+        { "id": "d", "text": "tar -Jxvf", "isCorrect": false }
+      ],
+      "hint": "The utility is a dedicated decompressor for the XZ format.",
+      "rationale": "`unxz` is the specific command to decompress files compressed with `xz`. `tar` can handle it with the `-J` flag, but `unxz` is the standalone decompressor."
+    },
+    {
+      "id": "l34",
+      "question": "What is the primary utility used for installing, updating, and removing packages on recent Fedora/RHEL/CentOS systems?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "apt-get", "isCorrect": false },
+        { "id": "b", "text": "dpkg", "isCorrect": false },
+        { "id": "c", "d": "dnf", "isCorrect": true },
+        { "id": "d", "text": "pacman", "isCorrect": false }
+      ],
+      "hint": "This tool is the successor to the `yum` utility.",
+      "rationale": "`dnf` (Dandified YUM) is the next-generation package manager for Fedora, CentOS, and RHEL, replacing the older `yum` utility."
+    },
+    {
+      "id": "l35",
+      "question": "Which commands can be used to display which installed package a specific file (e.g., `/usr/bin/python3`) belongs to?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "dpkg -S /usr/bin/python3 (Debian/Ubuntu)", "isCorrect": true },
+        { "id": "b", "text": "apt-file search /usr/bin/python3", "isCorrect": false },
+        { "id": "c", "d": "rpm -qf /usr/bin/python3 (RHEL/Fedora)", "isCorrect": true },
+        { "id": "d", "text": "which /usr/bin/python3", "isCorrect": false }
+      ],
+      "hint": "The flags for both package managers stand for 'query' and 'file'.",
+      "rationale": "`dpkg -S` (search) and `rpm -qf` (query file) are the dedicated commands in their respective package management systems to find the package that owns a file."
+    },
+    {
+      "id": "l36",
+      "question": "How do you extract a `tar.gz` archive named `data.tar.gz` to a directory named `destination` that does not yet exist?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "tar -xzf data.tar.gz /destination", "isCorrect": false },
+        { "id": "b", "text": "tar -xzf data.tar.gz -C destination", "isCorrect": true },
+        { "id": "c", "d": "tar -xf data.tar.gz | mv * destination", "isCorrect": false },
+        { "id": "d", "text": "tar -x data.tar.gz --target destination", "isCorrect": false }
+      ],
+      "hint": "The flag needed to change the output directory is a single capital letter.",
+      "rationale": "The `-C` (capital C) flag in `tar` specifies a different directory for the operation. If the directory does not exist, `tar` will create it before extracting the files."
+    },
+    {
+      "id": "l37",
+      "question": "In a shell script, which command is used to execute a command and capture its output as the value of a variable?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "result=`command`", "isCorrect": false },
+        { "id": "b", "text": "result=$(command)", "isCorrect": true },
+        { "id": "c", "d": "command | result", "isCorrect": false },
+        { "id": "d", "text": "read result < command", "isCorrect": false }
+      ],
+      "hint": "This is known as command substitution, and the modern, preferred syntax uses parentheses.",
+      "rationale": "The `$(command)` syntax performs command substitution, running the command and replacing the expression with the command's standard output, which can then be assigned to a variable."
+    },
+    {
+      "id": "l38",
+      "question": "Which `apt` command will update the package index files (the list of available packages) from the configured repositories?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "apt upgrade", "isCorrect": false },
+        { "id": "b", "text": "apt update", "isCorrect": true },
+        { "id": "c", "d": "apt fetch", "isCorrect": false },
+        { "id": "d", "text": "apt install", "isCorrect": false }
+      ],
+      "hint": "The command performs the simple action of refreshing the local data.",
+      "rationale": "`apt update` downloads the package information from the configured sources, ensuring the local package lists are current before attempting any installation or upgrades."
+    },
+    {
+      "id": "l39",
+      "question": "Which compression utilities are generally known for achieving faster decompression speeds compared to standard `gzip`?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "bzip2", "isCorrect": false },
+        { "id": "b", "text": "lz4", "isCorrect": true },
+        { "id": "c", "d": "zstd", "isCorrect": true },
+        { "id": "d", "text": "zip", "isCorrect": false }
+      ],
+      "hint": "These newer formats often optimize for decompression speed and are frequently used in kernel, database, and log compression.",
+      "rationale": "`lz4` and `zstd` (Zstandard) are modern compression algorithms optimized for high-speed decompression, often at the expense of compression ratio compared to `bzip2` or `xz`."
+    },
+    {
+      "id": "l40",
+      "question": "What is the primary purpose of the `at` command in Linux?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "To execute a command periodically (e.g., daily).", "isCorrect": false },
+        { "id": "b", "text": "To execute a command once at a specified time.", "isCorrect": true },
+        { "id": "c", "d": "To list all running processes on the system.", "isCorrect": false },
+        { "id": "d", "text": "To view the content of an archived file.", "isCorrect": false }
+      ],
+      "hint": "This command is different from `cron` in that it only runs a job one time.",
+      "rationale": "The `at` command is used to schedule a single command to be executed at a later, specific time, as opposed to `cron`, which is for recurring tasks."
+    },
+    {
+      "id": "l41",
+      "question": "Which are valid ways to define a function named `log_message` in a Bash shell script?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "function log_message() { ... }", "isCorrect": true },
+        { "id": "b", "text": "log_message() { ... }", "isCorrect": true },
+        { "id": "c", "d": "def log_message: ... end", "isCorrect": false },
+        { "id": "d", "text": "function=log_message { ... }", "isCorrect": false }
+      ],
+      "hint": "Bash supports two common syntax styles for defining functions.",
+      "rationale": "Both `function name() { ... }` (with the keyword) and `name() { ... }` (without the keyword) are syntactically correct ways to define a function in Bash."
+    },
+    {
+      "id": "l42",
+      "question": "In a shell script, what does the special variable `$@` represent?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "The exit status of the last command.", "isCorrect": false },
+        { "id": "b", "text": "The process ID (PID) of the script itself.", "isCorrect": false },
+        { "id": "c", "d": "All positional parameters passed to the script, treated as separate strings.", "isCorrect": true },
+        { "id": "d", "text": "The name of the script being executed.", "isCorrect": false }
+      ],
+      "hint": "When properly quoted (`\"$@\"`), this is the safest way to iterate over all command-line arguments.",
+      "rationale": "When double-quoted, `\"$@\"` expands to separate quoted strings for each positional argument, e.g., `\"1\" \"2\" \"3\"`, making it safe for arguments with spaces."
+    },
+    {
+      "id": "l43",
+      "question": "Which of the following shell conditional tests checks if the variable `VAR` is set and has a non-empty value?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "[[ -z \"$VAR\" ]]", "isCorrect": false },
+        { "id": "b", "text": "[[ -n \"$VAR\" ]]", "isCorrect": true },
+        { "id": "c", "d": "[ $VAR != \"\" ]", "isCorrect": false },
+        { "id": "d", "text": "[ -e $VAR ]", "isCorrect": false }
+      ],
+      "hint": "The flag stands for 'non-zero' length.",
+      "rationale": "The test operator `-n STRING` returns true if the length of the string is greater than zero, i.e., it is non-empty."
+    },
+    {
+      "id": "l44",
+      "question": "What is the correct way to declare an integer variable named `COUNTER` and initialize it to 0 in Bash?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "let COUNTER = 0", "isCorrect": false },
+        { "id": "b", "text": "COUNTER=0", "isCorrect": false },
+        { "id": "c", "d": "declare -i COUNTER=0", "isCorrect": true },
+        { "id": "d", "text": "int COUNTER=0", "isCorrect": false }
+      ],
+      "hint": "The built-in command for declaring variables has a flag specifically for setting the type.",
+      "rationale": "`declare -i` explicitly tells Bash that the variable should be treated as an integer, allowing arithmetic operations without external commands."
+    },
+    {
+      "id": "l45",
+      "question": "What is the purpose of the `[[ ]]` (double bracket) conditional construct compared to the single bracket `[ ]` in Bash?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "The double bracket is always faster than the single bracket.", "isCorrect": false },
+        { "id": "b", "text": "The double bracket provides extended features like pattern matching and avoids word splitting/pathname expansion.", "isCorrect": true },
+        { "id": "c", "d": "The double bracket is for string comparison, and the single bracket is for arithmetic.", "isCorrect": false },
+        { "id": "d", "text": "The single bracket is a built-in, while the double bracket is an external command.", "isCorrect": false }
+      ],
+      "hint": "This construct allows for more sophisticated and safer comparisons within Bash.",
+      "rationale": "The `[[ ]]` construct is a Bash keyword that offers more powerful features like regex-like pattern matching (`=~`) and treats the contents of variables more safely, preventing common pitfalls of `[ ]`."
+    },
+    {
+      "id": "l46",
+      "question": "Which conditional expression in Bash checks if a file named `config.ini` exists and is a regular file?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "[[ -d config.ini ]]", "isCorrect": false },
+        { "id": "b", "text": "[[ -f config.ini ]]", "isCorrect": true },
+        { "id": "c", "d": "[[ -e config.ini ]]", "isCorrect": false },
+        { "id": "d", "text": "[[ -r config.ini ]]", "isCorrect": false }
+      ],
+      "hint": "The flag is the first letter of the word 'file'.",
+      "rationale": "The `-f` test operator checks if the file exists and is a regular file (not a directory, link, or special device file)."
+    },
+    {
+      "id": "l47",
+      "question": "What is the correct syntax for a `for` loop that iterates over a list of items (`apple`, `banana`, `cherry`) in Bash?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "for item in [apple banana cherry]; do ... done", "isCorrect": false },
+        { "id": "b", "text": "for item in apple banana cherry; do ... done", "isCorrect": true },
+        { "id": "c", "d": "for item : apple banana cherry; do ... done", "isCorrect": false },
+        { "id": "d", "text": "loop item in (apple banana cherry) { ... }", "isCorrect": false }
+      ],
+      "hint": "The list of items is simply separated by whitespace.",
+      "rationale": "The basic `for` loop syntax in Bash is `for variable in list; do commands; done`, where the list is a set of space-separated words."
+    },
+    {
+      "id": "l48",
+      "question": "Which methods are appropriate for performing arithmetic calculations in a Bash script?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "expr 1 + 1", "isCorrect": true },
+        { "id": "b", "text": "$[ 1 + 1 ]", "isCorrect": true },
+        { "id": "c", "d": "$(( 1 + 1 ))", "isCorrect": true },
+        { "id": "d", "text": "calc 1 + 1", "isCorrect": false }
+      ],
+      "hint": "One is an external utility, and two are shell built-ins; the double parentheses is the most common modern approach.",
+      "rationale": "`expr` is an external utility. `$[ ]` is an older shell arithmetic syntax. `$(( ))` is the modern and preferred Bash arithmetic expansion syntax."
+    },
+    {
+      "id": "l49",
+      "question": "In a shell script, what is the purpose of the `set -e` command?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "It prints every command before it is executed.", "isCorrect": false },
+        { "id": "b", "text": "It causes the script to exit immediately if a command exits with a non-zero status.", "isCorrect": true },
+        { "id": "c", "d": "It treats unset variables as an error.", "isCorrect": false },
+        { "id": "d", "text": "It enables command history expansion.", "isCorrect": false }
+      ],
+      "hint": "This is a best practice for writing robust scripts, ensuring 'E'rror checking.",
+      "rationale": "`set -e` (errexit) is crucial for preventing unexpected behavior by ensuring the script stops execution as soon as any command fails, preventing potentially catastrophic side effects."
+    },
+    {
+      "id": "l50",
+      "question": "Which of the following is the standard command for defining or changing the **Input Field Separator** for the current shell?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "FS=\":\"", "isCorrect": false },
+        { "id": "b", "text": "set -i \":\"", "isCorrect": false },
+        { "id": "c", "d": "IFS=\":\"", "isCorrect": true },
+        { "id": "d", "text": "separator=\":\"", "isCorrect": false }
+      ],
+      "hint": "The variable is an acronym for 'Input Field Separator'.",
+      "rationale": "The `IFS` environment variable is a critical Bash mechanism that defines what characters are treated as field separators (delimiters) when splitting words."
+    }
+  ]
+}
