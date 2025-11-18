@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import quizData from "../../../quiz/linux1.json"; 
+import { auth } from "../firebase";
+import { db } from "../firebase";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 
+import quizData from "../../../quiz/linux1.json"; 
 export default function Quiz() {
   const navigate = useNavigate();
 
@@ -11,24 +18,23 @@ export default function Quiz() {
   // Index of the current question
   const [current, setCurrent] = useState(0);
 
-  // Selected answers:
-  // For radio: a single option id (e.g. "b")
-  // For checkbox: an array of selected option ids
+  // Selected answers for current question:
+  // For radio: [optionId], for check: multiple optionIds
   const [selected, setSelected] = useState([]);
 
-  // Scoring
+  // Global score (but we will also use local scoreToSave to avoid async issues)
   const [score, setScore] = useState(0);
 
-  // Timer 5 minutes = 300 seconds
+  // Timer: 5 minutes = 300 seconds
   const [timeLeft, setTimeLeft] = useState(300);
 
   // ------------------------------
-  // Load questions once on mount
+  // Load questions from JSON once
   // ------------------------------
   useEffect(() => {
     const list = quizData.questions;
 
-    // Shuffle and take up to 30 questions if there are more
+    // Shuffle and take up to 30 questions
     const shuffled = [...list].sort(() => Math.random() - 0.5).slice(0, 30);
 
     setQuestions(shuffled);
@@ -39,28 +45,29 @@ export default function Quiz() {
   // ------------------------------
   useEffect(() => {
     if (timeLeft <= 0) {
-      finishQuiz();
+      // Time is up: finish with current score
+      finishQuiz(score);
       return;
     }
 
-    const t = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+    const t = setTimeout(() => setTimeLeft((prev) => prev - 1), 1000);
     return () => clearTimeout(t);
-  }, [timeLeft]);
+  }, [timeLeft, score]); // score in deps so we finish with latest value
 
-  // If questions not ready yet
+  // If questions not loaded yet
   if (!questions.length) return null;
 
   const q = questions[current];
 
   // ------------------------------
-  // Select answer (radio)
+  // Radio selection (single choice)
   // ------------------------------
   function selectRadio(optionId) {
     setSelected([optionId]);
   }
 
   // ------------------------------
-  // Toggle answer (checkbox)
+  // Checkbox selection (multi-choice)
   // ------------------------------
   function toggleCheckbox(optionId) {
     if (selected.includes(optionId)) {
@@ -71,51 +78,25 @@ export default function Quiz() {
   }
 
   // ------------------------------
-  // Move to next question
+  // Calculate score delta for this question
+  // Returns +1 or -2 (or 0 if nothing selected)
   // ------------------------------
-  function nextQuestion() {
-    calculateScore(q);
-
-    setSelected([]);
-
-    if (current + 1 < questions.length) {
-      setCurrent(current + 1);
-    } else {
-      finishQuiz();
-    }
-  }
-
-  // ------------------------------
-  // Skip question (no score change)
-  // ------------------------------
-  function skipQuestion() {
-    setSelected([]);
-
-    if (current + 1 < questions.length) {
-      setCurrent(current + 1);
-    } else {
-      finishQuiz();
-    }
-  }
-
-  // ------------------------------
-  // Score calculation
-  // Wrong = -2 points (for any mistake)
-  // Correct = +1 point
-  // For checkbox: must match *all* correct answers and *only* them
-  // ------------------------------
-  function calculateScore(question) {
+  function getScoreDelta(question) {
     const correctOptions = question.options
       .filter((o) => o.isCorrect)
       .map((o) => o.id);
 
+    if (!selected.length) {
+      // No answer: treat as wrong (or 0 if you prefer)
+      return -2;
+    }
+
     if (question.mode === "radio") {
-      // If selected the only correct option → +1
-      if (selected[0] && correctOptions.includes(selected[0])) {
-        setScore((prev) => prev + 1);
-      } else {
-        setScore((prev) => prev - 2);
+      const choice = selected[0];
+      if (choice && correctOptions.includes(choice)) {
+        return 1;
       }
+      return -2;
     }
 
     if (question.mode === "check") {
@@ -124,36 +105,87 @@ export default function Quiz() {
 
       const isCorrect =
         correctSet.size === selectedSet.size &&
-        [...correctSet].every((opt) => selectedSet.has(opt));
+        [...correctSet].every((id) => selectedSet.has(id));
 
-      if (isCorrect) {
-        setScore((prev) => prev + 1);
-      } else {
-        setScore((prev) => prev - 2);
-      }
+      return isCorrect ? 1 : -2;
+    }
+
+    return 0;
+  }
+
+  // ------------------------------
+  // Go to next question
+  // ------------------------------
+  function nextQuestion() {
+    const delta = getScoreDelta(q);
+    const newScore = score + delta;
+    setScore(newScore);
+    setSelected([]);
+
+    if (current + 1 < questions.length) {
+      setCurrent(current + 1);
+    } else {
+      finishQuiz(newScore);
     }
   }
 
   // ------------------------------
-  // End quiz
+  // Skip current question (no score change)
   // ------------------------------
-  function finishQuiz() {
+  function skipQuestion() {
+    setSelected([]);
+
+    if (current + 1 < questions.length) {
+      setCurrent(current + 1);
+    } else {
+      finishQuiz(score);
+    }
+  }
+
+  // ------------------------------
+  // Finish quiz: save to Firestore and navigate to Results
+  // ------------------------------
+  async function finishQuiz(finalScore) {
+    const user = auth.currentUser;
+
+    const total = questions.length;
+    const timeSpent = 300 - timeLeft;
+    const percentage = Math.max(0, ((finalScore / total) * 100).toFixed(0));
+
+    // Save result to Firestore only if user is logged in
+    if (user) {
+      try {
+        await addDoc(collection(db, "results"), {
+          uid: user.uid,
+          score: finalScore,
+          total,
+          percentage: Number(percentage),
+          timeSpent,
+          createdAt: serverTimestamp(),
+        });
+      } catch (err) {
+        console.error("Error saving result:", err);
+      }
+    }
+
+    // Navigate to results page with state
     navigate("/results", {
       state: {
-        score,
-        total: questions.length,
-        timeSpent: 300 - timeLeft,
+        score: finalScore,
+        total,
+        timeSpent,
+        percentage,
       },
     });
   }
 
   // ------------------------------
-  // Format timer MM:SS
+  // Format time MM:SS
   // ------------------------------
-  function formatTime(s) {
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return `${m}:${String(sec).padStart(2, "0")}`;
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${String(s).padStart(2, "0")}`;
   }
 
   // ------------------------------
@@ -161,8 +193,7 @@ export default function Quiz() {
   // ------------------------------
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
-
-      {/* Header: question number + timer */}
+      {/* Top bar: question count + timer */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold">
           Question {current + 1} / {questions.length}
@@ -184,9 +215,9 @@ export default function Quiz() {
       </div>
 
       {/* Question text */}
-      <h3 className="text-2xl font-bold mb-6">{q.question}</h3>
+      <h3 className="text-lg md:text-2xl font-semibold mb-6">{q.question}</h3>
 
-      {/* Answer options */}
+      {/* Options */}
       <div className="flex flex-col gap-4 mb-8">
         {q.options.map((opt) => {
           const isSelected = selected.includes(opt.id);
@@ -214,7 +245,7 @@ export default function Quiz() {
         })}
       </div>
 
-      {/* Navigation buttons */}
+      {/* Bottom buttons */}
       <div className="flex justify-between gap-4">
         <button
           onClick={skipQuestion}
