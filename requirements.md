@@ -6,11 +6,11 @@ What we need:
 
 * Identifies the candidate (allows them to log in / log out)
 * Ability to ingest the questions in the quiz json files
-* Asks the candidate a **random subset** of these questions
 * Allows the candidate to select which subject(s) to include when generating their quiz (e.g. q / linux / git)
+* Asks the candidate a **random subset** of these questions
 * Has a progress bar at the top, which shows 4/30, 5/30 etc
 * Candidates can skip a question
-* Wrong answers are given a score of -2
+* Wrong answers are given a score of -2 (variable)
 * Shows the candidate their result, and stores a history of their results for future reference
 * Shows the candidate a record of their taken quizzes
 
