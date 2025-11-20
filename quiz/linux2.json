@@ -33,7 +33,7 @@
       "options": [
         { "id": "a", "text": "All files created in the directory will have the SGID owner.", "isCorrect": false },
         { "id": "b", "text": "All files created in the directory will inherit the directory's group ownership.", "isCorrect": true },
-        { "id": "c", "d": "The directory is protected from deletion by non-owners.", "isCorrect": false },
+        { "id": "c", "text": "The directory is protected from deletion by non-owners.", "isCorrect": false },
         { "id": "d", "text": "The owner's permissions are elevated when executing files within.", "isCorrect": false }
       ],
       "hint": "This permission is frequently used in shared directories where group collaboration is important.",
@@ -46,7 +46,7 @@
       "options": [
         { "id": "a", "text": "rw-rw-rw- (666)", "isCorrect": false },
         { "id": "b", "text": "rw------- (600)", "isCorrect": true },
-        { "id": "c", "d": "rwxrwxrwx (777)", "isCorrect": false },
+        { "id": "c", "text": "rwxrwxrwx (777)", "isCorrect": false },
         { "id": "d", "text": "rwxrwx--- (770)", "isCorrect": false }
       ],
       "hint": "The umask value is subtracted from the default file creation permission (666 for files, 777 for directories).",
@@ -59,7 +59,7 @@
       "options": [
         { "id": "a", "text": "The file is a directory.", "isCorrect": false },
         { "id": "b", "text": "The file is a symbolic link.", "isCorrect": true },
-        { "id": "c", "d": "Everyone (owner, group, others) has read, write, and execute permissions.", "isCorrect": true },
+        { "id": "c", "text": "Everyone (owner, group, others) has read, write, and execute permissions.", "isCorrect": true },
         { "id": "d", "text": "The file has the sticky bit set.", "isCorrect": false }
       ],
       "hint": "Look closely at the very first character of the permission string.",
@@ -72,7 +72,7 @@
       "options": [
         { "id": "a", "text": "ln -s original.txt link.txt", "isCorrect": false },
         { "id": "b", "text": "ln original.txt link.txt", "isCorrect": true },
-        { "id": "c", "d": "cp -l original.txt link.txt", "isCorrect": false },
+        { "id": "c", "text": "cp -l original.txt link.txt", "isCorrect": false },
         { "id": "d", "text": "link original.txt link.txt", "isCorrect": false }
       ],
       "hint": "The utility is named after its function, but the symbolic flag is omitted for a hard link.",
@@ -85,7 +85,7 @@
       "options": [
         { "id": "a", "text": "touch -m <file>", "isCorrect": false },
         { "id": "b", "text": "touch -a <file>", "isCorrect": true },
-        { "id": "c", "d": "stat --atime <file>", "isCorrect": false },
+        { "id": "c", "text": "stat --atime <file>", "isCorrect": false },
         { "id": "d", "text": "chmod --atime <file>", "isCorrect": false }
       ],
       "hint": "The flag for access time is the first letter of the word 'access'.",
@@ -98,7 +98,7 @@
       "options": [
         { "id": "a", "text": "-h", "isCorrect": false },
         { "id": "b", "text": "-d", "isCorrect": false },
-        { "id": "c", "d": "-r", "isCorrect": true },
+        { "id": "c", "text": "-r", "isCorrect": true },
         { "id": "d", "text": "-f", "isCorrect": false }
       ],
       "hint": "The flag stands for 'remove'.",
@@ -111,7 +111,7 @@
       "options": [
         { "id": "a", "text": "It forces all new files to be owned by the root user.", "isCorrect": false },
         { "id": "b", "text": "It prevents users from deleting or renaming files in the directory unless they own them or the directory.", "isCorrect": true },
-        { "id": "c", "d": "It makes the directory immutable (unchangeable).", "isCorrect": false },
+        { "id": "c", "text": "It makes the directory immutable (unchangeable).", "isCorrect": false },
         { "id": "d", "text": "It speeds up file access time for all users.", "isCorrect": false }
       ],
       "hint": "This permission is essential for directories used by multiple users, such as the temporary file system.",
@@ -124,7 +124,7 @@
       "options": [
         { "id": "a", "text": "-G devs", "isCorrect": true },
         { "id": "b", "text": "-g devs", "isCorrect": false },
-        { "id": "c", "d": "-aG devs", "isCorrect": true },
+        { "id": "c", "text": "-aG devs", "isCorrect": true },
         { "id": "d", "text": "--group devs", "isCorrect": false }
       ],
       "hint": "One flag sets the primary group, while the other (often combined with another flag) manages supplementary groups.",
@@ -137,7 +137,7 @@
       "options": [
         { "id": "a", "text": "$HOME", "isCorrect": false },
         { "id": "b", "text": "$PATH", "isCorrect": true },
-        { "id": "c", "d": "$PWD", "isCorrect": false },
+        { "id": "c", "text": "$PWD", "isCorrect": false },
         { "id": "d", "text": "$IFS", "isCorrect": false }
       ],
       "hint": "This variable is a colon-separated list of directories.",
@@ -150,7 +150,7 @@
       "options": [
         { "id": "a", "text": "systemctl disable <service>", "isCorrect": false },
         { "id": "b", "text": "systemctl stop <service>", "isCorrect": false },
-        { "id": "c", "d": "systemctl mask <service>", "isCorrect": true },
+        { "id": "c", "text": "systemctl mask <service>", "isCorrect": true },
         { "id": "d", "text": "systemctl isolate <service>", "isCorrect": false }
       ],
       "hint": "This action creates a symbolic link to `/dev/null` for the service unit file.",
@@ -163,7 +163,7 @@
       "options": [
         { "id": "a", "text": "cat /proc/uptime", "isCorrect": false },
         { "id": "b", "text": "systemctl status", "isCorrect": false },
-        { "id": "c", "d": "uptime -s", "isCorrect": true },
+        { "id": "c", "text": "uptime -s", "isCorrect": true },
         { "id": "d", "text": "who -r", "isCorrect": false }
       ],
       "hint": "The utility that shows how long the system has been running also offers a flag to show the start time.",
@@ -176,7 +176,7 @@
       "options": [
         { "id": "a", "text": "nohup ./script.sh &", "isCorrect": true },
         { "id": "b", "text": "./script.sh &", "isCorrect": false },
-        { "id": "c", "d": "disown ./script.sh", "isCorrect": true },
+        { "id": "c", "text": "disown ./script.sh", "isCorrect": true },
         { "id": "d", "text": "bg ./script.sh", "isCorrect": false }
       ],
       "hint": "One utility explicitly ignores hangup signals, while a shell built-in removes the job from the shell's job control list.",
@@ -189,7 +189,7 @@
       "options": [
         { "id": "a", "text": "crontab -e", "isCorrect": false },
         { "id": "b", "text": "cron -l", "isCorrect": false },
-        { "id": "c", "d": "crontab -l", "isCorrect": true },
+        { "id": "c", "text": "crontab -l", "isCorrect": true },
         { "id": "d", "text": "cat /etc/cron.d/*", "isCorrect": false }
       ],
       "hint": "The flag is the first letter of the verb 'list'.",
@@ -202,7 +202,7 @@
       "options": [
         { "id": "a", "text": "runlevel 0", "isCorrect": false },
         { "id": "b", "text": "multi-user.target", "isCorrect": true },
-        { "id": "c", "d": "runlevel 3", "isCorrect": true },
+        { "id": "c", "text": "runlevel 3", "isCorrect": true },
         { "id": "d", "text": "rescue.target", "isCorrect": false }
       ],
       "hint": "Consider the difference between a command-line interface and a full desktop environment.",
@@ -215,7 +215,7 @@
       "options": [
         { "id": "a", "text": "export DEBUG=true; ./my_script.sh", "isCorrect": false },
         { "id": "b", "text": "set DEBUG=true; ./my_script.sh", "isCorrect": false },
-        { "id": "c", "d": "DEBUG=true ./my_script.sh", "isCorrect": true },
+        { "id": "c", "text": "DEBUG=true ./my_script.sh", "isCorrect": true },
         { "id": "d", "text": "./my_script.sh $DEBUG=true", "isCorrect": false }
       ],
       "hint": "This is achieved by placing the assignment directly before the command on the same line.",
@@ -228,7 +228,7 @@
       "options": [
         { "id": "a", "text": "The kernel process", "isCorrect": false },
         { "id": "b", "text": "The login shell (e.g., bash)", "isCorrect": false },
-        { "id": "c", "d": "systemd (the initial system and services manager)", "isCorrect": true },
+        { "id": "c", "text": "systemd (the initial system and services manager)", "isCorrect": true },
         { "id": "d", "text": "The system monitor (e.g., top or htop)", "isCorrect": false }
       ],
       "hint": "This is the very first user-space process started by the kernel.",
@@ -241,7 +241,7 @@
       "options": [
         { "id": "a", "text": "-1", "isCorrect": false },
         { "id": "b", "text": "The PID of the previous command", "isCorrect": false },
-        { "id": "c", "d": "0", "isCorrect": true },
+        { "id": "c", "text": "0", "isCorrect": true },
         { "id": "d", "text": "The number of arguments", "isCorrect": false }
       ],
       "hint": "In programming conventions, a zero return value often indicates a specific outcome.",
@@ -254,7 +254,7 @@
       "options": [
         { "id": "a", "text": "SIGKILL (9)", "isCorrect": false },
         { "id": "b", "text": "SIGTERM (15)", "isCorrect": true },
-        { "id": "c", "d": "SIGHUP (1)", "isCorrect": true },
+        { "id": "c", "text": "SIGHUP (1)", "isCorrect": true },
         { "id": "d", "text": "SIGSTOP (19)", "isCorrect": false }
       ],
       "hint": "The signals that cannot be caught are the ones that must be used for forceful, immediate termination.",
@@ -267,7 +267,7 @@
       "options": [
         { "id": "a", "text": "telnet", "isCorrect": false },
         { "id": "b", "text": "ping", "isCorrect": true },
-        { "id": "c", "d": "netstat", "isCorrect": false },
+        { "id": "c", "text": "netstat", "isCorrect": false },
         { "id": "d", "text": "traceroute", "isCorrect": false }
       ],
       "hint": "The name of the tool is onomatopoeic, referencing the sound of a sonar pulse.",
@@ -280,7 +280,7 @@
       "options": [
         { "id": "a", "text": "wget", "isCorrect": true },
         { "id": "b", "text": "scp", "isCorrect": false },
-        { "id": "c", "d": "curl", "isCorrect": true },
+        { "id": "c", "text": "curl", "isCorrect": true },
         { "id": "d", "text": "ftp", "isCorrect": true }
       ],
       "hint": "Two of these are general-purpose client tools, while one is a specific file transfer protocol often available via a client tool.",
@@ -293,7 +293,7 @@
       "options": [
         { "id": "a", "text": "ip neighbor", "isCorrect": false },
         { "id": "b", "text": "ip route show", "isCorrect": true },
-        { "id": "c", "d": "netstat -r", "isCorrect": false },
+        { "id": "c", "text": "netstat -r", "isCorrect": false },
         { "id": "d", "text": "ip link show", "isCorrect": false }
       ],
       "hint": "The modern Linux networking utility starts with 'ip' and specifies the table it is viewing.",
@@ -306,7 +306,7 @@
       "options": [
         { "id": "a", "text": "/etc/hosts", "isCorrect": false },
         { "id": "b", "text": "/etc/network/interfaces", "isCorrect": false },
-        { "id": "c", "d": "/etc/resolv.conf", "isCorrect": true },
+        { "id": "c", "text": "/etc/resolv.conf", "isCorrect": true },
         { "id": "d", "text": "/etc/nsswitch.conf", "isCorrect": false }
       ],
       "hint": "The file name suggests its function: 'resolve configuration'.",
@@ -319,7 +319,7 @@
       "options": [
         { "id": "a", "text": "80", "isCorrect": false },
         { "id": "b", "text": "22", "isCorrect": false },
-        { "id": "c", "d": "443", "isCorrect": true },
+        { "id": "c", "text": "443", "isCorrect": true },
         { "id": "d", "text": "8443", "isCorrect": true }
       ],
       "hint": "Standard HTTPS uses a specific port, but some non-standard applications use a slightly higher, commonly reserved port for secure connections.",
@@ -332,7 +332,7 @@
       "options": [
         { "id": "a", "text": "ss -ant", "isCorrect": false },
         { "id": "b", "text": "ss -lnt", "isCorrect": true },
-        { "id": "c", "d": "ss -u", "isCorrect": false },
+        { "id": "c", "text": "ss -u", "isCorrect": false },
         { "id": "d", "text": "ss -s", "isCorrect": false }
       ],
       "hint": "The flags need to specify listening, numerical, and TCP protocols.",
@@ -345,7 +345,7 @@
       "options": [
         { "id": "a", "text": "ip monitor", "isCorrect": false },
         { "id": "b", "text": "netstat -c", "isCorrect": false },
-        { "id": "c", "d": "tcpdump", "isCorrect": true },
+        { "id": "c", "text": "tcpdump", "isCorrect": true },
         { "id": "d", "text": "wireshark (cli)", "isCorrect": false }
       ],
       "hint": "The command is named for the protocol and the action it performs.",
@@ -358,7 +358,7 @@
       "options": [
         { "id": "a", "text": "firewall-cmd --add-port=80/tcp", "isCorrect": false },
         { "id": "b", "text": "firewall-cmd --zone=public --add-port=80/tcp --permanent", "isCorrect": true },
-        { "id": "c", "d": "iptables -A INPUT -p tcp --dport 80 -j ACCEPT", "isCorrect": false },
+        { "id": "c", "text": "iptables -A INPUT -p tcp --dport 80 -j ACCEPT", "isCorrect": false },
         { "id": "d", "text": "ufw allow 80/tcp", "isCorrect": false }
       ],
       "hint": "To make a change survive a reboot, a specific flag must be used in conjunction with the desired zone.",
@@ -371,7 +371,7 @@
       "options": [
         { "id": "a", "text": "-v", "isCorrect": false },
         { "id": "b", "text": "-s", "isCorrect": false },
-        { "id": "c", "d": "-I", "isCorrect": true },
+        { "id": "c", "text": "-I", "isCorrect": true },
         { "id": "d", "text": "-o", "isCorrect": false }
       ],
       "hint": "The flag is the first letter of 'Information' or 'Include'.",
@@ -384,7 +384,7 @@
       "options": [
         { "id": "a", "text": "ip addr show eth0", "isCorrect": true },
         { "id": "b", "text": "ifconfig eth0", "isCorrect": false },
-        { "id": "c", "d": "netstat -i eth0", "isCorrect": false },
+        { "id": "c", "text": "netstat -i eth0", "isCorrect": false },
         { "id": "d", "text": "route -n", "isCorrect": false }
       ],
       "hint": "While an older utility might work, the standard and preferred utility begins with 'ip'.",
@@ -397,7 +397,7 @@
       "options": [
         { "id": "a", "text": "-c", "isCorrect": true },
         { "id": "b", "text": "-x", "isCorrect": false },
-        { "id": "c", "d": "-z", "isCorrect": true },
+        { "id": "c", "text": "-z", "isCorrect": true },
         { "id": "d", "text": "-f", "isCorrect": true }
       ],
       "hint": "The flags stand for 'Create', 'gZip', and 'File name'.",
@@ -410,7 +410,7 @@
       "options": [
         { "id": "a", "text": "apt list", "isCorrect": false },
         { "id": "b", "text": "dpkg -l", "isCorrect": true },
-        { "id": "c", "d": "rpm -qa", "isCorrect": false },
+        { "id": "c", "text": "rpm -qa", "isCorrect": false },
         { "id": "d", "text": "apt-cache showinstalled", "isCorrect": false }
       ],
       "hint": "The utility is the low-level manager for the package files themselves.",
@@ -423,7 +423,7 @@
       "options": [
         { "id": "a", "text": "gunzip", "isCorrect": false },
         { "id": "b", "text": "unxz", "isCorrect": true },
-        { "id": "c", "d": "bzip2 -d", "isCorrect": false },
+        { "id": "c", "text": "bzip2 -d", "isCorrect": false },
         { "id": "d", "text": "tar -Jxvf", "isCorrect": false }
       ],
       "hint": "The utility is a dedicated decompressor for the XZ format.",
@@ -436,7 +436,7 @@
       "options": [
         { "id": "a", "text": "apt-get", "isCorrect": false },
         { "id": "b", "text": "dpkg", "isCorrect": false },
-        { "id": "c", "d": "dnf", "isCorrect": true },
+        { "id": "c", "text": "dnf", "isCorrect": true },
         { "id": "d", "text": "pacman", "isCorrect": false }
       ],
       "hint": "This tool is the successor to the `yum` utility.",
@@ -449,7 +449,7 @@
       "options": [
         { "id": "a", "text": "dpkg -S /usr/bin/python3 (Debian/Ubuntu)", "isCorrect": true },
         { "id": "b", "text": "apt-file search /usr/bin/python3", "isCorrect": false },
-        { "id": "c", "d": "rpm -qf /usr/bin/python3 (RHEL/Fedora)", "isCorrect": true },
+        { "id": "c", "text": "rpm -qf /usr/bin/python3 (RHEL/Fedora)", "isCorrect": true },
         { "id": "d", "text": "which /usr/bin/python3", "isCorrect": false }
       ],
       "hint": "The flags for both package managers stand for 'query' and 'file'.",
@@ -462,7 +462,7 @@
       "options": [
         { "id": "a", "text": "tar -xzf data.tar.gz /destination", "isCorrect": false },
         { "id": "b", "text": "tar -xzf data.tar.gz -C destination", "isCorrect": true },
-        { "id": "c", "d": "tar -xf data.tar.gz | mv * destination", "isCorrect": false },
+        { "id": "c", "text": "tar -xf data.tar.gz | mv * destination", "isCorrect": false },
         { "id": "d", "text": "tar -x data.tar.gz --target destination", "isCorrect": false }
       ],
       "hint": "The flag needed to change the output directory is a single capital letter.",
@@ -475,7 +475,7 @@
       "options": [
         { "id": "a", "text": "result=`command`", "isCorrect": false },
         { "id": "b", "text": "result=$(command)", "isCorrect": true },
-        { "id": "c", "d": "command | result", "isCorrect": false },
+        { "id": "c", "text": "command | result", "isCorrect": false },
         { "id": "d", "text": "read result < command", "isCorrect": false }
       ],
       "hint": "This is known as command substitution, and the modern, preferred syntax uses parentheses.",
@@ -488,7 +488,7 @@
       "options": [
         { "id": "a", "text": "apt upgrade", "isCorrect": false },
         { "id": "b", "text": "apt update", "isCorrect": true },
-        { "id": "c", "d": "apt fetch", "isCorrect": false },
+        { "id": "c", "text": "apt fetch", "isCorrect": false },
         { "id": "d", "text": "apt install", "isCorrect": false }
       ],
       "hint": "The command performs the simple action of refreshing the local data.",
@@ -501,7 +501,7 @@
       "options": [
         { "id": "a", "text": "bzip2", "isCorrect": false },
         { "id": "b", "text": "lz4", "isCorrect": true },
-        { "id": "c", "d": "zstd", "isCorrect": true },
+        { "id": "c", "text": "zstd", "isCorrect": true },
         { "id": "d", "text": "zip", "isCorrect": false }
       ],
       "hint": "These newer formats often optimize for decompression speed and are frequently used in kernel, database, and log compression.",
@@ -514,7 +514,7 @@
       "options": [
         { "id": "a", "text": "To execute a command periodically (e.g., daily).", "isCorrect": false },
         { "id": "b", "text": "To execute a command once at a specified time.", "isCorrect": true },
-        { "id": "c", "d": "To list all running processes on the system.", "isCorrect": false },
+        { "id": "c", "text": "To list all running processes on the system.", "isCorrect": false },
         { "id": "d", "text": "To view the content of an archived file.", "isCorrect": false }
       ],
       "hint": "This command is different from `cron` in that it only runs a job one time.",
@@ -527,7 +527,7 @@
       "options": [
         { "id": "a", "text": "function log_message() { ... }", "isCorrect": true },
         { "id": "b", "text": "log_message() { ... }", "isCorrect": true },
-        { "id": "c", "d": "def log_message: ... end", "isCorrect": false },
+        { "id": "c", "text": "def log_message: ... end", "isCorrect": false },
         { "id": "d", "text": "function=log_message { ... }", "isCorrect": false }
       ],
       "hint": "Bash supports two common syntax styles for defining functions.",
@@ -540,7 +540,7 @@
       "options": [
         { "id": "a", "text": "The exit status of the last command.", "isCorrect": false },
         { "id": "b", "text": "The process ID (PID) of the script itself.", "isCorrect": false },
-        { "id": "c", "d": "All positional parameters passed to the script, treated as separate strings.", "isCorrect": true },
+        { "id": "c", "text": "All positional parameters passed to the script, treated as separate strings.", "isCorrect": true },
         { "id": "d", "text": "The name of the script being executed.", "isCorrect": false }
       ],
       "hint": "When properly quoted (`\"$@\"`), this is the safest way to iterate over all command-line arguments.",
@@ -553,7 +553,7 @@
       "options": [
         { "id": "a", "text": "[[ -z \"$VAR\" ]]", "isCorrect": false },
         { "id": "b", "text": "[[ -n \"$VAR\" ]]", "isCorrect": true },
-        { "id": "c", "d": "[ $VAR != \"\" ]", "isCorrect": false },
+        { "id": "c", "text": "[ $VAR != \"\" ]", "isCorrect": false },
         { "id": "d", "text": "[ -e $VAR ]", "isCorrect": false }
       ],
       "hint": "The flag stands for 'non-zero' length.",
@@ -566,7 +566,7 @@
       "options": [
         { "id": "a", "text": "let COUNTER = 0", "isCorrect": false },
         { "id": "b", "text": "COUNTER=0", "isCorrect": false },
-        { "id": "c", "d": "declare -i COUNTER=0", "isCorrect": true },
+        { "id": "c", "text": "declare -i COUNTER=0", "isCorrect": true },
         { "id": "d", "text": "int COUNTER=0", "isCorrect": false }
       ],
       "hint": "The built-in command for declaring variables has a flag specifically for setting the type.",
@@ -579,7 +579,7 @@
       "options": [
         { "id": "a", "text": "The double bracket is always faster than the single bracket.", "isCorrect": false },
         { "id": "b", "text": "The double bracket provides extended features like pattern matching and avoids word splitting/pathname expansion.", "isCorrect": true },
-        { "id": "c", "d": "The double bracket is for string comparison, and the single bracket is for arithmetic.", "isCorrect": false },
+        { "id": "c", "text": "The double bracket is for string comparison, and the single bracket is for arithmetic.", "isCorrect": false },
         { "id": "d", "text": "The single bracket is a built-in, while the double bracket is an external command.", "isCorrect": false }
       ],
       "hint": "This construct allows for more sophisticated and safer comparisons within Bash.",
@@ -592,7 +592,7 @@
       "options": [
         { "id": "a", "text": "[[ -d config.ini ]]", "isCorrect": false },
         { "id": "b", "text": "[[ -f config.ini ]]", "isCorrect": true },
-        { "id": "c", "d": "[[ -e config.ini ]]", "isCorrect": false },
+        { "id": "c", "text": "[[ -e config.ini ]]", "isCorrect": false },
         { "id": "d", "text": "[[ -r config.ini ]]", "isCorrect": false }
       ],
       "hint": "The flag is the first letter of the word 'file'.",
@@ -605,7 +605,7 @@
       "options": [
         { "id": "a", "text": "for item in [apple banana cherry]; do ... done", "isCorrect": false },
         { "id": "b", "text": "for item in apple banana cherry; do ... done", "isCorrect": true },
-        { "id": "c", "d": "for item : apple banana cherry; do ... done", "isCorrect": false },
+        { "id": "c", "text": "for item : apple banana cherry; do ... done", "isCorrect": false },
         { "id": "d", "text": "loop item in (apple banana cherry) { ... }", "isCorrect": false }
       ],
       "hint": "The list of items is simply separated by whitespace.",
@@ -618,7 +618,7 @@
       "options": [
         { "id": "a", "text": "expr 1 + 1", "isCorrect": true },
         { "id": "b", "text": "$[ 1 + 1 ]", "isCorrect": true },
-        { "id": "c", "d": "$(( 1 + 1 ))", "isCorrect": true },
+        { "id": "c", "text": "$(( 1 + 1 ))", "isCorrect": true },
         { "id": "d", "text": "calc 1 + 1", "isCorrect": false }
       ],
       "hint": "One is an external utility, and two are shell built-ins; the double parentheses is the most common modern approach.",
@@ -631,7 +631,7 @@
       "options": [
         { "id": "a", "text": "It prints every command before it is executed.", "isCorrect": false },
         { "id": "b", "text": "It causes the script to exit immediately if a command exits with a non-zero status.", "isCorrect": true },
-        { "id": "c", "d": "It treats unset variables as an error.", "isCorrect": false },
+        { "id": "c", "text": "It treats unset variables as an error.", "isCorrect": false },
         { "id": "d", "text": "It enables command history expansion.", "isCorrect": false }
       ],
       "hint": "This is a best practice for writing robust scripts, ensuring 'E'rror checking.",
@@ -644,7 +644,7 @@
       "options": [
         { "id": "a", "text": "FS=\":\"", "isCorrect": false },
         { "id": "b", "text": "set -i \":\"", "isCorrect": false },
-        { "id": "c", "d": "IFS=\":\"", "isCorrect": true },
+        { "id": "c", "text": "IFS=\":\"", "isCorrect": true },
         { "id": "d", "text": "separator=\":\"", "isCorrect": false }
       ],
       "hint": "The variable is an acronym for 'Input Field Separator'.",
