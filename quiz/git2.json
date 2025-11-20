@@ -436,7 +436,7 @@
       "options": [
         { "id": "a", "text": "git stash show", "isCorrect": false },
         { "id": "b", "text": "git stash list", "isCorrect": true },
-        { "id": "c", "d": "git stash info", "isCorrect": false },
+        { "id": "c", "text": "git stash info", "isCorrect": false },
         { "id": "d", "text": "git log --stash", "isCorrect": false }
       ]
     },
@@ -469,7 +469,7 @@
       "options": [
         { "id": "a", "text": "To switch between different stashed changes.", "isCorrect": false },
         { "id": "b", "text": "To manage multiple working directories checked out from the same repository.", "isCorrect": true },
-        { "id": "c", "d": "To list all branches in their original creation order.", "isCorrect": false },
+        { "id": "c", "text": "To list all branches in their original creation order.", "isCorrect": false },
         { "id": "d", "text": "To interactively review and discard changes in the working directory.", "isCorrect": false }
       ]
     },
@@ -491,7 +491,7 @@
       "options": [
         { "id": "a", "text": "git add --track <file>", "isCorrect": false },
         { "id": "b", "text": "git add -f <file>", "isCorrect": true },
-        { "c": "git add --force-track <file>", "isCorrect": false },
+        { "id": "c", "text": "git add --force-track <file>", "isCorrect": false },
         { "id": "d", "text": "git unignore <file>", "isCorrect": false }
       ]
     },
@@ -502,7 +502,7 @@
       "options": [
         { "id": "a", "text": "-u", "isCorrect": true },
         { "id": "b", "text": "-s", "isCorrect": false },
-        { "c": "-U", "isCorrect": false },
+        { "id": "c", "text": "-U", "isCorrect": false },
         { "id": "d", "text": "-t", "isCorrect": false }
       ]
     },
@@ -524,7 +524,7 @@
       "options": [
         { "id": "a", "text": "Merge rewrites history, Rebase creates a merge commit.", "isCorrect": false },
         { "id": "b", "text": "Merge creates a new merge commit, Rebase moves (rewrites) the commits to a new base.", "isCorrect": true },
-        { "id": "c", "d": "Merge only works locally, Rebase works on the remote.", "isCorrect": false },
+        { "id": "c", "text": "Merge only works locally, Rebase works on the remote.", "isCorrect": false },
         { "id": "d", "text": "Merge is for branches, Rebase is for single commits.", "isCorrect": false }
       ]
     },
@@ -535,7 +535,7 @@
       "options": [
         { "id": "a", "text": "git log --since='2 weeks ago'", "isCorrect": true },
         { "id": "b", "text": "git log --age=2w", "isCorrect": false },
-        { "c": "git log --last-two-weeks", "isCorrect": false },
+        { "id": "c", "text": "git log --last-two-weeks", "isCorrect": false },
         { "id": "d", "text": "git log -t 2w", "isCorrect": false }
       ]
     },
