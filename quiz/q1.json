@@ -137,15 +137,15 @@
         { "id": "a", "text": "`:sym$`A`B", "isCorrect": false },
         { "id": "b", "text": "`:sym,:`A`B", "isCorrect": false },
         { "id": "c", "text": "@[`:.;`sym;,;`A`B]", "isCorrect": true },
-        { "id": "d", "text": "`sym?`A`B", "isCorrect": true }
+        { "id": "d", "text": "`:sym?`A`B", "isCorrect": true }
       ]
     },
     {
       "id": "q15",
       "question": "Which of the following is true:",
       "options": [
-        { "id": "a", "text": "upsert works only when the left argument is a keyed table", "isCorrect": true },
-        { "id": "b", "text": "insert may fail unless the left argument is an unkeyed table name", "isCorrect": false },
+        { "id": "a", "text": "upsert works only when the left argument is a keyed table", "isCorrect": false },
+        { "id": "b", "text": "insert should be provided with a left argument that is an unkeyed table name", "isCorrect": true },
         { "id": "c", "text": "insert expects the right argument to be a table or a list of column data", "isCorrect": true },
         { "id": "d", "text": "upsert epects the right argument to be a table or a list of row data", "isCorrect": true }
       ]
@@ -215,7 +215,7 @@
       "question": "Which of the following would split s:`JPM.N into `JPM`N",
       "options": [
         { "id": "a", "text": "` vs s", "isCorrect": true },
-        { "id": "c", "text": "` vs each s", "isCorrect": true },
+        { "id": "c", "text": "` vs each s", "isCorrect": false },
         { "id": "b", "text": "` sv's`", "isCorrect": false },
         { "id": "d", "text": "` sv each s`", "isCorrect": false }
       ]
@@ -234,20 +234,20 @@
       "id": "q24",
       "question": "Which of the following is the equivalent of select n:count i by sym from trade",
       "options": [
-        { "id": "a", "text": "?[trade;enlist[`sym]!enlist`sym;enlist[`n]!enlist(count;`i);()]", "isCorrect": true },
-        { "id": "c", "text": "?[trade;enlist[`n]!enlist(count;`x);enlist[`sym]!enlist`sym;()]", "isCorrect": true },
+        { "id": "a", "text": "?[trade;enlist[`sym]!enlist`sym;enlist[`n]!enlist(count;`i);()]", "isCorrect": false },
+        { "id": "c", "text": "?[trade;enlist[`n]!enlist(count;`x);enlist[`sym]!enlist`sym;()]", "isCorrect": false },
         { "id": "b", "text": "?[trade;enlist[`sym]!enlist`sym;enlist[`n]!enlist(count;`x);()]", "isCorrect": false },
-        { "id": "d", "text": "?[trade;();enlist[`sym]!enlist`sym;enlist[`n]!enlist(count;`i)]", "isCorrect": false }
+        { "id": "d", "text": "?[trade;();enlist[`sym]!enlist`sym;enlist[`n]!enlist(count;`i)]", "isCorrect": true }
       ]
     },
     {
       "id": "q25",
       "question": "What do the following functional select fields mean: ?[t;c;b;a]",
       "options": [
-        { "id": "a", "text": "table, columns, by, attributes", "isCorrect": true },
-        { "id": "c", "text": "table, constraints, by, attributes", "isCorrect": true },
+        { "id": "a", "text": "table, columns, by, attributes", "isCorrect": false },
+        { "id": "c", "text": "table, constraints, by, attributes", "isCorrect": false },
         { "id": "b", "text": "table, columns, by, aggregations", "isCorrect": false },
-        { "id": "d", "text": "table, constraints, by, aggregations", "isCorrect": false }
+        { "id": "d", "text": "table, constraints, by, aggregations", "isCorrect": true }
       ]
     },
     {
@@ -472,12 +472,12 @@
     },
     {
       "id": "q48",
-      "question": "What is .z.p",
+      "question": "What is .z.N?",
       "options": [
         { "id": "a", "text": "Local time with millisecond precision", "isCorrect": false },
-        { "id": "b", "text": "UTC time with nanosecond precision", "isCorrect": true },
+        { "id": "b", "text": "UTC time with nanosecond precision", "isCorrect": false },
         { "id": "c", "text": "UTC time with millisecond precision", "isCorrect": false },
-        { "id": "d", "text": "Local time with nanosecond precision", "isCorrect": false }
+        { "id": "d", "text": "Local time with nanosecond precision", "isCorrect": true }
       ]
     },
     {
