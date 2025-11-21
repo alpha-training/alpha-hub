@@ -37,7 +37,7 @@ export const QUIZ_CONFIG = {
   // Scoring rules
   scoring: {
     correct: 1,  // +1 point for correct
-    wrong: -2,   // -2 points for wrong
+    wrong: -1,   // -1 point for wrong
     skipped: 0,  // 0 for skipped
   },
 };
