@@ -66,7 +66,7 @@ export default function History() {
   if (!user) return null;
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-24 pb-10 px-4 flex justify-center">
+    <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-14 md:pt-24 pb-10 px-4 flex justify-center">
       <div className="w-full max-w-4xl">
 
         <h1 className="text-2xl font-bold mb-4">History</h1>
@@ -91,7 +91,7 @@ export default function History() {
                   className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-sm flex flex-col md:flex-row md:items-center md:justify-between gap-2"
                 >
                   <div>
-                    <p className="font-medium">
+                    <p className="font-medium text-sm md:text-base mb-1">
                       Attempt #{attempts.length - i}
                     </p>
 
@@ -106,7 +106,7 @@ export default function History() {
                     </p>
                   </div>
 
-                  <div className="text-xs text-gray-300 md:text-right space-y-1">
+                  <div className="text-xs md:text-sm text-gray-300 md:text-right space-y-1">
                     <p>
                       Score:{" "}
                       <span className="font-semibold text-white">
@@ -128,7 +128,7 @@ export default function History() {
                     </p>
 
                     {a.durationSeconds != null && (
-                      <p>Duration: {formatDuration(a.durationSeconds)}</p>
+                      <p className="text-xs">Duration: {formatDuration(a.durationSeconds)}</p>
                     )}
                   </div>
                 </div>

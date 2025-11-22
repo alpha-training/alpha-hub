@@ -95,7 +95,7 @@ export default function Home() {
   const noTopicsSelected = selectedTopics.length === 0;
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white flex flex-col items-center justify-start px-4 pt-24 pb-16">
+    <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white flex flex-col items-center justify-start px-4 pt-14 md:pt-24 pb-16">
       <div className="max-w-3xl w-full flex flex-col items-center text-center gap-6">
 
         {/* WELCOME */}
@@ -205,7 +205,7 @@ export default function Home() {
         </div>
 
         {/* ACTION BUTTONS */}
-        <div className="flex flex-col md:flex-row gap-4 items-center">
+        <div className="flex flex-col md:flex-row gap-4 items-center w-full">
           <Link
             to={noTopicsSelected ? "#" : "/quiz"}
             state={{ topics: selectedTopics }}

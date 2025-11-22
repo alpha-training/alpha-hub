@@ -32,6 +32,21 @@ export default function Results() {
     topics = [],
   } = state;
 
+  // PERFORMANCE MESSAGE
+  let performanceMsg = "";
+  const pct = (correctCount / totalQuestions) * 100;
+
+  if (pct >= 80) {
+    performanceMsg = "🔥 Amazing job! You're mastering this.";
+  } else if (pct >= 60) {
+    performanceMsg = "💪 Great work — keep pushing!";
+  } else if (pct >= 40) {
+    performanceMsg = "👍 Not bad — steady progress.";
+  } else {
+    performanceMsg = "📘 Keep practicing — you'll get there!";
+  }
+
+
   const formatDuration = (seconds) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
@@ -43,16 +58,18 @@ export default function Results() {
     .join(", ");
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-24 pb-10 px-4 flex justify-center">
+    <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-14 md:pt-24 pb-10 px-4 flex justify-center">
       <div className="w-full max-w-4xl space-y-6">
 
         {/* SUMMARY */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold mb-1">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">
               Quiz Results
             </h1>
-
+            <p className="text-base md:text-lg text-white my-2">
+              {performanceMsg}
+            </p>
             <p className="text-sm text-gray-300">
               Score:{" "}
               <span className="font-semibold text-white">{score}</span>
@@ -86,7 +103,7 @@ export default function Results() {
         </div>
 
         {/* REVIEW */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl px-2 py-4 md:px-5 md:py-5 space-y-4">
           <h2 className="text-lg font-semibold">Review your answers</h2>
 
           <p className="text-xs text-gray-400 mb-2">
@@ -101,7 +118,7 @@ export default function Results() {
               return (
                 <div
                   key={q.questionId}
-                  className="border border-gray-800 rounded-lg p-3 text-sm bg-gray-950/60"
+                  className="border border-gray-800 rounded-lg px-2 py-3 md:px-3 md:py-3 text-sm bg-gray-950/60"
                 >
                   <div className="flex items-center justify-between mb-2 gap-2">
                     <p className="font-medium">
@@ -158,19 +175,19 @@ export default function Results() {
         </div>
 
         {/* ACTIONS */}
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-2">
           <button
             onClick={() => navigate("/quiz", { state: { topics } })}
-            className="px-4 py-2 rounded-md bg-blue-600 text-white text-sm"
+            className="px-2 md:px-4 py-2 rounded-md bg-blue-600 text-white text-sm"
           >
             Retake with same topics
           </button>
 
           <button
             onClick={() => navigate("/home")}
-            className="px-4 py-2 rounded-md bg-white text-black text-sm"
+            className="px-2 md:px-4 py-2 rounded-md bg-white text-black text-sm"
           >
-            Back to Home
+            Back to home
           </button>
         </div>
       </div>
