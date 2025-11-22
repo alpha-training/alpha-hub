@@ -103,7 +103,7 @@ export default function Results() {
         </div>
 
         {/* REVIEW */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl px-2 py-4 md:px-5 md:py-5 space-y-4">
           <h2 className="text-lg font-semibold">Review your answers</h2>
 
           <p className="text-xs text-gray-400 mb-2">
@@ -118,7 +118,7 @@ export default function Results() {
               return (
                 <div
                   key={q.questionId}
-                  className="border border-gray-800 rounded-lg p-3 text-sm bg-gray-950/60"
+                  className="border border-gray-800 rounded-lg px-2 py-3 md:px-3 md:py-3 text-sm bg-gray-950/60"
                 >
                   <div className="flex items-center justify-between mb-2 gap-2">
                     <p className="font-medium">
@@ -175,19 +175,19 @@ export default function Results() {
         </div>
 
         {/* ACTIONS */}
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-2">
           <button
             onClick={() => navigate("/quiz", { state: { topics } })}
-            className="px-4 py-2 rounded-md bg-blue-600 text-white text-sm"
+            className="px-2 md:px-4 py-2 rounded-md bg-blue-600 text-white text-sm"
           >
             Retake with same topics
           </button>
 
           <button
             onClick={() => navigate("/home")}
-            className="px-4 py-2 rounded-md bg-white text-black text-sm"
+            className="px-2 md:px-4 py-2 rounded-md bg-white text-black text-sm"
           >
-            Back to Home
+            Back to home
           </button>
         </div>
       </div>
