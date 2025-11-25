@@ -422,7 +422,7 @@
     },
     {
       "id": "q43",
-      "question": "What is the result of: type `a`b!1 2`",
+      "question": "What is the result of: type `a`b!1 2",
       "options": [
         { "id": "a", "text": "99h", "isCorrect": true },
         { "id": "c", "text": "98h", "isCorrect": false },
