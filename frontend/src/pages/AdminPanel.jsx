@@ -396,24 +396,31 @@ export default function AdminPanel() {
                 }
                 className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-800/70 transition"
               >
-                <div>
-                  <div className="font-semibold text-sm md:text-base">
-                  {getNameFromEmail(r.email)}
+                <div className="flex items-center"> 
+                    <div>
+                    <div className="font-semibold text-sm md:text-base">
+                    {getNameFromEmail(r.email)}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                        {finishedAt
+                        ? finishedAt.toLocaleString()
+                        : "Date unavailable"}
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-400">
-                    {finishedAt
-                      ? finishedAt.toLocaleString()
-                      : "Date unavailable"}
-                  </div>
+                    {/* NEW: Show topics */}
+                    <div className="text-xs md:text-base text-blue-300 font-medium ml-4 md:ml-20">
+                    {Array.isArray(r.topics) && r.topics.length
+                        ? r.topics.join(", ")
+                        : "No topics"}
+                    </div>
                 </div>
-
                 <div className="text-right text-xs md:text-sm">
                   <div className={`font-bold ${scoreColor}`}>
                     {r.score} / {r.totalQuestions}
                   </div>
-                  {/* <div className="text-gray-400">
+                  <div className="text-gray-400 text-xs">
                     {formatDuration(r.durationSeconds)}
-                  </div> */}
+                  </div> 
                   
                 </div>
               </button>
