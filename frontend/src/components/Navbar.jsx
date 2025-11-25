@@ -8,9 +8,11 @@ import {
   ClockIcon,
   Bars3Icon,
   XMarkIcon,
+  ShieldCheckIcon,
   ArrowLeftOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import logo from "../assets/alpha-kdb-logo.png";
+import { isAdmin } from "../utils/admin";
 
 
 export default function Navbar() {
@@ -23,6 +25,7 @@ export default function Navbar() {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u || null));
     return () => unsub();
   }, []);
+  const showAdmin = isAdmin(user);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -84,6 +87,16 @@ export default function Navbar() {
               History
             </Link>
 
+            {showAdmin && (
+              <Link
+                to="/admin"
+                className="flex items-center gap-1 hover:text-blue-400"
+              >
+              <ShieldCheckIcon className="w-5 h-5" />                
+              Admin Panel
+              </Link>
+            )}
+
             <button
               type="button"
               onClick={handleLogout}
@@ -114,6 +127,15 @@ export default function Navbar() {
             <ClockIcon className="w-5 h-5" />
             History
           </Link>
+          {showAdmin && (
+            <Link
+              to="/admin"
+              className="flex items-center gap-2 hover:text-blue-400"
+            >
+            <ShieldCheckIcon className="w-5 h-5" />                
+            Admin Panel
+            </Link>
+          )}
 
           <button
             type="button"

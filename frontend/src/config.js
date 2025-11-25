@@ -1,5 +1,3 @@
-// src/config.js
-
 import buildPool from "../../frontend/src/utils/mergeQuestions";
 
 // --- RAW QUESTION SOURCES ---
@@ -25,13 +23,12 @@ export const TOPICS = [
   { id: "q", label: "q / kdb+" },
 ];
 
-// --- QUIZ CONFIG (Boss-adjustable) ---
+// --- QUIZ CONFIG ---
 export const QUIZ_CONFIG = {
   // Number of questions per quiz
   questionsPerAttempt: 30,
 
   // NEW global timer parameter: 15s per question
-  // GLOBAL_TIME = 15 × 30 = 450 seconds total
   timePerQuestionSeconds: 15,
 
   // Scoring rules
