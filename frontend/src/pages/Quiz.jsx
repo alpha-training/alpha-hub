@@ -153,19 +153,39 @@ export default function Quiz() {
   // ---------------- SUBMIT ----------------
   const handleSubmit = async (reason = "manual") => {
     if (isSubmitting || !questions.length || !user) return;
-
+  
     setIsSubmitting(true);
-    const finishedAt = new Date();
-
-    let score = 0, correctCount = 0, wrongCount = 0, skippedCount = 0;
-
+  
+    const totalTimeAllowedInSeconds =
+      QUIZ_CONFIG.questionsPerAttempt *
+      QUIZ_CONFIG.timePerQuestionSeconds;
+  
+    let finishedAt;
+  
+    if (reason === "timeout") {
+      // Force finish time to be EXACTLY the max allowed time
+      finishedAt = new Date(startedAt.getTime() + totalTimeAllowedInSeconds * 1000);
+    } else {
+      // Manual submit
+      finishedAt = new Date();
+    }
+  
+    // Duration cannot exceed the allowed limit
+    let durationSeconds = Math.round((finishedAt - startedAt) / 1000);
+    durationSeconds = Math.min(durationSeconds, totalTimeAllowedInSeconds);
+  
+    let score = 0,
+      correctCount = 0,
+      wrongCount = 0,
+      skippedCount = 0;
+  
     const perQuestionResults = questions.map((q) => {
       const correctIds = q.options.filter(o => o.isCorrect).map(o => o.id);
       const picked = selectedById[q.id] || [];
       const pickedSet = new Set(picked);
-
+  
       let isCorrect = false;
-
+  
       if (picked.length === 0) {
         skippedCount++;
         score += QUIZ_CONFIG.scoring.skipped;
@@ -173,7 +193,7 @@ export default function Quiz() {
         const exactMatch =
           picked.length === correctIds.length &&
           correctIds.every(id => pickedSet.has(id));
-
+  
         if (exactMatch) {
           isCorrect = true;
           correctCount++;
@@ -183,7 +203,7 @@ export default function Quiz() {
           score += QUIZ_CONFIG.scoring.wrong;
         }
       }
-
+  
       return {
         questionId: q.id,
         questionText: q.question,
@@ -193,9 +213,7 @@ export default function Quiz() {
         isCorrect,
       };
     });
-
-    const durationSeconds = Math.round((finishedAt - startedAt) / 1000);
-
+  
     const payload = {
       uid: user.uid,
       email: user.email,
@@ -211,9 +229,9 @@ export default function Quiz() {
       reason,
       results: perQuestionResults,
     };
-
+  
     await addDoc(collection(db, "quizResults"), payload);
-
+  
     navigate("/results", {
       replace: true,
       state: {
@@ -223,6 +241,7 @@ export default function Quiz() {
       },
     });
   };
+  
 
   // ---------------- RENDER ----------------
   if (!user || !currentQuestion) {

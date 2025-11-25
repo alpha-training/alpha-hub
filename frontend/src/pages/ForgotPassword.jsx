@@ -25,7 +25,7 @@ export default function ForgotPassword() {
   return (
     <div className="min-h-screen bg-[#03080B] text-white flex justify-center items-center px-4">
       <div className="w-full max-w-sm bg-gray-900 p-6 rounded-xl border border-gray-800">
-        <h1 className="text-xl font-semibold mb-4">Reset Password</h1>
+        <h1 className="text-xl font-semibold mb-4">Reset password</h1>
         <p className="text-sm text-gray-400 mb-4">
           Enter your email address and we'll send you a link to reset your password.
         </p>
@@ -42,7 +42,7 @@ export default function ForgotPassword() {
 
           <button
             type="submit"
-            className="w-full py-2 rounded-md bg-blue-600 hover:bg-blue-700 transition text-sm"
+            className="w-full py-2 rounded-md bg-blue-600 hover:bg-blue-700 transition text-sm md:text-base"
           >
             Send reset email
           </button>
