@@ -1987,7 +1987,7 @@
         },
         {
           "id": "b",
-          "text": "\"S=;\"vs s",
+          "text": "\"S=\"0: s",
           "isCorrect": false
         },
         {
@@ -1998,6 +1998,83 @@
         {
           "id": "d",
           "text": "\"S=J;\"vs s",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q78",
+      "question": "Which of the following is the same as \"select by sym from trade where price>30\"",
+      "options": [
+        {
+          "id": "a",
+          "text": "?[`trade;(>;`price;30);(`sym)!`sym;()]",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "?[`trade;(>;`price;30);(enlist `sym)!enlist `sym;()]",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "?[`trade;enlist (>;`price;30);(`sym)!`sym;()]": false
+        },
+        {
+          "id": "d",
+          "text": "?[`trade;enlist (>;`price;30);(enlist `sym)!enlist `sym;()]",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "q79",
+      "question": "Which of the following are valid ways examples of chaining?",
+      "options": [
+        {
+          "id": "a",
+          "text": "f:count string@",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "f:count string",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "f:string reverse each",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "f:string each reverse",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q80",
+      "question": "Given a table t, how would you reorder the columns to put sym/volume/price first?",
+      "options": [
+        {
+          "id": "a",
+          "text": "`sym`volume`price xcols t",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "`sym`volume`price xcol t",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "t xcols `sym`volume`price",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "t xcol `sym`volume`price",
           "isCorrect": false
         }
       ]
