@@ -519,6 +519,226 @@
         { "id": "c", "text": "-21!`:zfile", "isCorrect": true },
         { "id": "d", "text": "-29!`:zfile", "isCorrect": false }
       ]
+    },
+    {
+      "id": "q53",
+      "question": "Which of the following wil work:",
+      "options": [
+        { "id": "a", "text": "select from t where 1=(first;size)fby sym,ex", "isCorrect": false },
+        { "id": "b", "text": "select from t where 1=(first;size)fby([]sym;ex)", "isCorrect": true },
+        { "id": "c", "text": "select from t where 1=(first;size)fby(sym;ex)", "isCorrect": false },
+        { "id": "d", "text": "select from t where 1=(first;size)fby flip(sym;ex)", "isCorrect": true }
+      ]
+    },
+    {
+      "id": "q54",
+      "question": "To start q and disable system commands from remote callers, I do:",
+      "options": [
+        { "id": "a", "text": "q -y 1", "isCorrect": false },
+        { "id": "b", "text": "q -x 1", "isCorrect": false },
+        { "id": "c", "text": "q -u 1", "isCorrect": true },
+        { "id": "d", "text": "q -v 1", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q55",
+      "question": "Which of the following statements are true:",
+      "options": [
+        { "id": "a", "text": "Garbage collection is deferred when I start q with -g 1", "isCorrect": false },
+        { "id": "b", "text": "Garbage collection is immediate when I start q with -g 1", "isCorrect": true },
+        { "id": "c", "text": "To manually run garbage collection I can do .Q.g[]", "isCorrect": false },
+        { "id": "d", "text": "When I manually run garbage collection, q returns the number of bytes freed up", "isCorrect": true }
+      ]
+    },
+    {
+      "id": "q56",
+      "question": "Which of the following statements are true:",
+      "options": [
+        { "id": "a", "text": "Garbage collection is immediate when I start q with -g 0", "isCorrect": false },
+        { "id": "b", "text": "Garbage collection is deferred when I start q with -g 1", "isCorrect": false },
+        { "id": "c", "text": "To manually run garbage collection I can do .Q.gc[]", "isCorrect": true },
+        { "id": "d", "text": "When I manually run garbage collection, q always returns 0", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q57",
+      "question": "What will be the result of: \"brown\" like \"[^cfb]rown\"",
+      "options": [
+        { "id": "a", "text": "001b", "isCorrect": false },
+        { "id": "b", "text": "110b", "isCorrect": false },
+        { "id": "c", "text": "1b", "isCorrect": false },
+        { "id": "d", "text": "0b", "isCorrect": true }
+      ]
+    },
+    {
+      "id": "q58",
+      "question": "What will be the result of: \"br0wn\" like \"br[^3-6]wn\"",
+      "options": [
+        { "id": "a", "text": "1b", "isCorrect": true },
+        { "id": "b", "text": "0b", "isCorrect": false },
+        { "id": "c", "text": "00100b", "isCorrect": false },
+        { "id": "d", "text": "11011b", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q59",
+      "question": "What is the result of: \"brown\" like \"[^cfb]rown\"",
+      "options": [
+        { "id": "a", "text": "001b", "isCorrect": false },
+        { "id": "b", "text": "110b", "isCorrect": false },
+        { "id": "c", "text": "1b", "isCorrect": false },
+        { "id": "d", "text": "0b", "isCorrect": true }
+      ]
+    },
+    {
+      "id": "q60",
+      "question": "What is the result of: \"brown not drowned\" ss \"?rown\"",
+      "options": [
+        { "id": "a", "text": ",0", "isCorrect": false },
+        { "id": "b", "text": "0 10", "isCorrect": true },
+        { "id": "c", "text": ",10", "isCorrect": false },
+        { "id": "d", "text": "'type", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q61",
+      "question": "What will be the result of: \"brown\" like \"[^cfb]rown\"",
+      "options": [
+        { "id": "a", "text": "001b", "isCorrect": false },
+        { "id": "b", "text": "110b", "isCorrect": false },
+        { "id": "c", "text": "1b", "isCorrect": false },
+        { "id": "d", "text": "0b", "isCorrect": true }
+      ]
+    },
+    {
+      "id": "q62",
+      "question": "If I have defined .z.pg but I want to expunge (delete) my custom definition, I can do:",
+      "options": [
+        { "id": "a", "text": "delete pg from`.z", "isCorrect": false },
+        { "id": "b", "text": "\\x .z.pg", "isCorrect": true },
+        { "id": "c", "text": "delete pg from`.z.pg", "isCorrect": false },
+        { "id": "d", "text": "\\u .z.pg", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q63",
+      "question": "If func:{x,'y}, what happens if I do: 1 2 func 3 4 5",
+      "options": [
+        { "id": "a", "text": "'rank", "isCorrect": false },
+        { "id": "b", "text": "'type", "isCorrect": true },
+        { "id": "c", "text": "'length", "isCorrect": false },
+        { "id": "d", "text": "each of 3 4 5 is joined to 1 2", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q64",
+      "question": "What will be the result of: 5 xrank til 10",
+      "options": [
+        { "id": "a", "text": "'type", "isCorrect": false },
+        { "id": "b", "text": "'length", "isCorrect": false },
+        { "id": "c", "text": "0 0 0 0 0 1 1 1 1 1", "isCorrect": false },
+        { "id": "d", "text": "0 0 1 1 2 2 3 3 4 4", "isCorrect": true }
+      ]
+    },
+    {
+      "id": "q65",
+      "question": "What will be the result of: \"brown\" like \"[cfb]rown\"",
+      "options": [
+        { "id": "a", "text": "001b", "isCorrect": false },
+        { "id": "b", "text": "110b", "isCorrect": false },
+        { "id": "c", "text": "1b", "isCorrect": true },
+        { "id": "d", "text": "0b", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q66",
+      "question": "What will be the result of: -5?10",
+      "options": [
+        { "id": "a", "text": "5 (possibly repeating) random numbers between 1 and 10", "isCorrect": false },
+        { "id": "b", "text": "5 unique random numbers between 0 and 9", "isCorrect": true },
+        { "id": "c", "text": "5 unique random numbers between 1 and 10", "isCorrect": false },
+        { "id": "d", "text": "5 (possibly repeating) random numbers between 0 and 9", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q67",
+      "question": "What will be the result of: 1+5?10",
+      "options": [
+        { "id": "a", "text": "5 (possibly repeating) random numbers between 1 and 10", "isCorrect": true },
+        { "id": "b", "text": "5 unique random numbers between 0 and 9", "isCorrect": false },
+        { "id": "c", "text": "5 unique random numbers between 1 and 10", "isCorrect": false },
+        { "id": "d", "text": "5 (possibly repeating) random numbers between 0 and 9", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q68",
+      "question": "In a functional select ?[t;c;b;a;n] the 5th argument (n) means:",
+      "options": [
+        { "id": "a", "text": "Return the rows with indices n", "isCorrect": false },
+        { "id": "b", "text": "select up to n records", "isCorrect": true },
+        { "id": "c", "text": "select the rows between the two numbers in n", "isCorrect": false },
+        { "id": "d", "text": "n is the order of the rows", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q69",
+      "question": "What will be the result of: type each(5 7;1.3 7.5;1=1)",
+      "options": [
+        { "id": "a", "text": "9 7 1h", "isCorrect": false },
+        { "id": "b", "text": "1 7 -9h", "isCorrect": false },
+        { "id": "c", "text": "7 9 -1h", "isCorrect": true },
+        { "id": "d", "text": "9 7 -1h", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q70",
+      "question": "What is returned if I do: 6$\"abc\"",
+      "options": [
+        { "id": "a", "text": "'type", "isCorrect": false },
+        { "id": "b", "text": "97 98 99i", "isCorrect": false },
+        { "id": "c", "text": "\"abc   \"", "isCorrect": true },
+        { "id": "d", "text": "'length", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q71",
+      "question": "What is returned if I do: 6h$\"abc\"",
+      "options": [
+        { "id": "a", "text": "'type", "isCorrect": false },
+        { "id": "b", "text": "97 98 99i", "isCorrect": true },
+        { "id": "c", "text": "\"abc   \"", "isCorrect": false },
+        { "id": "d", "text": "'length", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q72",
+      "question": "What is returned if I do: -6$\"abc\"",
+      "options": [
+        { "id": "a", "text": "'type", "isCorrect": false },
+        { "id": "b", "text": "97 98 99i", "isCorrect": false },
+        { "id": "c", "text": "\"   abc\"", "isCorrect": true },
+        { "id": "d", "text": "'length", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q73",
+      "question": "In a functional select ?[t;c;b;a;n;(g;cn)], what should I do with n if I want all records:",
+      "options": [
+        { "id": "a", "text": "Pass 0N", "isCorrect": false },
+        { "id": "b", "text": "Pass identity (::)", "isCorrect": false },
+        { "id": "c", "text": "Pass infinity 0W", "isCorrect": true },
+        { "id": "d", "text": "Leave it blank (projection)", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "q74",
+      "question": "In a functional select ?[t;c;b;a;n;(g;cn)], g and cn mean:",
+      "options": [
+        { "id": "a", "text": "grouped by column g over cn rows", "isCorrect": false },
+        { "id": "b", "text": "sorted by g on cn", "isCorrect": true },
+        { "id": "c", "text": "sorted by cn and grouped by g", "isCorrect": false },
+        { "id": "d", "text": "g is the beginning of select window and cn the end", "isCorrect": false }
+      ]
     }
   ]
 }
