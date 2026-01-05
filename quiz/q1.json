@@ -1748,22 +1748,22 @@
       "options": [
         {
           "id": "a",
-          "text": "Return the rows with indices n",
+          "text": "You cannot have a fifth argument",
           "isCorrect": false
         },
         {
           "id": "b",
-          "text": "select up to n records",
+          "text": "if 1=count n, select up to n records (from the back if n<0)",
           "isCorrect": true
         },
         {
           "id": "c",
-          "text": "select the rows between the two numbers in n",
-          "isCorrect": false
+          "text": "if 2=count n, start at index n[0] and return n[1] rows",
+          "isCorrect": true
         },
         {
           "id": "d",
-          "text": "n is the order of the rows",
+          "text": "if 3=count n, return these indices",
           "isCorrect": false
         }
       ]
