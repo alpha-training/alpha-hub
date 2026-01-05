@@ -147,7 +147,7 @@
         { "id": "a", "text": "upsert works only when the left argument is a keyed table", "isCorrect": false },
         { "id": "b", "text": "insert should be provided with a left argument that is an unkeyed table name", "isCorrect": true },
         { "id": "c", "text": "insert expects the right argument to be a table or a list of column data", "isCorrect": true },
-        { "id": "d", "text": "upsert epects the right argument to be a table or a list of row data", "isCorrect": true }
+        { "id": "d", "text": "upsert expects the right argument to be a table or a list of row data", "isCorrect": true }
       ]
     },
     {
@@ -726,7 +726,7 @@
       "options": [
         { "id": "a", "text": "Pass 0N", "isCorrect": false },
         { "id": "b", "text": "Pass identity (::)", "isCorrect": false },
-        { "id": "c", "text": "Pass infinity 0W", "isCorrect": true },
+        { "id": "c", "text": "Pass 0W", "isCorrect": true },
         { "id": "d", "text": "Leave it blank (projection)", "isCorrect": false }
       ]
     },
