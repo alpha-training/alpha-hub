@@ -1975,6 +1975,32 @@
           "isCorrect": false
         }
       ]
+    },
+    {
+      "id": "q77",
+      "question": "How would I parse s:\"one=1;two=2;three=3\" into a dictionary?",
+      "options": [
+        {
+          "id": "a",
+          "text": "\"S=;\"0: s",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "\"S=;\"vs s",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "\"S=J;\"0: s",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "\"S=J;\"vs s",
+          "isCorrect": false
+        }
+      ]
     }
   ]
 }
