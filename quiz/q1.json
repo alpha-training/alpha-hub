@@ -582,12 +582,12 @@
     },
     {
       "id": "q59",
-      "question": "What is the result of: \"brown\" like \"[^cfb]rown\"",
+      "question": "What will be the result of: .[+;(2;`type);{x}]",
       "options": [
-        { "id": "a", "text": "001b", "isCorrect": false },
-        { "id": "b", "text": "110b", "isCorrect": false },
-        { "id": "c", "text": "1b", "isCorrect": false },
-        { "id": "d", "text": "0b", "isCorrect": true }
+        { "id": "a", "text": "'type", "isCorrect": false },
+        { "id": "b", "text": "'length", "isCorrect": false },
+        { "id": "c", "text": "\"type\"", "isCorrect": true },
+        { "id": "d", "text": "'rank", "isCorrect": false }
       ]
     },
     {
