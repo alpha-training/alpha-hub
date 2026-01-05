@@ -4,740 +4,1976 @@
       "id": "q1",
       "question": "Which of the following can be used to asynchronously send a command over a list handles?",
       "options": [
-        { "id": "a", "text": "neg[handles](`func;10;20)", "isCorrect": false },
-        { "id": "b", "text": "-25!(handles;(`func;10;20))", "isCorrect": true },
-        { "id": "c", "text": "neg[handles]@\\:(`func;10;20)", "isCorrect": true },
-        { "id": "d", "text": "neg[handles]each(`func;10;20)", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "neg[handles](`func;10;20)",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "-25!(handles;(`func;10;20))",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "neg[handles]@\\:(`func;10;20)",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "neg[handles]each(`func;10;20)",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q2",
       "question": "What might one find at the top level of a date partitioned hdb directory?",
       "options": [
-        { "id": "a", "text": "sym file", "isCorrect": true },
-        { "id": "b", "text": "table folders", "isCorrect": false },
-        { "id": "c", "text": "date partition folders", "isCorrect": true },
-        { "id": "d", "text": "par.txt", "isCorrect": true }
+        {
+          "id": "a",
+          "text": "sym file",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "table folders",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "date partition folders",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "par.txt",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q3",
       "question": "How might I get the unique universe of two lists L1 and L2?",
       "options": [
-        { "id": "a", "text": "L1 inter L2", "isCorrect": false },
-        { "id": "b", "text": "L1,L2", "isCorrect": false },
-        { "id": "c", "text": "distinct L1,L2", "isCorrect": true },
-        { "id": "d", "text": "L1 union L2", "isCorrect": true }
+        {
+          "id": "a",
+          "text": "L1 inter L2",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "L1,L2",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "distinct L1,L2",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "L1 union L2",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q4",
       "question": "How do I find the number of healthy chunks in a log file L?",
       "options": [
-        { "id": "a", "text": "-11!L", "isCorrect": false },
-        { "id": "b", "text": "-11!(-2;L)", "isCorrect": true },
-        { "id": "c", "text": "-11!(-1;L)", "isCorrect": false },
-        { "id": "d", "text": "-11!(n;L)", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "-11!L",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "-11!(-2;L)",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "-11!(-1;L)",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "-11!(n;L)",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q5",
       "question": "How do I flush a handle to ensure any queued messaged leave now rather than at the end of the current chain of execution?",
       "options": [
-        { "id": "a", "text": "h`", "isCorrect": false },
-        { "id": "b", "text": "neg[h][]", "isCorrect": true },
-        { "id": "c", "text": "neg[h](::)", "isCorrect": true },
-        { "id": "d", "text": "h(::)", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "h`",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "neg[h][]",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "neg[h](::)",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "h(::)",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q6",
       "question": "Which attribute(s) do not carry any overhead?",
       "options": [
-        { "id": "a", "text": "grouped (`g#)", "isCorrect": false },
-        { "id": "b", "text": "sorted (`s#)", "isCorrect": true },
-        { "id": "c", "text": "unique (`u#)", "isCorrect": false },
-        { "id": "d", "text": "parted (`p#)", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "grouped (`g#)",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "sorted (`s#)",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "unique (`u#)",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "parted (`p#)",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q7",
       "question": "What would be the result of ` sv `a`b",
       "options": [
-        { "id": "a", "text": "`:a/b", "isCorrect": false },
-        { "id": "b", "text": "`:a/b/", "isCorrect": false },
-        { "id": "c", "text": "`a.b", "isCorrect": true },
-        { "id": "d", "text": "'length", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "`:a/b",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "`:a/b/",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "`a.b",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "'length",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q8",
       "question": "What would be the result of ` sv `:a`b",
       "options": [
-        { "id": "a", "text": "`:a/b", "isCorrect": true },
-        { "id": "b", "text": "length", "isCorrect": false },
-        { "id": "c", "text": "`a.b", "isCorrect": false },
-        { "id": "d", "text": "`:a/b/", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "`:a/b",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "length",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "`a.b",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "`:a/b/",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q9",
       "question": "If I have the dictionary d:`a`b!(1 2 3;10 20 30) - how would I return d with the 20 doubled to 40?",
       "options": [
-        { "id": "a", "text": "@[d;(`b;1);*;2]", "isCorrect": false },
-        { "id": "b", "text": "d[`b;1]*2", "isCorrect": false },
-        { "id": "c", "text": ".[d;(`b;1);*;2]", "isCorrect": true },
-        { "id": "d", "text": ".[d;(`b;1);2*]", "isCorrect": true }
+        {
+          "id": "a",
+          "text": "@[d;(`b;1);*;2]",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "d[`b;1]*2",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": ".[d;(`b;1);*;2]",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": ".[d;(`b;1);2*]",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q10",
       "question": "Which of the following statements is true of aj[`sym`time;trade;quote] in order to optimise performance?",
       "options": [
-        { "id": "a", "text": "The trade table should have time in ascending order", "isCorrect": false },
-        { "id": "b", "text": "The quote table should have the parted or grouped attribute on sym, and the sorted attribute on time", "isCorrect": false },
-        { "id": "c", "text": "The trade table should have the parted or grouped attribute on sym", "isCorrect": false },
-        { "id": "d", "text": "The quote table should have the parted or grouped attribute on sym. aj expects that time will be in ascending order within each sym.", "isCorrect": true }
+        {
+          "id": "a",
+          "text": "The trade table should have time in ascending order",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "The quote table should have the parted or grouped attribute on sym, and the sorted attribute on time",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "The trade table should have the parted or grouped attribute on sym",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "The quote table should have the parted or grouped attribute on sym. aj expects that time will be in ascending order within each sym.",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q11",
       "question": "If I want to soft delete a column exchange from the trade table in a hdb, in each date/trade folder I should:",
       "options": [
-        { "id": "a", "text": "Delete the exchange column file", "isCorrect": false },
-        { "id": "b", "text": "Remove exchange from the .d file", "isCorrect": true },
-        { "id": "c", "text": "Delete the .d file", "isCorrect": false },
-        { "id": "d", "text": "Delete the exchange column file and remove exchange from the .d file", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "Delete the exchange column file",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Remove exchange from the .d file",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Delete the .d file",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Delete the exchange column file and remove exchange from the .d file",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q12",
       "question": "To initilise a tickerplant binary log file .u.L, to which I have opened a handle .u.l, I should do:",
       "options": [
-        { "id": "a", "text": ".u.l 0: ()", "isCorrect": false },
-        { "id": "b", "text": ".u.l set ()", "isCorrect": false },
-        { "id": "c", "text": ".u.l set enlist ()", "isCorrect": false },
-        { "id": "d", "text": ".u.L set ()", "isCorrect": true }
+        {
+          "id": "a",
+          "text": ".u.l 0: ()",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": ".u.l set ()",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": ".u.l set enlist ()",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": ".u.L set ()",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q13",
       "question": "To write some data for the trade table to a tickerplant binary log file .u.L, to which I have opened a handle .u.l, I should do:",
       "options": [
-        { "id": "a", "text": ".u.L 0: (`upd;`trade;x)", "isCorrect": false },
-        { "id": "b", "text": ".u.l 0: enlist(`upd;`trade;x)", "isCorrect": false },
-        { "id": "c", "text": ".u.l enlist(`upd;`trade;x)", "isCorrect": true },
-        { "id": "d", "text": ".u.L (`upd;`trade;x)", "isCorrect": false }
+        {
+          "id": "a",
+          "text": ".u.L 0: (`upd;`trade;x)",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": ".u.l 0: enlist(`upd;`trade;x)",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": ".u.l enlist(`upd;`trade;x)",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": ".u.L (`upd;`trade;x)",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q14",
       "question": "To add the symbols `A`B to a symbol vector file `:sym on disk, I can do:",
       "options": [
-        { "id": "a", "text": "`:sym$`A`B", "isCorrect": false },
-        { "id": "b", "text": "`:sym,:`A`B", "isCorrect": false },
-        { "id": "c", "text": "@[`:.;`sym;,;`A`B]", "isCorrect": true },
-        { "id": "d", "text": "`:sym?`A`B", "isCorrect": true }
+        {
+          "id": "a",
+          "text": "`:sym$`A`B",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "`:sym,:`A`B",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "@[`:.;`sym;,;`A`B]",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "`:sym?`A`B",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q15",
       "question": "Which of the following is true:",
       "options": [
-        { "id": "a", "text": "upsert works only when the left argument is a keyed table", "isCorrect": false },
-        { "id": "b", "text": "insert should be provided with a left argument that is an unkeyed table name", "isCorrect": true },
-        { "id": "c", "text": "insert expects the right argument to be a table or a list of column data", "isCorrect": true },
-        { "id": "d", "text": "upsert expects the right argument to be a table or a list of row data", "isCorrect": true }
+        {
+          "id": "a",
+          "text": "upsert works only when the left argument is a keyed table",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "insert should be provided with a left argument that is an unkeyed table name",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "insert expects the right argument to be a table or a list of column data",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "upsert expects the right argument to be a table or a list of row data",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q16",
       "question": "If I run h(+;4;`hey) from process A on a remote process B, and the error trap is not set on A or B:",
       "options": [
-        { "id": "a", "text": "There will be no error because the error trap has not been set on either process", "isCorrect": false },
-        { "id": "b", "text": "There will be a type error on B but nothing on A", "isCorrect": false },
-        { "id": "c", "text": "There will be a type error on A but nothing on B", "isCorrect": true },
-        { "id": "d", "text": "There will be an error on both because type always throws an error", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "There will be no error because the error trap has not been set on either process",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "There will be a type error on B but nothing on A",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "There will be a type error on A but nothing on B",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "There will be an error on both because type always throws an error",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q17",
       "question": "If I run h(+;4;`hey) from process A on a remote process B, and the error trap is set on A and B:",
       "options": [
-        { "id": "a", "text": "There will no error on either because type does not throw an error over a handle", "isCorrect": false },
-        { "id": "b", "text": "There will be a type error on B and A will hang", "isCorrect": true },
-        { "id": "c", "text": "There will be a type error on A and B will hang", "isCorrect": false },
-        { "id": "d", "text": "There will be an error on both because type always throws an error", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "There will no error on either because type does not throw an error over a handle",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "There will be a type error on B and A will hang",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "There will be a type error on A and B will hang",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "There will be an error on both because type always throws an error",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q18",
       "question": "If I run h(+;4;`hey) from process A on a remote process B, and the error trap is set on A and B:",
       "options": [
-        { "id": "a", "text": "There will no error on either because type does not throw an error over a handle", "isCorrect": false },
-        { "id": "b", "text": "There will be a type error on B and A will hang", "isCorrect": true },
-        { "id": "c", "text": "There will be a type error on A and B will hang", "isCorrect": false },
-        { "id": "d", "text": "There will be an error on both because type always throws an error", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "There will no error on either because type does not throw an error over a handle",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "There will be a type error on B and A will hang",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "There will be a type error on A and B will hang",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "There will be an error on both because type always throws an error",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q19",
       "question": "What would be returned by: 0-\\10 40 70",
       "options": [
-        { "id": "a", "text": "10 30 30", "isCorrect": false },
-        { "id": "c", "text": "-10 -50 -120", "isCorrect": true },
-        { "id": "b", "text": "'length'", "isCorrect": false },
-        { "id": "d", "text": "0 10 30 30", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "10 30 30",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "-10 -50 -120",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "'length'",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "0 10 30 30",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q20",
       "question": "What would be returned by: 0 10+20 30 40",
       "options": [
-        { "id": "a", "text": "0 30 40 50", "isCorrect": false },
-        { "id": "c", "text": "'length", "isCorrect": true },
-        { "id": "b", "text": "'rank'", "isCorrect": false },
-        { "id": "d", "text": "0 10 20 30 40", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "0 30 40 50",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "'length",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "'rank'",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "0 10 20 30 40",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q21",
       "question": "What would be returned by: iasc 2 1 3 4",
       "options": [
-        { "id": "a", "text": "1 0 2 3", "isCorrect": true },
-        { "id": "c", "text": "'length", "isCorrect": false },
-        { "id": "b", "text": "3 2 0 1'", "isCorrect": false },
-        { "id": "d", "text": "`s#1 2 3 4", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "1 0 2 3",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "'length",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "3 2 0 1'",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "`s#1 2 3 4",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q22",
       "question": "Which of the following would split s:`JPM.N into `JPM`N",
       "options": [
-        { "id": "a", "text": "` vs s", "isCorrect": true },
-        { "id": "c", "text": "` vs each s", "isCorrect": false },
-        { "id": "b", "text": "` sv's`", "isCorrect": false },
-        { "id": "d", "text": "` sv each s`", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "` vs s",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "` vs each s",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "` sv's`",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "` sv each s`",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q23",
       "question": "Which of the following would split s:`JPM.N into `JPM`N",
       "options": [
-        { "id": "a", "text": "` vs s", "isCorrect": true },
-        { "id": "c", "text": "` vs each s", "isCorrect": true },
-        { "id": "b", "text": "` sv's`", "isCorrect": false },
-        { "id": "d", "text": "` sv each s`", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "` vs s",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "` vs each s",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "` sv's`",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "` sv each s`",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q24",
       "question": "Which of the following is the equivalent of select n:count i by sym from trade",
       "options": [
-        { "id": "a", "text": "?[trade;enlist[`sym]!enlist`sym;enlist[`n]!enlist(count;`i);()]", "isCorrect": false },
-        { "id": "c", "text": "?[trade;enlist[`n]!enlist(count;`x);enlist[`sym]!enlist`sym;()]", "isCorrect": false },
-        { "id": "b", "text": "?[trade;enlist[`sym]!enlist`sym;enlist[`n]!enlist(count;`x);()]", "isCorrect": false },
-        { "id": "d", "text": "?[trade;();enlist[`sym]!enlist`sym;enlist[`n]!enlist(count;`i)]", "isCorrect": true }
+        {
+          "id": "a",
+          "text": "?[trade;enlist[`sym]!enlist`sym;enlist[`n]!enlist(count;`i);()]",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "?[trade;enlist[`n]!enlist(count;`x);enlist[`sym]!enlist`sym;()]",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "?[trade;enlist[`sym]!enlist`sym;enlist[`n]!enlist(count;`x);()]",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "?[trade;();enlist[`sym]!enlist`sym;enlist[`n]!enlist(count;`i)]",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q25",
       "question": "What do the following functional select fields mean: ?[t;c;b;a]",
       "options": [
-        { "id": "a", "text": "table, columns, by, attributes", "isCorrect": false },
-        { "id": "c", "text": "table, constraints, by, attributes", "isCorrect": false },
-        { "id": "b", "text": "table, columns, by, aggregations", "isCorrect": false },
-        { "id": "d", "text": "table, constraints, by, aggregations", "isCorrect": true }
+        {
+          "id": "a",
+          "text": "table, columns, by, attributes",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "table, constraints, by, attributes",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "table, columns, by, aggregations",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "table, constraints, by, aggregations",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q26",
       "question": "What does the 5th field of a functional select allow me to do?",
       "options": [
-        { "id": "a", "text": "You cannot have a fifth field", "isCorrect": false },
-        { "id": "c", "text": "Sort the table by this column", "isCorrect": false },
-        { "id": "b", "text": "Select the first n or last (-n) records from the table", "isCorrect": true },
-        { "id": "d", "text": "Select specific indices from the table", "isCorrect": true }
+        {
+          "id": "a",
+          "text": "You cannot have a fifth field",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Sort the table by this column",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Select the first n or last (-n) records from the table",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Select the start and length of a window",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q27",
       "question": "What does the 6th field of a functional select allow me to do?",
       "options": [
-        { "id": "a", "text": "You cannot have a sixth field", "isCorrect": false },
-        { "id": "c", "text": "Sort the table by this column", "isCorrect": true },
-        { "id": "b", "text": "Select the first n or last (-n) records from the table", "isCorrect": false },
-        { "id": "d", "text": "Select specific indices from the table", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "You cannot have a sixth field",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Sort the table by passing a grading function",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Select the first n or last (-n) records from the table",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Select specific indices from the table",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q28",
       "question": "What is the difference between moving into a namespace .test with \\d to define a function foo, and just defining it with .test.foo:?",
       "options": [
-        { "id": "a", "text": "They are similar but with \\d you need to use :: when defining foo", "isCorrect": false },
-        { "id": "c", "text": "There is no difference", "isCorrect": false },
-        { "id": "b", "text": "In the \\d case, foo will look in .test for global variables, in the other case it looks in the root namespace", "isCorrect": true },
-        { "id": "d", "text": "In the \\d case, foo will look in the root namespace for global variables, in the other case it looks in the .test namespace", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "They are similar but with \\d you need to use :: when defining foo",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "There is no difference",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "In the \\d case, foo will look in .test for global variables, in the other case it looks in the root namespace",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "In the \\d case, foo will look in the root namespace for global variables, in the other case it looks in the .test namespace",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q29",
       "question": "If I hit a breakpoint in a function due to a remote call from another process, how do I find the handle of the caller?",
       "options": [
-        { "id": "a", "text": ".z.w", "isCorrect": true },
-        { "id": "c", "text": ".Q.w[]", "isCorrect": false },
-        { "id": "b", "text": ".Q.W[]", "isCorrect": false },
-        { "id": "d", "text": ".z.W", "isCorrect": false }
+        {
+          "id": "a",
+          "text": ".z.w",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": ".Q.w[]",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": ".Q.W[]",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": ".z.W",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q30",
       "question": "How do I get a dictionary of IPC handles with the number of bytes waiting in their output queues?",
       "options": [
-        { "id": "a", "text": ".z.w", "isCorrect": false },
-        { "id": "c", "text": ".Q.w[]", "isCorrect": false },
-        { "id": "b", "text": ".Q.W[]", "isCorrect": false },
-        { "id": "d", "text": ".z.W", "isCorrect": true }
+        {
+          "id": "a",
+          "text": ".z.w",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": ".Q.w[]",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": ".Q.W[]",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": ".z.W",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q31",
       "question": "Given a handle h, how would I get a 'socket table' telling me what type of handle it is?",
       "options": [
-        { "id": "a", "text": "-28!", "isCorrect": false },
-        { "id": "c", "text": "-29!", "isCorrect": false },
-        { "id": "b", "text": "-38!", "isCorrect": true },
-        { "id": "d", "text": "-39!", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "-28!",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "-29!",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "-38!",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "-39!",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q32",
       "question": "Given a vector L, how would I programattically find out if it has an attribute?",
       "options": [
-        { "id": "a", "text": "-3!L", "isCorrect": false },
-        { "id": "c", "text": "-2!L", "isCorrect": true },
-        { "id": "b", "text": "att L", "isCorrect": false },
-        { "id": "d", "text": "attr L", "isCorrect": true }
+        {
+          "id": "a",
+          "text": "-3!L",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "-2!L",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "att L",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "attr L",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q33",
       "question": "What is the significance of enlist in the expression (\"SSY\";enlist\",\")0: `:trade.csv",
       "options": [
-        { "id": "a", "text": "It initalises the csv file for loading", "isCorrect": false },
-        { "id": "c", "text": "It tells q that the first row is to be skipped", "isCorrect": false },
-        { "id": "b", "text": "It tells q that the first row is to be used for the table headers", "isCorrect": true },
-        { "id": "d", "text": "The delimiters must always be a list, and enlist ensures that it is", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "It initalises the csv file for loading",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "It tells q that the first row is to be skipped",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "It tells q that the first row is to be used for the table headers",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "The delimiters must always be a list, and enlist ensures that it is",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q34",
       "question": "Which .z method should I define if I want custom code to be run on a synchronous message?",
       "options": [
-        { "id": "a", "text": ".z.s", "isCorrect": false },
-        { "id": "c", "text": ".z.ps", "isCorrect": false },
-        { "id": "b", "text": ".z.sync", "isCorrect": false },
-        { "id": "d", "text": ".z.pg", "isCorrect": true }
+        {
+          "id": "a",
+          "text": ".z.s",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": ".z.ps",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": ".z.sync",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": ".z.pg",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q35",
       "question": "Which .z method should I define if I want custom code to be run on the closing of a handle?",
       "options": [
-        { "id": "a", "text": ".z.hc", "isCorrect": false },
-        { "id": "c", "text": ".z.c", "isCorrect": false },
-        { "id": "b", "text": ".z.pc", "isCorrect": true },
-        { "id": "d", "text": ".z.h", "isCorrect": false }
+        {
+          "id": "a",
+          "text": ".z.hc",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": ".z.c",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": ".z.pc",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": ".z.h",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q36",
       "question": "If I define .z.po, what argument will be passed in when it is triggered?",
       "options": [
-        { "id": "a", "text": "The function/args that the remote caller has run", "isCorrect": false },
-        { "id": "c", "text": "The current time", "isCorrect": false },
-        { "id": "b", "text": "The handle to the remote caller", "isCorrect": true },
-        { "id": "d", "text": "No argument / identify (::)", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "The function/args that the remote caller has run",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "The current time",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "The handle to the remote caller",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "No argument / identify (::)",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q37",
       "question": "If I define .z.ps, what argument will be passed in when it is triggered?",
       "options": [
-        { "id": "a", "text": "The function/args that the remote caller has run", "isCorrect": true },
-        { "id": "c", "text": "The current time", "isCorrect": false },
-        { "id": "b", "text": "The handle to the remote caller", "isCorrect": false },
-        { "id": "d", "text": "No argument / identify (::)", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "The function/args that the remote caller has run",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "The current time",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "The handle to the remote caller",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "No argument / identify (::)",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q38",
       "question": "If I define .z.ts, what argument will be passed in when it is triggered?",
       "options": [
-        { "id": "a", "text": "The function/args that the remote caller has run", "isCorrect": false },
-        { "id": "c", "text": "The current time", "isCorrect": true },
-        { "id": "b", "text": "The handle to the remote caller", "isCorrect": false },
-        { "id": "d", "text": "No argument / identify (::)", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "The function/args that the remote caller has run",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "The current time",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "The handle to the remote caller",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "No argument / identify (::)",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q39",
       "question": "Which of the following will add the numbers 4 and 5 together?",
       "options": [
-        { "id": "a", "text": "+[4;5]", "isCorrect": true },
-        { "id": "c", "text": "get(4+;5)", "isCorrect": true },
-        { "id": "b", "text": "get\"4+5\"", "isCorrect": true },
-        { "id": "d", "text": "0(+;4;5)", "isCorrect": true }
+        {
+          "id": "a",
+          "text": "+[4;5]",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "get(4+;5)",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "get\"4+5\"",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "0(+;4;5)",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q40",
       "question": "Which of the following will add the numbers 4 and 5 together?",
       "options": [
-        { "id": "a", "text": "+[4;5]", "isCorrect": true },
-        { "id": "c", "text": "get(+4;5)", "isCorrect": false },
-        { "id": "b", "text": "get\"4+5\"", "isCorrect": true },
-        { "id": "d", "text": "0(+;4;5)", "isCorrect": true }
+        {
+          "id": "a",
+          "text": "+[4;5]",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "get(+4;5)",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "get\"4+5\"",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "0(+;4;5)",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q41",
       "question": "Which of the following will allow me to defer my response to a client?",
       "options": [
-        { "id": "a", "text": "-21!", "isCorrect": false },
-        { "id": "c", "text": "-29!", "isCorrect": false },
-        { "id": "b", "text": "-30!", "isCorrect": true },
-        { "id": "d", "text": "-31!", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "-21!",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "-29!",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "-30!",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "-31!",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q42",
       "question": "What is the result of: type 8 9h",
       "options": [
-        { "id": "a", "text": "6", "isCorrect": false },
-        { "id": "c", "text": "5", "isCorrect": false },
-        { "id": "b", "text": "5h", "isCorrect": true },
-        { "id": "d", "text": "6h", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "6",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "5",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "5h",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "6h",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q43",
       "question": "What is the result of: type `a`b!1 2",
       "options": [
-        { "id": "a", "text": "99h", "isCorrect": true },
-        { "id": "c", "text": "98h", "isCorrect": false },
-        { "id": "b", "text": "-99h", "isCorrect": false },
-        { "id": "d", "text": "-98h", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "99h",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "98h",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "-99h",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "-98h",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q44",
       "question": "What is the result of: \"x\"$9 10",
       "options": [
-        { "id": "a", "text": "0x0910", "isCorrect": false },
-        { "id": "c", "text": "0x0901", "isCorrect": false },
-        { "id": "b", "text": "0x091a", "isCorrect": false },
-        { "id": "d", "text": "0x090a", "isCorrect": true }
+        {
+          "id": "a",
+          "text": "0x0910",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "0x0901",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "0x091a",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "0x090a",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q45",
       "question": "+[4;5;6]",
       "options": [
-        { "id": "a", "text": "'rank", "isCorrect": true },
-        { "id": "c", "text": "'type", "isCorrect": false },
-        { "id": "b", "text": "'length", "isCorrect": false },
-        { "id": "d", "text": "15", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "'rank",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "'type",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "'length",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "15",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q46",
       "question": "What is the result of: 10 20,'30",
       "options": [
-        { "id": "a", "text": "'length", "isCorrect": false },
-        { "id": "c", "text": "10 20 30", "isCorrect": false },
-        { "id": "b", "text": "(10 30;20 30)", "isCorrect": true },
-        { "id": "d", "text": "'rank", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "'length",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "10 20 30",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "(10 30;20 30)",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "'rank",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q47",
       "question": "What is contained in .z.x?",
       "options": [
-        { "id": "a", "text": "The first argument to a function", "isCorrect": false },
-        { "id": "c", "text": "The command-line arguments as a list of strings", "isCorrect": true },
-        { "id": "b", "text": "The command-line arguments as a dictionary", "isCorrect": false },
-        { "id": "d", "text": "All the arguments to a function, as a list", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "The first argument to a function",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "The command-line arguments as a list of strings",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "The command-line arguments as a dictionary",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "All the arguments to a function, as a list",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q48",
       "question": "What is .z.N?",
       "options": [
-        { "id": "a", "text": "Local time with millisecond precision", "isCorrect": false },
-        { "id": "b", "text": "UTC time with nanosecond precision", "isCorrect": false },
-        { "id": "c", "text": "UTC time with millisecond precision", "isCorrect": false },
-        { "id": "d", "text": "Local time with nanosecond precision", "isCorrect": true }
+        {
+          "id": "a",
+          "text": "Local time with millisecond precision",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "UTC time with nanosecond precision",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "UTC time with millisecond precision",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Local time with nanosecond precision",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q49",
       "question": "What is .z.p?",
       "options": [
-        { "id": "a", "text": "Local time with millisecond precision", "isCorrect": false },
-        { "id": "b", "text": "UTC date+time with nanosecond precision", "isCorrect": true },
-        { "id": "c", "text": "UTC time with millisecond precision", "isCorrect": false },
-        { "id": "d", "text": "Local date+time with nanosecond precision", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "Local time with millisecond precision",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "UTC date+time with nanosecond precision",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "UTC time with millisecond precision",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Local date+time with nanosecond precision",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q50",
       "question": "What is .z.T?",
       "options": [
-        { "id": "a", "text": "Local time with millisecond precision", "isCorrect": true },
-        { "id": "b", "text": "UTC date+time with nanosecond precision", "isCorrect": false },
-        { "id": "c", "text": "UTC time with millisecond precision", "isCorrect": false },
-        { "id": "d", "text": "Local date+time with nanosecond precision", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "Local time with millisecond precision",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "UTC date+time with nanosecond precision",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "UTC time with millisecond precision",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Local date+time with nanosecond precision",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q51",
       "question": "If I want to write 10 20 30 to `:zfile with the compression parameters (17;2;6), I can do",
       "options": [
-        { "id": "a", "text": "-21!(`:zfile;17 2 6;10 20 30)", "isCorrect": false },
-        { "id": "b", "text": "(`:zfile;17;2;6) set 10 20 30", "isCorrect": true },
-        { "id": "c", "text": ".z.zd:17 2 6;  (and then use set as normal)", "isCorrect": true },
-        { "id": "d", "text": ".z.zf:17 2 6; (and then use set as normal)", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "-21!(`:zfile;17 2 6;10 20 30)",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "(`:zfile;17;2;6) set 10 20 30",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": ".z.zd:17 2 6;  (and then use set as normal)",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": ".z.zf:17 2 6; (and then use set as normal)",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q52",
       "question": "If I want to find out what compression parameters (if any) that a file `:zfile has, I can do:",
       "options": [
-        { "id": "a", "text": "-19!`:zfile", "isCorrect": false },
-        { "id": "b", "text": "-31!`:zfile", "isCorrect": false },
-        { "id": "c", "text": "-21!`:zfile", "isCorrect": true },
-        { "id": "d", "text": "-29!`:zfile", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "-19!`:zfile",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "-31!`:zfile",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "-21!`:zfile",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "-29!`:zfile",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q53",
       "question": "Which of the following wil work:",
       "options": [
-        { "id": "a", "text": "select from t where 1=(first;size)fby sym,ex", "isCorrect": false },
-        { "id": "b", "text": "select from t where 1=(first;size)fby([]sym;ex)", "isCorrect": true },
-        { "id": "c", "text": "select from t where 1=(first;size)fby(sym;ex)", "isCorrect": false },
-        { "id": "d", "text": "select from t where 1=(first;size)fby flip(sym;ex)", "isCorrect": true }
+        {
+          "id": "a",
+          "text": "select from t where 1=(first;size)fby sym,ex",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "select from t where 1=(first;size)fby([]sym;ex)",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "select from t where 1=(first;size)fby(sym;ex)",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "select from t where 1=(first;size)fby flip(sym;ex)",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q54",
       "question": "To start q and disable system commands from remote callers, I do:",
       "options": [
-        { "id": "a", "text": "q -y 1", "isCorrect": false },
-        { "id": "b", "text": "q -x 1", "isCorrect": false },
-        { "id": "c", "text": "q -u 1", "isCorrect": true },
-        { "id": "d", "text": "q -v 1", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "q -y 1",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "q -x 1",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "q -u 1",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "q -v 1",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q55",
       "question": "Which of the following statements are true:",
       "options": [
-        { "id": "a", "text": "Garbage collection is deferred when I start q with -g 1", "isCorrect": false },
-        { "id": "b", "text": "Garbage collection is immediate when I start q with -g 1", "isCorrect": true },
-        { "id": "c", "text": "To manually run garbage collection I can do .Q.g[]", "isCorrect": false },
-        { "id": "d", "text": "When I manually run garbage collection, q returns the number of bytes freed up", "isCorrect": true }
+        {
+          "id": "a",
+          "text": "Garbage collection is deferred when I start q with -g 1",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Garbage collection is immediate when I start q with -g 1",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "To manually run garbage collection I can do .Q.g[]",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "When I manually run garbage collection, q returns the number of bytes freed up",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q56",
       "question": "Which of the following statements are true:",
       "options": [
-        { "id": "a", "text": "Garbage collection is immediate when I start q with -g 0", "isCorrect": false },
-        { "id": "b", "text": "Garbage collection is deferred when I start q with -g 1", "isCorrect": false },
-        { "id": "c", "text": "To manually run garbage collection I can do .Q.gc[]", "isCorrect": true },
-        { "id": "d", "text": "When I manually run garbage collection, q always returns 0", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "Garbage collection is immediate when I start q with -g 0",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Garbage collection is deferred when I start q with -g 1",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "To manually run garbage collection I can do .Q.gc[]",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "When I manually run garbage collection, q always returns 0",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q57",
       "question": "What will be the result of: \"brown\" like \"[^cfb]rown\"",
       "options": [
-        { "id": "a", "text": "001b", "isCorrect": false },
-        { "id": "b", "text": "110b", "isCorrect": false },
-        { "id": "c", "text": "1b", "isCorrect": false },
-        { "id": "d", "text": "0b", "isCorrect": true }
+        {
+          "id": "a",
+          "text": "001b",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "110b",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "1b",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "0b",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q58",
       "question": "What will be the result of: \"br0wn\" like \"br[^3-6]wn\"",
       "options": [
-        { "id": "a", "text": "1b", "isCorrect": true },
-        { "id": "b", "text": "0b", "isCorrect": false },
-        { "id": "c", "text": "00100b", "isCorrect": false },
-        { "id": "d", "text": "11011b", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "1b",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "0b",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "00100b",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "11011b",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q59",
       "question": "What will be the result of: .[+;(2;`type);{x}]",
       "options": [
-        { "id": "a", "text": "'type", "isCorrect": false },
-        { "id": "b", "text": "'length", "isCorrect": false },
-        { "id": "c", "text": "\"type\"", "isCorrect": true },
-        { "id": "d", "text": "'rank", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "'type",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "'length",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "\"type\"",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "'rank",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q60",
       "question": "What is the result of: \"brown not drowned\" ss \"?rown\"",
       "options": [
-        { "id": "a", "text": ",0", "isCorrect": false },
-        { "id": "b", "text": "0 10", "isCorrect": true },
-        { "id": "c", "text": ",10", "isCorrect": false },
-        { "id": "d", "text": "'type", "isCorrect": false }
+        {
+          "id": "a",
+          "text": ",0",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "0 10",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": ",10",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "'type",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q61",
       "question": "What will be the result of: \"brown\" like \"[^cfb]rown\"",
       "options": [
-        { "id": "a", "text": "001b", "isCorrect": false },
-        { "id": "b", "text": "110b", "isCorrect": false },
-        { "id": "c", "text": "1b", "isCorrect": false },
-        { "id": "d", "text": "0b", "isCorrect": true }
+        {
+          "id": "a",
+          "text": "001b",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "110b",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "1b",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "0b",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q62",
       "question": "If I have defined .z.pg but I want to expunge (delete) my custom definition, I can do:",
       "options": [
-        { "id": "a", "text": "delete pg from`.z", "isCorrect": false },
-        { "id": "b", "text": "\\x .z.pg", "isCorrect": true },
-        { "id": "c", "text": "delete pg from`.z.pg", "isCorrect": false },
-        { "id": "d", "text": "\\u .z.pg", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "delete pg from`.z",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "\\x .z.pg",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "delete pg from`.z.pg",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "\\u .z.pg",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q63",
       "question": "If func:{x,'y}, what happens if I do: 1 2 func 3 4 5",
       "options": [
-        { "id": "a", "text": "'rank", "isCorrect": false },
-        { "id": "b", "text": "'type", "isCorrect": true },
-        { "id": "c", "text": "'length", "isCorrect": false },
-        { "id": "d", "text": "each of 3 4 5 is joined to 1 2", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "'rank",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "'type",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "'length",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "each of 3 4 5 is joined to 1 2",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q64",
       "question": "What will be the result of: 5 xrank til 10",
       "options": [
-        { "id": "a", "text": "'type", "isCorrect": false },
-        { "id": "b", "text": "'length", "isCorrect": false },
-        { "id": "c", "text": "0 0 0 0 0 1 1 1 1 1", "isCorrect": false },
-        { "id": "d", "text": "0 0 1 1 2 2 3 3 4 4", "isCorrect": true }
+        {
+          "id": "a",
+          "text": "'type",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "'length",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "0 0 0 0 0 1 1 1 1 1",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "0 0 1 1 2 2 3 3 4 4",
+          "isCorrect": true
+        }
       ]
     },
     {
       "id": "q65",
       "question": "What will be the result of: \"brown\" like \"[cfb]rown\"",
       "options": [
-        { "id": "a", "text": "001b", "isCorrect": false },
-        { "id": "b", "text": "110b", "isCorrect": false },
-        { "id": "c", "text": "1b", "isCorrect": true },
-        { "id": "d", "text": "0b", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "001b",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "110b",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "1b",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "0b",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q66",
       "question": "What will be the result of: -5?10",
       "options": [
-        { "id": "a", "text": "5 (possibly repeating) random numbers between 1 and 10", "isCorrect": false },
-        { "id": "b", "text": "5 unique random numbers between 0 and 9", "isCorrect": true },
-        { "id": "c", "text": "5 unique random numbers between 1 and 10", "isCorrect": false },
-        { "id": "d", "text": "5 (possibly repeating) random numbers between 0 and 9", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "5 (possibly repeating) random numbers between 1 and 10",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "5 unique random numbers between 0 and 9",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "5 unique random numbers between 1 and 10",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "5 (possibly repeating) random numbers between 0 and 9",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q67",
       "question": "What will be the result of: 1+5?10",
       "options": [
-        { "id": "a", "text": "5 (possibly repeating) random numbers between 1 and 10", "isCorrect": true },
-        { "id": "b", "text": "5 unique random numbers between 0 and 9", "isCorrect": false },
-        { "id": "c", "text": "5 unique random numbers between 1 and 10", "isCorrect": false },
-        { "id": "d", "text": "5 (possibly repeating) random numbers between 0 and 9", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "5 (possibly repeating) random numbers between 1 and 10",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "5 unique random numbers between 0 and 9",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "5 unique random numbers between 1 and 10",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "5 (possibly repeating) random numbers between 0 and 9",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q68",
       "question": "In a functional select ?[t;c;b;a;n] the 5th argument (n) means:",
       "options": [
-        { "id": "a", "text": "Return the rows with indices n", "isCorrect": false },
-        { "id": "b", "text": "select up to n records", "isCorrect": true },
-        { "id": "c", "text": "select the rows between the two numbers in n", "isCorrect": false },
-        { "id": "d", "text": "n is the order of the rows", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "Return the rows with indices n",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "select up to n records",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "select the rows between the two numbers in n",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "n is the order of the rows",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q69",
       "question": "What will be the result of: type each(5 7;1.3 7.5;1=1)",
       "options": [
-        { "id": "a", "text": "9 7 1h", "isCorrect": false },
-        { "id": "b", "text": "1 7 -9h", "isCorrect": false },
-        { "id": "c", "text": "7 9 -1h", "isCorrect": true },
-        { "id": "d", "text": "9 7 -1h", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "9 7 1h",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "1 7 -9h",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "7 9 -1h",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "9 7 -1h",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q70",
       "question": "What is returned if I do: 6$\"abc\"",
       "options": [
-        { "id": "a", "text": "'type", "isCorrect": false },
-        { "id": "b", "text": "97 98 99i", "isCorrect": false },
-        { "id": "c", "text": "\"abc   \"", "isCorrect": true },
-        { "id": "d", "text": "'length", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "'type",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "97 98 99i",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "\"abc   \"",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "'length",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q71",
       "question": "What is returned if I do: 6h$\"abc\"",
       "options": [
-        { "id": "a", "text": "'type", "isCorrect": false },
-        { "id": "b", "text": "97 98 99i", "isCorrect": true },
-        { "id": "c", "text": "\"abc   \"", "isCorrect": false },
-        { "id": "d", "text": "'length", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "'type",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "97 98 99i",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "\"abc   \"",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "'length",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q72",
       "question": "What is returned if I do: -6$\"abc\"",
       "options": [
-        { "id": "a", "text": "'type", "isCorrect": false },
-        { "id": "b", "text": "97 98 99i", "isCorrect": false },
-        { "id": "c", "text": "\"   abc\"", "isCorrect": true },
-        { "id": "d", "text": "'length", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "'type",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "97 98 99i",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "\"   abc\"",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "'length",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q73",
       "question": "In a functional select ?[t;c;b;a;n;(g;cn)], what should I do with n if I want all records:",
       "options": [
-        { "id": "a", "text": "Pass 0N", "isCorrect": false },
-        { "id": "b", "text": "Pass identity (::)", "isCorrect": false },
-        { "id": "c", "text": "Pass 0W", "isCorrect": true },
-        { "id": "d", "text": "Leave it blank (projection)", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "Pass 0N",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Pass identity (::)",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Pass 0W",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Leave it blank (projection)",
+          "isCorrect": false
+        }
       ]
     },
     {
       "id": "q74",
       "question": "In a functional select ?[t;c;b;a;n;(g;cn)], g and cn mean:",
       "options": [
-        { "id": "a", "text": "grouped by column g over cn rows", "isCorrect": false },
-        { "id": "b", "text": "sorted by g on cn", "isCorrect": true },
-        { "id": "c", "text": "sorted by cn and grouped by g", "isCorrect": false },
-        { "id": "d", "text": "g is the beginning of select window and cn the end", "isCorrect": false }
+        {
+          "id": "a",
+          "text": "grouped by column g over cn rows",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "sorted by g on cn",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "sorted by cn and grouped by g",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "g is the beginning of select window and cn the end",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q75",
+      "question": "How would i do 10 iterations of the function f starting at 0?",
+      "options": [
+        {
+          "id": "a",
+          "text": "f/[10;0]",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "10 f/0",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "(f/)10 0",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "10 (f/) 0",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q76",
+      "question": "What is the cause of \"slow subscribers\"?",
+      "options": [
+        {
+          "id": "a",
+          "text": "TCP stack - data is arriving faster than the application can read so it gets stored by the OS in tcp buffers",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "The tickerplant is running in batch mode which delays messages to subscribers",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "The subscriber is replaying from the end of the log file instead of real-time",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "The publisher is blocked waiting for synchronous IPC responses",
+          "isCorrect": false
+        }
       ]
     }
   ]
