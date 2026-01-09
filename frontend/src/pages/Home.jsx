@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { auth, db } from "../firebase";
-import { onAuthStateChanged } from "firebase/auth";
+// src/pages/Home.jsx
+import { useEffect, useState, useMemo } from "react";
+import { db } from "../firebase";
 import {
   collection,
   query,
@@ -12,39 +12,32 @@ import {
 import { useNavigate, Link } from "react-router-dom";
 import { QUIZ_CONFIG, TOPICS } from "../config";
 
-function getNameFromEmail(email) {
-  if (!email) return "there";
-  const part = email.split("@")[0];
-  const first = part.split(/[._-]/)[0];
-  return first.charAt(0).toUpperCase() + first.slice(1);
-}
-
-export default function Home() {
-  const [user, setUser] = useState(null);
-  const [lastResult, setLastResult] = useState(null);
-  const [loadingResult, setLoadingResult] = useState(true);
-
-  const [selectedTopics, setSelectedTopics] = useState(["git", "linux", "q"]);
+export default function Home({ user, profile }) {
   const navigate = useNavigate();
 
-  // ---------------- AUTH ----------------
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      if (!u) {
-        navigate("/", { replace: true });
-        setUser(null);
-      } else {
-        setUser({
-          uid: u.uid,
-          email: u.email,
-          displayName: getNameFromEmail(u.email),
-        });
-      }
-    });
-    return () => unsub();
-  }, [navigate]);
+  const [lastResult, setLastResult] = useState(null);
+  const [loadingResult, setLoadingResult] = useState(true);
+  const [selectedTopics, setSelectedTopics] = useState(["git", "linux", "q"]);
 
-  // ---------------- LOAD LAST RESULT ----------------
+  const displayName = useMemo(() => {
+    // 1) Prefer firstName from Firestore
+    if (profile?.firstName) return profile.firstName;
+  
+    // 2) Fallback to Auth displayName (if you ever set it)
+    if (user?.displayName) return user.displayName;
+  
+    // 3) Last resort: email local part
+    if (user?.email) return user.email.split("@")[0];
+  
+    return "there";
+  }, [profile, user]);
+
+  // If somehow user is missing, bounce (ProtectedRoute should prevent this anyway)
+  useEffect(() => {
+    if (!user) navigate("/", { replace: true });
+  }, [user, navigate]);
+
+  // LOAD LAST RESULT
   useEffect(() => {
     const load = async () => {
       if (!user) return;
@@ -59,11 +52,8 @@ export default function Home() {
         );
 
         const snap = await getDocs(q);
-        if (!snap.empty) {
-          setLastResult(snap.docs[0].data());
-        } else {
-          setLastResult(null);
-        }
+        if (!snap.empty) setLastResult(snap.docs[0].data());
+        else setLastResult(null);
       } catch (e) {
         console.error("Error loading last result:", e);
       } finally {
@@ -101,7 +91,7 @@ export default function Home() {
         {/* WELCOME */}
         <div>
           <h1 className="text-3xl md:text-5xl font-bold mb-3">
-            Welcome, {user.displayName}!
+            Welcome, {displayName}!
           </h1>
 
           <p className="text-sm md:text-base text-gray-300 max-w-3xl mx-auto mt-6">

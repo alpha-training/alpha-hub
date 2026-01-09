@@ -1,39 +1,31 @@
+// src/pages/Quiz.jsx
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { auth, db } from "../firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../firebase";
 import { addDoc, collection } from "firebase/firestore";
 import { QUIZ_CONFIG, QUESTION_POOLS } from "../config";
 
-export default function Quiz() {
+export default function Quiz({ user, profile }) {
   const navigate = useNavigate();
   const location = useLocation();
 
   const topics = location.state?.topics || ["git", "linux", "q"];
 
+  // Redirect if not logged in (ProtectedRoute should handle it, but safe)
+  useEffect(() => {
+    if (!user) navigate("/", { replace: true });
+  }, [user, navigate]);
+
   // ---------------- STATE ----------------
-  const [user, setUser] = useState(null);
   const [questions, setQuestions] = useState([]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedById, setSelectedById] = useState({}); 
+  const [selectedById, setSelectedById] = useState({});
 
   const [globalTimeLeft, setGlobalTimeLeft] = useState(null);
 
   const [startedAt, setStartedAt] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // ---------------- AUTH ----------------
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      if (!u) {
-        navigate("/", { replace: true });
-      } else {
-        setUser(u);
-      }
-    });
-    return () => unsub();
-  }, [navigate]);
 
   // ---------------- PREPARE QUESTIONS ----------------
   useEffect(() => {
@@ -54,16 +46,12 @@ export default function Quiz() {
     // Shuffle questions
     const shuffled = [...uniqueQuestions].sort(() => Math.random() - 0.5);
 
-    const sliceCount = Math.min(
-      QUIZ_CONFIG.questionsPerAttempt,
-      shuffled.length
-    );
+    const sliceCount = Math.min(QUIZ_CONFIG.questionsPerAttempt, shuffled.length);
 
     // Normalize + shuffle options
     const normalized = shuffled.slice(0, sliceCount).map((q, qi) => {
       const qid = q.id || `q_${qi}`;
 
-      // ⭐ Shuffle answer options
       const shuffledOptions = [...q.options]
         .map((opt, oi) => ({
           id: opt.id || `${qid}_opt_${oi}`,
@@ -80,12 +68,16 @@ export default function Quiz() {
     });
 
     setQuestions(normalized);
-    setStartedAt(new Date());
+    setCurrentIndex(0);
+    setSelectedById({});
+    setIsSubmitting(false);
 
-    // Global timer
+    const now = new Date();
+    setStartedAt(now);
+
+    // Global timer total
     const total = QUIZ_CONFIG.timePerQuestionSeconds * sliceCount;
     setGlobalTimeLeft(total);
-
   }, [topics]);
 
   const totalQuestions = questions.length;
@@ -106,16 +98,14 @@ export default function Quiz() {
   // Auto-submit on timeout
   useEffect(() => {
     if (globalTimeLeft === 0) handleSubmit("timeout");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [globalTimeLeft]);
 
   // ---------------- OPTION SELECT ----------------
   const toggleOption = (questionId, optionId) => {
     setSelectedById((prev) => {
       const existing = new Set(prev[questionId] || []);
-      existing.has(optionId)
-        ? existing.delete(optionId)
-        : existing.add(optionId);
-
+      existing.has(optionId) ? existing.delete(optionId) : existing.add(optionId);
       return { ...prev, [questionId]: Array.from(existing) };
     });
   };
@@ -133,67 +123,59 @@ export default function Quiz() {
   };
 
   const goNext = () => {
-    if (currentIndex < totalQuestions - 1) {
-      setCurrentIndex((i) => i + 1);
-    }
+    if (currentIndex < totalQuestions - 1) setCurrentIndex((i) => i + 1);
   };
 
   const goBack = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex((i) => i - 1);
-    }
+    if (currentIndex > 0) setCurrentIndex((i) => i - 1);
   };
 
   const skipQuestion = () => {
-    if (currentIndex < totalQuestions - 1) {
-      setCurrentIndex((i) => i + 1);
-    }
+    if (currentIndex < totalQuestions - 1) setCurrentIndex((i) => i + 1);
   };
 
   // ---------------- SUBMIT ----------------
   const handleSubmit = async (reason = "manual") => {
-    if (isSubmitting || !questions.length || !user) return;
-  
+    if (isSubmitting || !questions.length || !user || !startedAt) return;
+
     setIsSubmitting(true);
-  
+
     const totalTimeAllowedInSeconds =
-      QUIZ_CONFIG.questionsPerAttempt *
-      QUIZ_CONFIG.timePerQuestionSeconds;
-  
+      QUIZ_CONFIG.questionsPerAttempt * QUIZ_CONFIG.timePerQuestionSeconds;
+
     let finishedAt;
-  
+
     if (reason === "timeout") {
       // Force finish time to be EXACTLY the max allowed time
       finishedAt = new Date(startedAt.getTime() + totalTimeAllowedInSeconds * 1000);
     } else {
-      // Manual submit
       finishedAt = new Date();
     }
-  
-    // Duration cannot exceed the allowed limit
+
+    // Duration cannot exceed allowed limit
     let durationSeconds = Math.round((finishedAt - startedAt) / 1000);
     durationSeconds = Math.min(durationSeconds, totalTimeAllowedInSeconds);
-  
+
     let score = 0,
       correctCount = 0,
       wrongCount = 0,
       skippedCount = 0;
-  
+
     const perQuestionResults = questions.map((q) => {
-      const correctIds = q.options.filter(o => o.isCorrect).map(o => o.id);
+      const correctIds = q.options.filter((o) => o.isCorrect).map((o) => o.id);
       const picked = selectedById[q.id] || [];
       const pickedSet = new Set(picked);
-  
+
       let isCorrect = false;
-  
+
       if (picked.length === 0) {
         skippedCount++;
         score += QUIZ_CONFIG.scoring.skipped;
       } else {
         const exactMatch =
           picked.length === correctIds.length &&
-          correctIds.every(id => pickedSet.has(id));
-  
+          correctIds.every((id) => pickedSet.has(id));
+
         if (exactMatch) {
           isCorrect = true;
           correctCount++;
@@ -203,7 +185,7 @@ export default function Quiz() {
           score += QUIZ_CONFIG.scoring.wrong;
         }
       }
-  
+
       return {
         questionId: q.id,
         questionText: q.question,
@@ -213,10 +195,14 @@ export default function Quiz() {
         isCorrect,
       };
     });
-  
+
     const payload = {
       uid: user.uid,
       email: user.email,
+      // Optional: store profile fields for reporting (handy)
+      userFirstName: profile?.firstName || null,
+      userLastName: profile?.lastName || null,
+
       topics,
       score,
       totalQuestions,
@@ -229,9 +215,9 @@ export default function Quiz() {
       reason,
       results: perQuestionResults,
     };
-  
+
     await addDoc(collection(db, "quizResults"), payload);
-  
+
     navigate("/results", {
       replace: true,
       state: {
@@ -241,7 +227,6 @@ export default function Quiz() {
       },
     });
   };
-  
 
   // ---------------- RENDER ----------------
   if (!user || !currentQuestion) {
@@ -255,12 +240,13 @@ export default function Quiz() {
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-14 md:pt-24 pb-10 px-4 flex justify-center">
       <div className="w-full max-w-3xl space-y-6">
-
         {/* TOP BAR */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex-1">
             <div className="flex justify-between text-sm md:text-lg text-gray-400 mb-1">
-              <span>Question {currentIndex + 1} / {totalQuestions}</span>
+              <span>
+                Question {currentIndex + 1} / {totalQuestions}
+              </span>
             </div>
 
             <div className="h-2 rounded-full bg-gray-800 overflow-hidden">
@@ -274,7 +260,7 @@ export default function Quiz() {
           <div className="text-sm md:text-base font-mono text-gray-200 text-right">
             Time left:{" "}
             <span className="font-semibold text-blue-400">
-              {formatTime(globalTimeLeft)}
+              {formatTime(globalTimeLeft ?? 0)}
             </span>
           </div>
         </div>
@@ -301,9 +287,7 @@ export default function Quiz() {
                     type="checkbox"
                     className="h-4 w-4 accent-blue-500"
                     checked={picked.includes(opt.id)}
-                    onChange={() =>
-                      toggleOption(currentQuestion.id, opt.id)
-                    }
+                    onChange={() => toggleOption(currentQuestion.id, opt.id)}
                   />
                   <span>{opt.text}</span>
                 </label>
@@ -315,7 +299,6 @@ export default function Quiz() {
         {/* NAVIGATION */}
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           <div className="flex gap-2">
-
             <button
               onClick={goBack}
               disabled={currentIndex === 0}
@@ -345,14 +328,13 @@ export default function Quiz() {
               <button
                 onClick={() => handleSubmit("manual")}
                 className="px-6 py-2 rounded-md bg-green-600 hover:bg-green-700 transition"
+                disabled={isSubmitting}
               >
-                Submit Quiz
+                {isSubmitting ? "Submitting..." : "Submit Quiz"}
               </button>
             )}
-
           </div>
         </div>
-
       </div>
     </div>
   );
