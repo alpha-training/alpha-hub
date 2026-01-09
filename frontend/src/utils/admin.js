@@ -1,7 +1,7 @@
 // src/utils/admin.js
 export const ADMIN_EMAILS = [
     "kieran.lucid@alphakdb.com",
-    "irina.pozdeeva@alphakdb.com" // if YOU need access
+    "irina.pozdeeva@alphakdb.com"
   ];
   
   export function isAdmin(user) {

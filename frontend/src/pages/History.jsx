@@ -1,48 +1,41 @@
+// src/pages/History.jsx
 import { useEffect, useState } from "react";
-import { auth, db } from "../firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  getDocs,
-} from "firebase/firestore";
+import { db } from "../firebase";
+import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { TOPICS } from "../config";
 
-export default function History() {
-  const [user, setUser] = useState(null);
+function formatDuration(seconds) {
+  if (seconds == null) return "-";
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function toMillis(ts) {
+  // Firestore Timestamp has .seconds/.nanoseconds or .toDate()
+  if (!ts) return null;
+  if (ts.toDate) return ts.toDate().getTime();
+  if (typeof ts.seconds === "number") return ts.seconds * 1000;
+  // if you ever stored Date objects directly
+  if (ts instanceof Date) return ts.getTime();
+  return null;
+}
+
+export default function History({ user }) {
   const [attempts, setAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const navigate = useNavigate();
 
-  const formatDuration = (seconds) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, "0")}`;
-  };
-
-  // AUTH
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      if (!u) {
-        navigate("/", { replace: true });
-      } else {
-        setUser(u);
-      }
-    });
-    return () => unsub();
-  }, [navigate]);
+    if (!user) navigate("/", { replace: true });
+  }, [user, navigate]);
 
-  // LOAD HISTORY
   useEffect(() => {
-    const fetch = async () => {
+    const fetchAttempts = async () => {
       if (!user) return;
 
       setLoading(true);
-
       try {
         const q = query(
           collection(db, "quizResults"),
@@ -51,7 +44,6 @@ export default function History() {
         );
 
         const snap = await getDocs(q);
-
         setAttempts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       } catch (e) {
         console.error("History load error:", e);
@@ -60,7 +52,7 @@ export default function History() {
       }
     };
 
-    fetch();
+    fetchAttempts();
   }, [user]);
 
   if (!user) return null;
@@ -68,7 +60,6 @@ export default function History() {
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-14 md:pt-24 pb-10 px-4 flex justify-center">
       <div className="w-full max-w-4xl">
-
         <h1 className="text-2xl font-bold mb-4">History</h1>
         <p className="text-sm text-gray-300 mb-6">
           All your quiz attempts are listed below.
@@ -85,6 +76,8 @@ export default function History() {
                 .map((t) => TOPICS.find((x) => x.id === t)?.label || t)
                 .join(", ");
 
+              const startedAtMs = toMillis(a.startedAt);
+
               return (
                 <div
                   key={a.id}
@@ -100,8 +93,8 @@ export default function History() {
                     </p>
 
                     <p className="text-xs text-gray-400">
-                      {a.startedAt
-                        ? new Date(a.startedAt.seconds * 1000).toLocaleString()
+                      {startedAtMs
+                        ? new Date(startedAtMs).toLocaleString()
                         : "Unknown date"}
                     </p>
                   </div>
@@ -128,7 +121,9 @@ export default function History() {
                     </p>
 
                     {a.durationSeconds != null && (
-                      <p className="text-xs">Duration: {formatDuration(a.durationSeconds)}</p>
+                      <p className="text-xs">
+                        Duration: {formatDuration(a.durationSeconds)}
+                      </p>
                     )}
                   </div>
                 </div>

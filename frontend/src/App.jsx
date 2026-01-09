@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "./firebase";
+import { auth, db } from "./firebase";
 
 import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
@@ -15,18 +15,47 @@ import ForgotPassword from "./pages/ForgotPassword";
 import AdminPanel from "./pages/AdminPanel";
 
 import { isAdmin } from "./utils/admin";
+import { ensureUserProfile } from "./services/userProfile";
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Track auth state
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      setLoading(false);
+    let alive = true;
+
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      try {
+        if (!alive) return;
+
+        if (!u) {
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+          return;
+        }
+
+        setLoading(true);
+        setUser(u);
+
+        const p = await ensureUserProfile(db, u);
+        if (!alive) return;
+
+        setProfile(p);
+        setLoading(false);
+      } catch (e) {
+        console.error("Auth/Profile init error:", e);
+        if (!alive) return;
+        setProfile(null);
+        setLoading(false);
+      }
     });
-    return () => unsub();
+
+    return () => {
+      alive = false;
+      unsub();
+    };
   }, []);
 
   if (loading) {
@@ -39,18 +68,17 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#03080B] text-white">
-      <Navbar user={user} />
+      <Navbar user={user} profile={profile} />
       <div className="pt-14">
         <Routes>
           <Route path="/" element={<Login />} />
-
           <Route path="/forgot" element={<ForgotPassword />} />
 
           <Route
             path="/home"
             element={
-              <ProtectedRoute>
-                <Home />
+              <ProtectedRoute user={user}>
+                <Home user={user} profile={profile} />
               </ProtectedRoute>
             }
           />
@@ -58,8 +86,8 @@ export default function App() {
           <Route
             path="/quiz"
             element={
-              <ProtectedRoute>
-                <Quiz />
+              <ProtectedRoute user={user}>
+                <Quiz user={user} profile={profile} />
               </ProtectedRoute>
             }
           />
@@ -67,8 +95,8 @@ export default function App() {
           <Route
             path="/results"
             element={
-              <ProtectedRoute>
-                <Results />
+              <ProtectedRoute user={user}>
+                <Results user={user} profile={profile} />
               </ProtectedRoute>
             }
           />
@@ -76,18 +104,17 @@ export default function App() {
           <Route
             path="/history"
             element={
-              <ProtectedRoute>
-                <History />
+              <ProtectedRoute user={user}>
+                <History user={user} profile={profile} />
               </ProtectedRoute>
             }
           />
 
-          {/* ADMIN ONLY ROUTE */}
           <Route
             path="/admin"
             element={
               user && isAdmin(user) ? (
-                <AdminPanel />
+                <AdminPanel user={user} profile={profile} />
               ) : (
                 <Navigate to="/" replace />
               )
