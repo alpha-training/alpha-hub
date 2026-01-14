@@ -9,11 +9,23 @@ import linux2 from "../../quiz/linux2.json";
 
 import q1 from "../../quiz/q1.json";
 
+// ✅ NEW: Live checker pool
+import live1 from "../../quiz/live1.json";
+
+// ✅ NEW: Live checker API base
+// Set VITE_LIVE_CHECKER_API in .env for prod (Linux box), defaults to localhost for dev.
+export const LIVE_CHECKER_API =
+  import.meta.env.VITE_LIVE_CHECKER_API || "/live";
+
+
 // --- QUESTION POOLS ---
 export const QUESTION_POOLS = {
   git: buildPool("git", [git1, git2]),
   linux: buildPool("linux", [linux1, linux2]),
   q: buildPool("q", [q1]),
+
+  // ✅ NEW
+  live: buildPool("live", [live1]),
 };
 
 // --- TOPICS SHOWN ON HOME PAGE ---
@@ -21,6 +33,9 @@ export const TOPICS = [
   { id: "git", label: "Git" },
   { id: "linux", label: "Linux" },
   { id: "q", label: "q / kdb+" },
+
+  // ✅ NEW
+  { id: "live", label: "Live Checker" },
 ];
 
 // --- QUIZ CONFIG ---
@@ -28,13 +43,13 @@ export const QUIZ_CONFIG = {
   // Number of questions per quiz
   questionsPerAttempt: 30,
 
-  // NEW global timer parameter: 15s per question
+  // Global timer parameter
   timePerQuestionSeconds: 15,
 
   // Scoring rules
   scoring: {
-    correct: 1,  // +1 point for correct
-    wrong: -1,   // -1 point for wrong
-    skipped: 0,  // 0 for skipped
+    correct: 1,
+    wrong: -1,
+    skipped: 0,
   },
 };

@@ -51,7 +51,7 @@ function getDisplayNameFromResult(r) {
   return getNameFromEmail(r.email);
 }
 
-// ✅ NEW: prefer users/{uid} profile names
+// prefer users/{uid} profile names
 function getProfileDisplayName(uid, profilesByUid, fallbackResult) {
   const p = uid ? profilesByUid?.[uid] : null;
   const first = (p?.firstName || "").trim();
@@ -66,11 +66,11 @@ function getProfileDisplayName(uid, profilesByUid, fallbackResult) {
 export default function AdminPanel({ user }) {
   const [loading, setLoading] = useState(true);
   const [results, setResults] = useState([]);
-  const [profilesByUid, setProfilesByUid] = useState({}); // ✅ NEW
+  const [profilesByUid, setProfilesByUid] = useState({});
   const [error, setError] = useState(null);
 
   // filters
-  const [selectedUser, setSelectedUser] = useState("all"); // ✅ now UID or "all"
+  const [selectedUser, setSelectedUser] = useState("all"); // UID or "all"
   const [selectedTopic, setSelectedTopic] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
 
@@ -119,7 +119,7 @@ export default function AdminPanel({ user }) {
     return list.sort();
   }, [results]);
 
-  // ✅ NEW: map uid -> a "sample result" (for fallback email parsing)
+  // map uid -> a "sample result" (for fallback email parsing)
   const sampleResultByUid = useMemo(() => {
     const map = new Map();
     for (const r of results) {
@@ -243,7 +243,11 @@ export default function AdminPanel({ user }) {
               <option value="all">All users</option>
               {users.map((uid) => (
                 <option key={uid} value={uid}>
-                  {getProfileDisplayName(uid, profilesByUid, sampleResultByUid.get(uid))}
+                  {getProfileDisplayName(
+                    uid,
+                    profilesByUid,
+                    sampleResultByUid.get(uid)
+                  )}
                 </option>
               ))}
             </select>
@@ -268,6 +272,7 @@ export default function AdminPanel({ user }) {
               { label: "Git", value: "git" },
               { label: "Linux", value: "linux" },
               { label: "q / kdb+", value: "q" },
+              { label: "Live Checker", value: "live" }, // ✅ NEW
             ].map((btn) => (
               <button
                 key={btn.value}
@@ -334,8 +339,7 @@ export default function AdminPanel({ user }) {
                   : "border-gray-700 text-gray-300 hover:border-gray-500"
               }`}
             >
-              {btn.label}{" "}
-              {sortField === btn.field ? (sortDir === "asc" ? "↑" : "↓") : ""}
+              {btn.label} {sortField === btn.field ? (sortDir === "asc" ? "↑" : "↓") : ""}
             </button>
           ))}
         </div>
@@ -361,6 +365,14 @@ export default function AdminPanel({ user }) {
 
           const displayName = getProfileDisplayName(r.uid, profilesByUid, r);
 
+          const topicLabel = topicsArr.length
+            ? topicsArr
+                .map((t) =>
+                  t === "q" ? "q / kdb+" : t === "live" ? "Live Checker" : t
+                )
+                .join(", ")
+            : "No topics";
+
           return (
             <div
               key={r.id}
@@ -384,9 +396,7 @@ export default function AdminPanel({ user }) {
                   </div>
 
                   <div className="text-xs md:text-base text-blue-300 font-medium ml-4 md:ml-20">
-                    {topicsArr.length
-                      ? topicsArr.map((t) => (t === "q" ? "q / kdb+" : t)).join(", ")
-                      : "No topics"}
+                    {topicLabel}
                   </div>
                 </div>
 
@@ -450,15 +460,22 @@ export default function AdminPanel({ user }) {
                       </div>
                       <div className="max-h-60 overflow-y-auto space-y-1 pr-1">
                         {r.results.map((qRes, idx) => {
+                          const type = qRes.type || "mcq";
+
+                          const isSkipped =
+                            type === "live"
+                              ? !(qRes.attempt || "").trim()
+                              : (qRes.selectedOptionIds || []).length === 0;
+
                           const status = qRes.isCorrect
                             ? "Correct"
-                            : (qRes.selectedOptionIds || []).length === 0
+                            : isSkipped
                             ? "Skipped"
                             : "Wrong";
 
                           const statusColor = qRes.isCorrect
                             ? "text-green-400"
-                            : (qRes.selectedOptionIds || []).length === 0
+                            : isSkipped
                             ? "text-yellow-300"
                             : "text-red-400";
 

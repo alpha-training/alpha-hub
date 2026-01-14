@@ -1,0 +1,69 @@
+{
+    "questions": [
+      {
+        "type": "live",
+        "apiId": "q1",
+        "source": "t1",
+        "display": ["t"],
+        "question": "notional is the total value",
+        "options": []
+      },
+      {
+        "type": "live",
+        "apiId": "q2",
+        "source": "t1",
+        "display": ["t"],
+        "question": "notional is the total value",
+        "options": []
+      },
+      {
+        "type": "live",
+        "apiId": "q3",
+        "source": "t1",
+        "display": ["t"],
+        "question": "Difference between the current price and the opening price",
+        "options": []
+      },
+      {
+        "type": "live",
+        "apiId": "q4",
+        "source": "s1",
+        "display": ["s"],
+        "question": "Write an expression that returns s parsed into a dictionary",
+        "options": []
+      },
+      {
+        "type": "live",
+        "apiId": "q5",
+        "source": "t1",
+        "display": ["kti"],
+        "question": "Write an expression that returns these indices from kti",
+        "options": []
+      },
+      {
+        "type": "live",
+        "apiId": "q6",
+        "source": "t1",
+        "display": ["kti"],
+        "question": "Write an expression that returns these indices from kti",
+        "options": []
+      },
+      {
+        "type": "live",
+        "apiId": "q7",
+        "source": "t1",
+        "display": ["t2"],
+        "question": "Add a ticker column",
+        "options": []
+      },
+      {
+        "type": "live",
+        "apiId": "q8",
+        "source": "t1",
+        "display": ["t2"],
+        "question": "Get the notional by exchange",
+        "options": []
+      }
+    ]
+  }
+  

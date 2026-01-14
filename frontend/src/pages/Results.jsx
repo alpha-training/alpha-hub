@@ -1,3 +1,4 @@
+// src/pages/Results.jsx
 import { useLocation, useNavigate } from "react-router-dom";
 import { QUIZ_CONFIG, TOPICS } from "../config";
 
@@ -34,7 +35,7 @@ export default function Results() {
 
   // PERFORMANCE MESSAGE
   let performanceMsg = "";
-  const pct = (correctCount / totalQuestions) * 100;
+  const pct = totalQuestions ? (correctCount / totalQuestions) * 100 : 0;
 
   if (pct >= 80) {
     performanceMsg = "🔥 Amazing job! You're mastering this.";
@@ -45,7 +46,6 @@ export default function Results() {
   } else {
     performanceMsg = "📘 Keep practicing — you'll get there!";
   }
-
 
   const formatDuration = (seconds) => {
     const m = Math.floor(seconds / 60);
@@ -60,7 +60,6 @@ export default function Results() {
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-14 md:pt-24 pb-10 px-4 flex justify-center">
       <div className="w-full max-w-4xl space-y-6">
-
         {/* SUMMARY */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
@@ -107,13 +106,67 @@ export default function Results() {
           <h2 className="text-lg font-semibold">Review your answers</h2>
 
           <p className="text-xs text-gray-400 mb-2">
-            Green = correct answer. Red = wrong. Grey = not selected.
+            Green = correct answer. Red = wrong. Yellow = skipped.
           </p>
 
           <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
             {results.map((q, idx) => {
+              const type = q.type || "mcq";
+
+              // ---------------- LIVE RENDER ----------------
+              if (type === "live") {
+                const isSkipped = !q.attempt || !q.attempt.trim();
+
+                return (
+                  <div
+                    key={q.questionId}
+                    className="border border-gray-800 rounded-lg px-2 py-3 md:px-3 md:py-3 text-sm bg-gray-950/60"
+                  >
+                    <div className="flex items-center justify-between mb-2 gap-2">
+                      <p className="font-medium">
+                        {idx + 1}. {q.questionText}
+                      </p>
+
+                      <span
+                        className={`text-[11px] px-2 py-0.5 rounded-full ${
+                          q.isCorrect
+                            ? "bg-green-500/10 text-green-400 border border-green-500/40"
+                            : isSkipped
+                            ? "bg-yellow-500/10 text-yellow-300 border border-yellow-500/40"
+                            : "bg-red-500/10 text-red-400 border border-red-500/40"
+                        }`}
+                      >
+                        {q.isCorrect ? "Correct" : isSkipped ? "Skipped" : "Wrong"}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="text-xs text-gray-400">
+                        Your answer:
+                      </div>
+                      <div className="rounded-md border border-gray-800 bg-black/20 p-3 text-xs font-mono whitespace-pre-wrap">
+                        {q.attempt && q.attempt.trim()
+                          ? q.attempt
+                          : "(no answer)"}
+                      </div>
+
+                      {q.liveStatus?.message ? (
+                        <div className="text-xs text-gray-300">
+                          Message:{" "}
+                          <span className="text-gray-400">
+                            {q.liveStatus.message}
+                          </span>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              }
+
+              // ---------------- MCQ RENDER (existing) ----------------
               const selectedSet = new Set(q.selectedOptionIds || []);
               const correctSet = new Set(q.correctOptionIds || []);
+              const options = q.options || [];
 
               return (
                 <div
@@ -143,7 +196,7 @@ export default function Results() {
                   </div>
 
                   <div className="space-y-1">
-                    {q.options.map((opt) => {
+                    {options.map((opt) => {
                       const isSelected = selectedSet.has(opt.id);
                       const isCorrect = correctSet.has(opt.id);
 
