@@ -37,7 +37,11 @@ export default function Quiz({ user, profile }) {
     // dedupe by question OR id
     const map = new Map();
     pool.forEach((q) => {
-      const key = (q.question || q.id || "").toString().trim().toLowerCase();
+      const key =
+      (q.type === "live" ? q.apiId : q.id || q.question || "")
+        .toString()
+        .trim()
+        .toLowerCase();
       if (!map.has(key)) map.set(key, q);
     });
 

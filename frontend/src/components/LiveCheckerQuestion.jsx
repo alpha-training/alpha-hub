@@ -28,8 +28,11 @@ export default function LiveCheckerQuestion({
     setFormatData(null);
 
     fetch(`${LIVE_CHECKER_API}/format/${question.apiId}`, { method: "POST" })
-      .then((res) => {
-        if (!res.ok) throw new Error(`Failed to load format (${res.status})`);
+      .then(async (res) => {
+        if (!res.ok) {
+          const t = await res.text().catch(() => "");
+          throw new Error(`Failed to load format (${res.status}) ${t.slice(0, 120)}`);
+        }
         return res.json();
       })
       .then((data) => {
@@ -52,6 +55,7 @@ export default function LiveCheckerQuestion({
     if (v == null) return "";
     if (typeof v === "string") return v;
     if (Array.isArray(v)) return v.map(toText).join("\n\n");
+    // common backend table shape: { labels: [...], values: [...] }
     if (typeof v === "object" && Array.isArray(v.values)) {
       return v.values.map(toText).join("\n\n");
     }
@@ -62,37 +66,67 @@ export default function LiveCheckerQuestion({
     }
   };
 
+  /**
+   * ✅ IMPORTANT:
+   * Backend returns:
+   * { result: { labels, values, prompt, result } }
+   * So we "unwrap" formatData.result when it looks like that.
+   */
+  const fd = useMemo(() => {
+    const r = formatData?.result;
+    if (
+      r &&
+      typeof r === "object" &&
+      (Array.isArray(r.values) || typeof r.prompt === "string" || typeof r.result === "string")
+    ) {
+      return r;
+    }
+    return formatData;
+  }, [formatData]);
+
+  const promptText = useMemo(() => {
+    if (loading || error) return "";
+    return toText(fd?.prompt || "");
+  }, [fd, loading, error]);
+  const showPrompt = useMemo(() => {
+    const q = (question?.question || "").trim();
+    const p = (promptText || "").trim();
+    if (!p) return false;
+
+    // don't duplicate if backend prompt matches the already-shown question text
+    return p.toLowerCase() !== q.toLowerCase();
+  }, [promptText, question?.question]);
+
   const inputText = useMemo(() => {
     if (loading) return "Loading...";
     if (error) return error;
 
-    if (formatData?.tables != null) return toText(formatData.tables);
-    if (formatData?.input != null) return toText(formatData.input);
-    if (formatData?.table != null) return toText(formatData.table);
+    // Prefer explicit input/table fields if they exist
+    if (fd?.tables != null) return toText(fd.tables);
+    if (fd?.input != null) return toText(fd.input);
+    if (fd?.table != null) return toText(fd.table);
 
-    // sometimes a table-like object ends up under result
-    if (formatData?.result && typeof formatData.result === "object") {
-      if (Array.isArray(formatData.result.values)) return toText(formatData.result);
-    }
+    // ✅ Backend live-checker input is usually here:
+    if (Array.isArray(fd?.values)) return toText(fd.values);
 
     return "";
-  }, [formatData, loading, error]);
+  }, [fd, loading, error]);
 
   const expectedText = useMemo(() => {
     if (loading) return "Loading...";
     if (error) return "";
 
-    if (typeof formatData?.result === "string") return formatData.result;
-    if (formatData?.expected != null) return toText(formatData.expected);
-    if (formatData?.result != null) return toText(formatData.result);
+    // ✅ Backend expected output is usually here:
+    if (typeof fd?.result === "string") return fd.result;
+
+    // Some variants might use "expected"
+    if (fd?.expected != null) return toText(fd.expected);
+
+    // Last resort (should rarely be needed)
+    if (fd?.result != null) return toText(fd.result);
 
     return "";
-  }, [formatData, loading, error]);
-
-  const promptText = useMemo(() => {
-    if (loading || error) return "";
-    return toText(formatData?.prompt || "");
-  }, [formatData, loading, error]);
+  }, [fd, loading, error]);
 
   // Enter runs, Shift+Enter newline
   const onEditorKeyDown = (e) => {
@@ -106,18 +140,20 @@ export default function LiveCheckerQuestion({
     const s = status?.status || "idle";
     if (s === "correct") return { tone: "success", title: "Correct answer!" };
     if (s === "running") return { tone: "info", title: "Running..." };
-    if (s === "incorrect")
+    if (s === "incorrect") {
       return {
         tone: "danger",
         title: "Incorrect answer",
         subtitle: status?.message || "Try again.",
       };
-    if (s === "error")
+    }
+    if (s === "error") {
       return {
         tone: "warning",
         title: "Error",
         subtitle: status?.message || "Something went wrong.",
       };
+    }
     return null;
   }, [status]);
 
@@ -138,19 +174,20 @@ export default function LiveCheckerQuestion({
 
   return (
     <div className="space-y-4">
-      {promptText ? (
-        <p className="text-xs md:text-sm text-gray-400 whitespace-pre-wrap">
-          {promptText}
-        </p>
-      ) : null}
+    {showPrompt ? (
+      <p className="text-xs md:text-sm text-gray-400 whitespace-pre-wrap">
+        {promptText}
+      </p>
+    ) : null}
 
-      {/* ✅ Input + Expected: FORCE 2 cols from sm+ (not md) + allow shrinking */}
+      {/* Input + Expected (2 cols on md+) */}
       <div className="w-full grid md:grid-cols-2 gap-4">
         <Panel title="Input" className="min-w-0">
           <textarea
             readOnly
             value={inputText}
-            className="w-full h-80 rounded-lg bg-gray-950/50 border border-gray-800 p-3 text-xs font-mono text-gray-200 resize-none"
+            spellCheck={false}
+            className="w-full h-80 rounded-lg bg-gray-950/50 border border-gray-800 p-3 text-xs font-mono text-gray-200 resize-none whitespace-pre overflow-auto"
           />
         </Panel>
 
@@ -158,7 +195,8 @@ export default function LiveCheckerQuestion({
           <textarea
             readOnly
             value={expectedText}
-            className="w-full h-80 rounded-lg bg-gray-950/50 border border-gray-800 p-3 text-xs font-mono text-gray-200 resize-none"
+            spellCheck={false}
+            className="w-full h-80 rounded-lg bg-gray-950/50 border border-gray-800 p-3 text-xs font-mono text-gray-200 resize-none whitespace-pre overflow-auto"
           />
         </Panel>
       </div>
@@ -174,6 +212,7 @@ export default function LiveCheckerQuestion({
           onChange={(e) => onAttemptChange?.(e.target.value)}
           onKeyDown={onEditorKeyDown}
           placeholder="Enter = Run, Shift+Enter = new line"
+          spellCheck={false}
           className="w-full min-h-[78px] pl-12 pr-3 py-3 bg-transparent text-xs md:text-sm font-mono text-gray-100 outline-none resize-none"
         />
 
@@ -189,9 +228,13 @@ export default function LiveCheckerQuestion({
         </div>
       </div>
 
-   {/* Status banner (no result box) */}
+      {/* Status banner (no duplicate result box) */}
       {banner ? (
-        <div className={`rounded-xl border p-4 ${bannerClasses(banner.tone)} flex items-start gap-3`}>
+        <div
+          className={`rounded-xl border p-4 ${bannerClasses(
+            banner.tone
+          )} flex items-start gap-3`}
+        >
           <div className="mt-0.5 shrink-0">
             <StatusIcon tone={banner.tone} />
           </div>

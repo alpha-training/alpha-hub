@@ -149,7 +149,7 @@ export default function Results() {
                           ? q.attempt
                           : "(no answer)"}
                       </div>
-
+                    {/* 
                       {q.liveStatus?.message ? (
                         <div className="text-xs text-gray-300">
                           Message:{" "}
@@ -158,6 +158,7 @@ export default function Results() {
                           </span>
                         </div>
                       ) : null}
+                      */}
                     </div>
                   </div>
                 );
