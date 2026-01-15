@@ -2,7 +2,7 @@ import buildPool from "../../frontend/src/utils/mergeQuestions";
 
 // --- RAW QUESTION SOURCES ---
 import git1 from "../../quiz/git1.json";
-import git2 from "../../quiz/git2.json";
+//import git2 from "../../quiz/git2.json";
 
 import linux1 from "../../quiz/linux1.json";
 import linux2 from "../../quiz/linux2.json";
@@ -17,7 +17,7 @@ export const LIVE_CHECKER_API =
 
 // --- QUESTION POOLS ---
 export const QUESTION_POOLS = {
-  git: buildPool("git", [git1, git2]),
+  git: buildPool("git", [git1,]),
   linux: buildPool("linux", [linux1, linux2]),
   q: buildPool("q", [q1]),
 
