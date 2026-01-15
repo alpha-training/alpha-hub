@@ -1,0 +1,2605 @@
+{
+  "title": "Trading 1",
+  "questions": [
+    {
+      "id": "t1",
+      "question": "What does the best bid in an order book represent?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The lowest price someone is willing to sell at",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "The highest price someone is willing to buy at",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "The most recent trade price",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "The average price of all bids",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t2",
+      "question": "What is the bid-ask spread?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The difference between the highest bid and lowest ask",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "The total volume available in the order book",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "The difference between open and close prices",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "The gap between two consecutive trades",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t3",
+      "question": "Which order type guarantees execution but not price?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Limit order",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Market order",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Stop order",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Iceberg order",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t4",
+      "question": "What happens when a buy limit order is placed above the current best ask?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It is rejected by the exchange",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "It rests in the order book unchanged",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "It executes immediately against available sell orders",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "It becomes a market order automatically",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t5",
+      "question": "What is a trade?",
+      "options": [
+        {
+          "id": "a",
+          "text": "An order submitted to an exchange",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "A matched buy and sell resulting in execution",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "A change in the best bid or ask",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "The total volume in the order book",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t6",
+      "question": "Which of the following best describes a quote?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A completed transaction",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "The best bid and best ask at a point in time",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "An unfilled market order",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "The daily closing price",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t7",
+      "question": "Why are timestamps critical in market data?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They determine trade settlement dates",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "They allow correct sequencing and joining of events",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "They indicate trade profitability",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They control exchange fees",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t8",
+      "question": "If you want to attach the most recent quote to each trade, what kind of join logic is typically required?",
+      "options": [
+        {
+          "id": "a",
+          "text": "An exact equality join on timestamp",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "A join to the nearest future quote",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "A join to the most recent prior quote",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "A Cartesian join",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t9",
+      "question": "What does order book depth refer to?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The number of trades executed in a day",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "The total number of orders ever submitted",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "The volume available at multiple price levels",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "The spread between bid and ask",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t10",
+      "question": "Why might a trade occur at a price outside the current quoted bid-ask spread?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Because the quote data is always wrong",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Due to latency, hidden liquidity, or reporting delays",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Because market orders ignore prices entirely",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Because spreads only apply to limit orders",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t11",
+      "question": "Which of the following can cause the displayed best bid or ask to change?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A new order improving the price",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "A cancellation of the current best order",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "A trade executing at a worse price level",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "A change in the company’s fundamentals",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t12",
+      "question": "Which characteristics typically apply to limit orders?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They specify a maximum or minimum execution price",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They may not execute at all",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "They always remove liquidity",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They guarantee full execution",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t13",
+      "question": "What information is commonly found in a trade record?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Execution price",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Executed quantity",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Full depth of the order book",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Execution timestamp",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "t14",
+      "question": "Which statements about market orders are generally true?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They prioritise speed over price",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They may experience slippage",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "They always execute at the mid-price",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They add liquidity to the book",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t15",
+      "question": "Which of the following can be inferred directly from quotes but not from trades alone?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Current bid-ask spread",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Available liquidity at the best prices",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Last traded price",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Total traded volume",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t16",
+      "question": "What does it mean if an order book is described as ‘deep’?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Large volumes are available across many price levels",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "The bid-ask spread is wide",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Large trades can be absorbed with limited price impact",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Trading is halted",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t17",
+      "question": "Which events reduce visible liquidity in an order book?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Order cancellations",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Trades that consume resting orders",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "New limit orders away from the market",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Quote updates with unchanged sizes",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t18",
+      "question": "Why might multiple trades share the same timestamp?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They were part of a single large order execution",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "The timestamp resolution is coarse",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Trades always occur in pairs",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Quotes and trades are identical data",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t19",
+      "question": "Which statements about bid and ask sizes are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They represent available quantity at that price",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They can change without a price change",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "They always equal the last trade size",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They only change when trades occur",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t20",
+      "question": "Which issues commonly arise when joining trades to quotes?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Timestamp misalignment",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Duplicate matches",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Floating-point rounding in prices",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Incorrect corporate actions",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t21",
+      "question": "What does it mean to ‘remove liquidity’?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Executing against existing orders in the book",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Placing a limit order inside the spread",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Reducing available size at a price level",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Widening the bid-ask spread by default",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t22",
+      "question": "Which of the following are valid reasons for partial fills?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Insufficient quantity at the desired price",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Order size exceeds available liquidity",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "The order was a market order",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "The exchange enforces minimum trade sizes",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t23",
+      "question": "Which data fields are useful for reconstructing an order book?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Order price",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Order size",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Order side (buy/sell)",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Daily VWAP",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t24",
+      "question": "Which statements about spreads are generally true?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They tend to widen during volatile periods",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They are a cost paid by aggressive traders",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "They are fixed throughout the trading day",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They disappear when volume increases",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t25",
+      "question": "What can cause two venues to show different best prices for the same instrument?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Latency differences",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Independent order books",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Different tick sizes",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Incorrect symbol mapping only",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t26",
+      "question": "Which statements about trade direction inference are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It often relies on comparing trade price to quotes",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "It can be ambiguous",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "It is always explicitly provided by exchanges",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "It never depends on timing",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t27",
+      "question": "What does a crossed market indicate?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Best bid is higher than best ask",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "A temporary data or latency issue",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "A profitable arbitrage guaranteed",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "A halted market by definition",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t28",
+      "question": "Which of the following are common sanity checks on quote data?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Bid price is less than ask price",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Sizes are non-negative",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Timestamps are strictly increasing",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Prices never repeat",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t29",
+      "question": "Why might trades appear without any nearby quote updates?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Quotes were unchanged",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Quote data was filtered or sampled",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Trades do not affect the market",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Trades bypass the order book entirely",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t30",
+      "question": "Which factors influence execution price for a market order?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Available liquidity",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Order size",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Depth of the order book",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Company earnings announcements",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t31",
+      "question": "What does time priority mean in most order books?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Earlier orders at the same price execute first",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Larger orders execute first",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Price is considered before time",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Market orders ignore time priority",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t32",
+      "question": "Which of the following can legitimately change without a trade occurring?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Best bid size",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Best ask price",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Last traded price",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Daily traded volume",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t33",
+      "question": "Why is exact timestamp equality often avoided when joining market data?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Events rarely occur at identical times",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Different feeds use different clocks",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "It is computationally impossible",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Timestamps are always unreliable",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t34",
+      "question": "Which properties are typical of exchange-traded order books?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Centralised matching rules",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Transparent price-time priority",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Guaranteed anonymity of all orders",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Unlimited hidden liquidity",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t35",
+      "question": "What does slippage refer to?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Execution at a worse price than expected",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "The bid-ask spread itself",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Price movement caused by execution",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "A data recording error",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t36",
+      "question": "Which of the following are reasons to aggregate market data?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Reduce data volume",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Simplify analysis",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Eliminate microstructure effects",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Improve timestamp precision",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t37",
+      "question": "What information is lost when aggregating trades into bars?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Exact execution timing",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Trade sequence",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Total traded volume",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Opening and closing prices",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t38",
+      "question": "Which statements about liquidity are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It can vary significantly over time",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "It is instrument-specific",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "It is constant during market hours",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "It guarantees price stability",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t39",
+      "question": "What does it mean if a quote is described as ‘stale’?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It no longer reflects current market conditions",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "It has been superseded by newer information",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "It contains an invalid price",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "It was generated outside trading hours",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t40",
+      "question": "Which challenges are specific to high-frequency market data?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Very high event rates",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Out-of-order events",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Lack of timestamps",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Absence of order books",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t41",
+      "question": "Which of the following actions typically add liquidity to an order book?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Placing a limit order away from the best price",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Submitting a market order",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Placing a limit order that does not immediately execute",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Cancelling an existing order",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t42",
+      "question": "What information is required to uniquely identify a trade?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Execution price",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Execution quantity",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Execution timestamp or unique trade ID",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Best bid and ask at the time",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t43",
+      "question": "Which statements about tick size are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It defines the minimum price increment",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "It can influence the bid-ask spread",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "It is always the same across instruments",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "It has no impact on market liquidity",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t44",
+      "question": "Why might two consecutive quote updates have identical prices?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Only the displayed size changed",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "An order was cancelled and replaced at the same price",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Quotes must always alternate prices",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Trades cannot occur between them",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t45",
+      "question": "Which of the following can cause market impact?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Large aggressive orders",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Low order book depth",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "High liquidity at many price levels",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Submitting a small passive order",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t46",
+      "question": "Which properties distinguish quotes from trades?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Quotes reflect intentions, trades reflect executions",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Quotes can exist without trades occurring",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Trades always include bid and ask prices",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Quotes represent completed transactions",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t47",
+      "question": "Which situations can lead to wide bid-ask spreads?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Low liquidity",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "High uncertainty or volatility",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "High trading volume with deep books",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Stable market conditions",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t48",
+      "question": "What does a quote update with zero size typically indicate?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A cancellation of all orders at that price",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "A trade executed at that price",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "A placeholder or clearing message",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Guaranteed market closure",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t49",
+      "question": "Which statements about volume-weighted average price (VWAP) are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It weights prices by traded volume",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "It can be computed from trade data",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "It requires full order book depth",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "It always equals the mid-price",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t50",
+      "question": "Why might trade prices cluster at certain levels?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Tick size constraints",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Psychological price levels",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Random rounding errors",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Mandatory exchange rules forcing clustering",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t51",
+      "question": "Which of the following are consequences of low market liquidity?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Higher price impact for trades",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Wider bid-ask spreads",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "More stable prices",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Guaranteed execution at quoted prices",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t52",
+      "question": "Which events can trigger quote updates without any trade?",
+      "options": [
+        {
+          "id": "a",
+          "text": "New limit orders",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Order cancellations",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Market halts",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Trade reporting delays",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t53",
+      "question": "Which data attributes are commonly shared by both trades and quotes?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Instrument identifier",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Timestamp",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Execution quantity",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Side of aggressor",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t54",
+      "question": "What does it mean when liquidity is said to be ‘fragmented’?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Orders are spread across multiple venues",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "No single book shows the full market",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Trading is halted frequently",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Prices are fixed by regulation",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t55",
+      "question": "Which statements about market depth snapshots are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They represent the book at a specific point in time",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They may become stale quickly",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "They capture all historical changes",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They guarantee future liquidity",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t56",
+      "question": "Why might a trade not change the best bid or ask?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It executed at a deeper price level",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "There was sufficient size remaining at the best price",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Trades never affect quotes",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "The trade was cancelled",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t57",
+      "question": "Which of the following are challenges when aggregating data across venues?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Different timestamp conventions",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Symbol and instrument mapping",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Uniform tick sizes across venues",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Guaranteed identical liquidity",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t58",
+      "question": "What does it mean for an order to be ‘hidden’?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It does not appear in the public order book",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "It cannot be executed",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "It may still interact with visible orders",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "It always executes at the mid-price",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t59",
+      "question": "Which of the following describe trade-throughs?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Executing at a worse price than available elsewhere",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "A consequence of fragmented markets",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Guaranteed to be illegal",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Always caused by market orders",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t60",
+      "question": "Which of the following are valid uses of mid-price?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A reference price for valuation",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Estimating transaction costs",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Representing an executable price",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Benchmarking trade performance",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "t61",
+      "question": "Which situations can lead to out-of-order market data?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Network latency",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Parallel processing of events",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Strict exchange sequencing",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Clock synchronisation issues",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "t62",
+      "question": "What does it mean if a quote is ‘locked’?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Best bid equals best ask",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "No trading is allowed",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "It may precede a crossed market",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "All orders are cancelled",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t63",
+      "question": "Which factors affect the quality of a quote?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Latency",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Displayed size",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Frequency of updates",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Company dividend policy",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t64",
+      "question": "Why might multiple trades occur at the same price but different sizes?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They match against different resting orders",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "A large order was split across executions",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Prices are random within a tick",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Trades must have unique prices",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t65",
+      "question": "Which of the following are common data quality checks on trades?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Positive trade size",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Reasonable price relative to quotes",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Strictly increasing timestamps",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Exact alignment with quote updates",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t66",
+      "question": "What does price-time priority imply for traders?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Better prices execute before worse prices",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Earlier orders at the same price have an advantage",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Order size overrides price",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "All orders execute simultaneously",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t67",
+      "question": "Which of the following can indicate poor market data quality?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Negative prices or sizes",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Frequent crossed markets",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Consistent spreads during calm periods",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Occasional duplicate timestamps",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t68",
+      "question": "Why are joins between trades and quotes often many-to-one?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Multiple trades can occur between quote updates",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Quotes are updated less frequently than trades",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Each trade generates a new quote",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Quotes and trades share unique IDs",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t69",
+      "question": "Which statements about pre-trade and post-trade data are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Quotes are pre-trade information",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Trades are post-trade information",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Trades predict future liquidity",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Quotes guarantee execution",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t70",
+      "question": "What does it mean if liquidity ‘dries up’?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Available sizes at prices decrease",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Spreads tend to widen",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Trading volume necessarily increases",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Markets permanently close",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t71",
+      "question": "Which factors can cause the mid-price to change?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A change in the best bid",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "A change in the best ask",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "A trade at the mid-price",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "A cancellation away from the best prices",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t72",
+      "question": "Which statements about aggressive orders are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They immediately interact with existing liquidity",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They tend to pay the bid-ask spread",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "They always improve market depth",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They cannot cause slippage",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t73",
+      "question": "Which properties are typical of passive orders?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They rest in the order book if not executed",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They may earn the spread",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "They guarantee execution",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They always execute immediately",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t74",
+      "question": "Why might a limit order not execute even if the market trades at that price?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Time priority placed other orders ahead of it",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Insufficient quantity was available",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Limit orders cannot execute at their own price",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Trades always ignore resting orders",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t75",
+      "question": "Which of the following can affect observed spreads across time?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Market open and close",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Changes in volatility",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "The accounting period of the firm",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Liquidity provision incentives",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "t76",
+      "question": "Which data issues can distort trade-price analysis?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Out-of-sequence timestamps",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Missing trades",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Consistent tick sizes",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Duplicate trade reports",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "t77",
+      "question": "What does it mean when liquidity is said to be ‘thin’?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Small available size at each price level",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Large trades cause larger price moves",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Spreads are always narrow",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Trading volume is guaranteed to be low",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t78",
+      "question": "Which of the following can cause apparent price jumps in trade data?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Trades executing across multiple price levels",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Sparse liquidity between price levels",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Tick size rounding",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Incorrect currency conversion",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t79",
+      "question": "Which statements about quote frequency are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Quotes can update more frequently than trades",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "High quote frequency can increase data volume",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Quotes must follow every trade",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Low quote frequency guarantees stability",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t80",
+      "question": "Which scenarios can produce identical consecutive trades?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Repeated executions at the same price and size",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Trade reporting duplication",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Mandatory trade consolidation by exchanges",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Quotes being locked",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t81",
+      "question": "Which statements about order cancellations are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They can change displayed liquidity",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They can occur without any trade",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "They always change the best price",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They increase executed volume",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t82",
+      "question": "Which of the following are reasons to analyse order book imbalance?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Assess buying vs selling pressure",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Estimate short-term price movement",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Compute company valuation",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Replace executed trade data",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t83",
+      "question": "Which data characteristics make joining market data harder?",
+      "options": [
+        {
+          "id": "a",
+          "text": "High event rates",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Asynchronous feeds",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Single unified timestamps",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Multiple instruments in one stream",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "t84",
+      "question": "What does it mean if trades consistently execute at the ask?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Buy-side aggression dominates",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Liquidity is being removed on the sell side",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "The market is locked",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Spreads must be zero",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t85",
+      "question": "Which of the following describe the inside market?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Best bid and best ask prices",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Prices most likely to trade next",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "All visible price levels",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Guaranteed execution prices",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t86",
+      "question": "Which outcomes can result from a large market order?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Execution across multiple price levels",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Significant market impact",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Automatic price improvement",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Guaranteed full fill at best price",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t87",
+      "question": "Which statements about exchange timestamps are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They may differ from local receipt times",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They are essential for event ordering",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "They eliminate all latency effects",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They are always unique per event",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t88",
+      "question": "Which of the following can cause misleading VWAP calculations?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Including off-market trades",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Missing trade reports",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Consistent volume reporting",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Correct trade timestamps",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t89",
+      "question": "Why might order book depth appear to vanish suddenly?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Mass order cancellations",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Latency in data feeds",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Guaranteed hidden liquidity activation",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "End-of-day auction mechanics",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "t90",
+      "question": "Which properties are typical of auction periods?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Continuous matching is suspended",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Orders accumulate before execution",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Spreads must be zero",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Trades occur continuously",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t91",
+      "question": "Which statements about price impact are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It increases with order size",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "It is higher in illiquid markets",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "It is independent of market depth",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "It only affects market orders",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t92",
+      "question": "Which of the following can cause trade prices to lag quote prices?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Reporting delays",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Hidden liquidity execution",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Tick size enforcement",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Price-time priority",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t93",
+      "question": "What does it mean when liquidity providers ‘step back’?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They cancel or widen their quotes",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Available depth decreases",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Trade volume must increase",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Markets immediately halt",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t94",
+      "question": "Which statements about trade size distributions are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They are often skewed",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Many small trades can coexist with few large ones",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "They are normally distributed by rule",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They are unaffected by liquidity",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t95",
+      "question": "Which effects can auctions have on observed prices?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Price discontinuities at auction boundaries",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Concentration of volume at a single price",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Elimination of volatility",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Guaranteed price improvement",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t96",
+      "question": "Which of the following can distort apparent liquidity measures?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Hidden or iceberg orders",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Rapid order cancellations",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Stable quote sizes",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Consistent trade reporting",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t97",
+      "question": "Why is symbol normalisation important when joining data?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Different venues may use different identifiers",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Corporate actions can change symbols",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Prices depend on symbol length",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Symbols encode tick size",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t98",
+      "question": "Which statements about last-trade price are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It reflects the most recent execution",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "It may be stale during quiet periods",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "It always equals the mid-price",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "It guarantees executable prices",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t99",
+      "question": "Which of the following are reasons to use rolling time windows in analysis?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Capture recent market behaviour",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Smooth noisy high-frequency data",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Eliminate all microstructure effects",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Avoid timestamp handling entirely",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "t100",
+      "question": "Which conditions can lead to misleading conclusions from raw trade data?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Ignoring the prevailing bid-ask spread",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Failing to account for liquidity changes",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Using adjusted prices",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Normalising timestamps correctly",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

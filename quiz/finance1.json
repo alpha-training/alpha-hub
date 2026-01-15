@@ -1,0 +1,2345 @@
+{
+  "title": "Finance 1",
+  "questions": [
+    {
+      "id": "f1",
+      "question": "What does a share of common equity represent?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A fixed claim on company profits",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Ownership in a company with residual claim on assets",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "A loan made to the company",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "A guaranteed dividend stream",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f2",
+      "question": "Which of the following best describes market capitalisation?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Total company revenue",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Share price multiplied by shares outstanding",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Book value of equity",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Enterprise value minus debt",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f3",
+      "question": "Which order type guarantees execution but not price?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Limit order",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Market order",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Stop-limit order",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Iceberg order",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f4",
+      "question": "What is a stock split?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Issuing new shares to raise capital",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Reducing the number of shares outstanding",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Increasing share count while proportionally reducing price",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Paying a dividend in shares",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f5",
+      "question": "Which corporate action typically reduces a stock’s price on the ex-date?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Rights issue",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Cash dividend",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Stock split",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Share buyback",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f6",
+      "question": "What does the ex-dividend date signify?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Dividend payment date",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Last day the stock trades with dividend entitlement",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "First day the stock trades without dividend entitlement",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Record date for dividend accounting",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f7",
+      "question": "What is the notional amount of a financial contract?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The market value of the contract",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "The reference amount used to calculate payments",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "The margin posted by counterparties",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "The settlement amount",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f8",
+      "question": "Which instrument pays a fixed coupon?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Floating-rate note",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Zero-coupon bond",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Fixed-rate bond",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Equity option",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f9",
+      "question": "What is a zero-coupon bond?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A bond with variable coupons",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "A bond that pays no periodic interest",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "A bond issued at par",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "A bond with embedded options",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f10",
+      "question": "Which factor causes bond prices to fall?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Falling interest rates",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Rising interest rates",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Lower credit spreads",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Shorter maturity",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f11",
+      "question": "What does yield to maturity (YTM) represent?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The coupon rate of the bond",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "The return assuming the bond is held to maturity",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "The current yield only",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "The credit spread over government bonds",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f12",
+      "question": "What does duration primarily measure?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Credit risk",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Interest rate sensitivity",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Liquidity risk",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Convexity",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f13",
+      "question": "Which currency pair quotes the price of one euro in US dollars?",
+      "options": [
+        {
+          "id": "a",
+          "text": "USD/EUR",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "EUR/USD",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "EUR-USD",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "USD.EUR",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f14",
+      "question": "In FX markets, what does the term 'pip' refer to?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The notional amount traded",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "The smallest price increment",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "The settlement currency",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "The forward points",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f15",
+      "question": "Which FX transaction involves exchanging currencies today?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Forward",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Swap",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Spot",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Option",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f16",
+      "question": "What is settlement risk in FX?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Risk of exchange rate movement",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Risk one party pays but does not receive the other currency",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Liquidity risk",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Credit spread risk",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f17",
+      "question": "What is a coupon payment?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Repayment of principal",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Periodic interest paid by a bond",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Dividend paid by equities",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Option premium",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f18",
+      "question": "Which bond characteristic increases price sensitivity to rate changes?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Short maturity",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Low duration",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Long maturity",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "High coupon",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f19",
+      "question": "What is accrued interest?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Interest already paid",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Interest earned since last coupon payment",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Future coupon payments",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Interest on margin",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f20",
+      "question": "Which market is typically quoted in yield rather than price?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Equities",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "FX",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Fixed income",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Commodities",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f21",
+      "question": "What does 'par value' of a bond refer to?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Market price",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Face value repaid at maturity",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Coupon amount",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Issue price",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f22",
+      "question": "Which participant primarily provides liquidity in markets?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Market maker",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Retail investor",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Issuer",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Regulator",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f23",
+      "question": "What is a bid-ask spread?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Difference between coupon and yield",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Difference between buy and sell prices",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Transaction fee",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "FX forward points",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f24",
+      "question": "What does liquidity describe?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Credit quality of an asset",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Ease of buying or selling without moving price",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Volatility of returns",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Settlement speed",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f25",
+      "question": "Which asset class has no maturity date?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Bond",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Equity",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "FX forward",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Interest rate swap",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f26",
+      "question": "What does 'dirty price' of a bond include?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Credit spread",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Accrued interest",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Transaction fees",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Future coupons",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f27",
+      "question": "Which FX contract locks in an exchange rate for a future date?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Spot",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Forward",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Option",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Swap leg",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f28",
+      "question": "What is counterparty risk?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Risk of price movement",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Risk the other party defaults",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Operational risk",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Market liquidity risk",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f29",
+      "question": "Which metric is most commonly used to compare bond yields of different credit qualities?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Dividend yield",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "Credit spread",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Duration",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Convexity",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f30",
+      "question": "Why is notional used instead of market value in many derivatives?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It represents the amount exchanged",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "It standardises payment calculations",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "It reflects credit exposure",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "It equals margin posted",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f31",
+      "question": "Which of the following are typical characteristics of equities?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Residual claim on assets",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Fixed maturity date",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Voting rights (usually)",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Guaranteed income stream",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f32",
+      "question": "Which events are considered corporate actions?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Cash dividend",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Stock split",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Daily price change",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Merger or acquisition",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f33",
+      "question": "Which quantities are required to calculate a bond coupon payment?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Coupon rate",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Notional or face value",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Market price",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Yield to maturity",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f34",
+      "question": "Which of the following increase a bond’s yield, all else equal?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Lower bond price",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Higher coupon",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Shorter maturity",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Lower credit risk",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f35",
+      "question": "Which statements about notional amounts are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They are usually exchanged in derivatives",
+          "isCorrect": false
+        },
+        {
+          "id": "b",
+          "text": "They are used to compute cash flows",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "They often exceed actual market exposure",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "They equal the P&L of the trade",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f36",
+      "question": "Which of the following are fixed income instruments?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Government bonds",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Corporate bonds",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Common equity",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Treasury bills",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f37",
+      "question": "Which statements about FX spot trades are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They typically settle T+2",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They involve immediate exchange of currencies",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "They expose parties to settlement risk",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "They have no notional amount",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f38",
+      "question": "Which of the following affect accrued interest on a bond?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Day count convention",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Time since last coupon",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Bond price volatility",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Coupon rate",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f39",
+      "question": "Which are common reasons for adjusting historical equity prices?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Cash dividends",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Stock splits",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Bid-ask spread changes",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Rights issues",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f40",
+      "question": "Which of the following are sources of bond risk?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Interest rate risk",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Credit risk",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Dividend risk",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Liquidity risk",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f41",
+      "question": "Which statements about FX rates are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They are quoted as base/quote currency",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They are always symmetric when inverted",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "They can be quoted bid/ask",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "They have no associated notional",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f42",
+      "question": "Which of the following would typically increase market liquidity?",
+      "options": [
+        {
+          "id": "a",
+          "text": "More market makers",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Wider bid-ask spreads",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Higher trading volume",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Faster settlement cycles",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f43",
+      "question": "Which data fields are essential in a bond reference data table?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Maturity date",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Coupon rate",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Last traded price",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Day count convention",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f44",
+      "question": "Which are valid reasons why a bond might trade below par?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Coupon lower than market rates",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Deteriorating credit quality",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Approaching maturity",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Rising interest rates",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f45",
+      "question": "Which statements about dividends are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They are paid at the discretion of the company",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They reduce company cash",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "They are contractual obligations",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They affect total return calculations",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f46",
+      "question": "Which of the following are common FX market participants?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Commercial banks",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Central banks",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Equity issuers",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Hedge funds",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f47",
+      "question": "Which statements about clean bond prices are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They exclude accrued interest",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They are quoted in the market",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "They are the cash settlement amount",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They include future coupons",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f48",
+      "question": "Which of the following increase counterparty exposure?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Longer settlement periods",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Higher notional trades",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Central clearing",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Collateral posting",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f49",
+      "question": "Which fields are typically required to value an FX forward?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Spot FX rate",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Interest rates in both currencies",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Equity volatility",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Maturity date",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f50",
+      "question": "Which statements about fixed income cash flows are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They are generally known in advance",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They depend on notional",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "They are identical for all bonds",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They include principal repayment",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f51",
+      "question": "Which of the following are valid FX conventions?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Base currency",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Quote currency",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Coupon frequency",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Settlement lag",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f52",
+      "question": "Which scenarios would cause an equity index level to change?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Constituent price changes",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Corporate actions",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "FX rate movements",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Index rebalancing",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f53",
+      "question": "Which are typical outputs of a fixed income pricing engine?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Clean price",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Dirty price",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Yield",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Dividend forecast",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f54",
+      "question": "Which factors influence FX forward points?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Interest rate differential",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Time to maturity",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Equity dividend yield",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Spot FX rate",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f55",
+      "question": "Which statements about market data timestamps are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They may be exchange-local or UTC",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They are always monotonic",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "They are critical for sequencing trades",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "They can be adjusted for daylight saving",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f56",
+      "question": "Which of the following are reasons to normalise financial data?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Corporate actions",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Currency conversion",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Exchange outages",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Different price conventions",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f57",
+      "question": "Which are common fixed income day count conventions?",
+      "options": [
+        {
+          "id": "a",
+          "text": "ACT/360",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "30/360",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "T+2",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "ACT/365",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f58",
+      "question": "Which statements about P&L are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It can arise from price movements",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "It can arise from FX revaluation",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "It only occurs when trades settle",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "It depends on position size",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f59",
+      "question": "Which are valid uses of notional in systems?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Risk aggregation",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Cash flow calculation",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Direct profit calculation",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Regulatory reporting",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f60",
+      "question": "Which statements about financial reference data are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It changes less frequently than market data",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Errors can cause systematic pricing issues",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "It is always static",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "It often drives downstream calculations",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f61",
+      "question": "Which features distinguish equity from debt instruments?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Ownership interest",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Mandatory interest payments",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Residual claim in liquidation",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Defined maturity date",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f62",
+      "question": "Which events would typically require historical price restatement?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Stock split",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Bonus issue",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Intraday volatility spike",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Rights issue",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f63",
+      "question": "Which variables directly determine a bond’s coupon cash flow?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Coupon rate",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Face value",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Yield curve shape",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Coupon frequency",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f64",
+      "question": "Which situations would increase the market value of a fixed-rate bond?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Falling interest rates",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Improving issuer credit quality",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Rising inflation expectations",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Increase in required yield",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f65",
+      "question": "Which statements about notional exposure are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It may overstate economic risk",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "It is often used in regulatory reporting",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "It equals the amount of cash exchanged",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "It is irrelevant for derivatives",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f66",
+      "question": "Which of the following are examples of short-term fixed income instruments?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Treasury bills",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Commercial paper",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Perpetual bonds",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Convertible equity",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f67",
+      "question": "Which risks are present in an FX spot transaction?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Settlement risk",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Counterparty risk",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Coupon risk",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "FX rate risk",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f68",
+      "question": "Which factors influence accrued interest calculations?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Coupon rate",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Day count basis",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Market volatility",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Settlement date",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f69",
+      "question": "Which data issues can distort total return calculations?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Missing dividend data",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Incorrect corporate action adjustments",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Wide bid-ask spreads",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Incorrect FX conversion",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f70",
+      "question": "Which are sources of fixed income market risk?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Yield curve shifts",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Issuer default",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Equity dividend cuts",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Liquidity dry-up",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f71",
+      "question": "Which statements about FX quotation conventions are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Some pairs are conventionally quoted in a fixed direction",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "All FX pairs are quoted symmetrically",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Bid prices are lower than ask prices",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Quote conventions never change",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f72",
+      "question": "Which conditions typically indicate high market liquidity?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Narrow bid-ask spreads",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Large traded volumes",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Frequent trading halts",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Deep order books",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f73",
+      "question": "Which bond attributes are considered static reference data?",
+      "options": [
+        {
+          "id": "a",
+          "text": "ISIN",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Coupon rate",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Clean price",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Maturity date",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f74",
+      "question": "Which conditions would cause a bond to trade at a premium?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Coupon above prevailing market rates",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Falling yields",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Deteriorating creditworthiness",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Rising required returns",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f75",
+      "question": "Which statements correctly describe dividend mechanics?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Dividends are paid from company profits or reserves",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They are legally guaranteed",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "They reduce shareholder equity on payment",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "They have no effect on share price",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f76",
+      "question": "Which entities are typically active in global FX markets?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Exporting corporations",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Sovereign wealth funds",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Stock exchanges",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Asset managers",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f77",
+      "question": "Which statements about bond price quotations are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They are often quoted as clean prices",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They typically exclude accrued interest",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "They represent the final cash settlement amount",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They are independent of coupon schedules",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f78",
+      "question": "Which practices reduce counterparty credit risk?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Collateralisation",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Netting agreements",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Increasing trade notional",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Central clearing",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f79",
+      "question": "Which inputs are needed to revalue an FX forward position?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Current spot rate",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Interest rate curves",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Equity index level",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Remaining time to maturity",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f80",
+      "question": "Which statements describe fixed income cash flow profiles?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They can be periodic",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They may include principal repayment",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "They are always contingent on earnings",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They depend on contractual terms",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f81",
+      "question": "Which of the following are FX market conventions?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Standard settlement lags",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Market holidays by currency",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Coupon reset dates",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Quotation direction",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f82",
+      "question": "Which factors can change the level of an equity index without price moves?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Constituent replacement",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Index methodology changes",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Market closure",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Corporate action adjustments",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f83",
+      "question": "Which outputs are commonly produced by bond analytics libraries?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Yield",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Duration",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Convexity",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Dividend forecast",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "f84",
+      "question": "Which variables influence FX forward pricing?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Interest rate differential",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Time to settlement",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Underlying equity volatility",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Spot exchange rate",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f85",
+      "question": "Which issues commonly arise with financial timestamps?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Time zone mismatches",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Daylight saving transitions",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Guaranteed ordering",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Exchange-specific clocks",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f86",
+      "question": "Which adjustments are typically required when normalising market data?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Currency conversion",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Corporate action adjustments",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Counterparty netting",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Price scaling conventions",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f87",
+      "question": "Which day count conventions are commonly encountered in bond markets?",
+      "options": [
+        {
+          "id": "a",
+          "text": "ACT/360",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "30/360",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "T+1",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "ACT/365",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f88",
+      "question": "Which factors contribute to realised P&L?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Trade execution prices",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Position size",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Unrealised market moves",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "FX conversion at settlement",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f89",
+      "question": "Which are legitimate uses of notional amounts in risk systems?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Gross exposure reporting",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Stress testing scenarios",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Precise P&L calculation",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Trade classification",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "f90",
+      "question": "Which statements about reference data governance are correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Small errors can propagate widely",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "It is usually maintained separately from market data",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "It never requires historical versioning",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "It underpins valuation and risk systems",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}
