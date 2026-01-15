@@ -22,14 +22,27 @@ export default function Quiz({ user, profile }) {
   const [selectedById, setSelectedById] = useState({});
   const [attemptById, setAttemptById] = useState({});
   const [liveStatusById, setLiveStatusById] = useState({});
-  const [liveAttemptsUsedById, setLiveAttemptsUsedById] = useState({}); // ✅ NEW
+  const [liveAttemptsUsedById, setLiveAttemptsUsedById] = useState({}); // ✅ attempts per question id
 
   const [globalTimeLeft, setGlobalTimeLeft] = useState(null);
   const [startedAt, setStartedAt] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const perTypeSeconds = QUIZ_CONFIG.timePerQuestionSecondsByType || { mcq: 15, live: 20 };
-  const liveAttemptsLimit = QUIZ_CONFIG.attemptsLimitByType?.live ?? 3;
+  const perTypeSeconds = QUIZ_CONFIG.timePerQuestionSecondsByType || {
+    mcq: 15,
+    live: 20,
+  };
+
+  // ✅ Boss: global default should be 2 if no "tries"
+  const defaultLiveAttemptsLimit =
+    Number(QUIZ_CONFIG.attemptsLimitByType?.live ?? 2) || 2;
+
+  // ✅ per-question limit (uses json "tries" if present)
+  const getAttemptsLimit = (q) => {
+    const n = Number(q?.tries);
+    if (Number.isFinite(n) && n > 0) return n;
+    return defaultLiveAttemptsLimit;
+  };
 
   // ---------------- PREPARE QUESTIONS ----------------
   useEffect(() => {
@@ -78,7 +91,7 @@ export default function Quiz({ user, profile }) {
     setSelectedById({});
     setAttemptById({});
     setLiveStatusById({});
-    setLiveAttemptsUsedById({}); // ✅ reset
+    setLiveAttemptsUsedById({});
     setIsSubmitting(false);
 
     const now = new Date();
@@ -91,7 +104,8 @@ export default function Quiz({ user, profile }) {
     }, 0);
 
     setGlobalTimeLeft(total);
-  }, [topics]); // keep dependency minimal on purpose
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [topics]);
 
   const totalQuestions = questions.length;
   const currentQuestion = questions[currentIndex];
@@ -127,14 +141,18 @@ export default function Quiz({ user, profile }) {
     const qid = question.id;
     const apiId = question.apiId;
 
-    const used = liveAttemptsUsedById[qid] ?? 0;
-    if (used >= liveAttemptsLimit) {
+    const limit = getAttemptsLimit(question);
+    const used = Number(liveAttemptsUsedById[qid] ?? 0);
+
+    const currentStatus = liveStatusById[qid]?.status || "idle";
+
+    // ✅ UX: if already correct, do nothing (don't consume attempts)
+    if (currentStatus === "correct") return;
+
+    if (used >= limit) {
       setLiveStatusById((p) => ({
         ...p,
-        [qid]: {
-          status: "error",
-          message: `No attempts left (${liveAttemptsLimit}/${liveAttemptsLimit}).`,
-        },
+        [qid]: { status: "error", message: "No attempts left." },
       }));
       return;
     }
@@ -156,8 +174,6 @@ export default function Quiz({ user, profile }) {
       return;
     }
 
-    // ✅ count this attempt
-    setLiveAttemptsUsedById((p) => ({ ...p, [qid]: (p[qid] ?? 0) + 1 }));
     setLiveStatusById((p) => ({ ...p, [qid]: { status: "running" } }));
 
     try {
@@ -173,6 +189,9 @@ export default function Quiz({ user, profile }) {
       }
 
       const data = await res.json();
+
+      // ✅ Only count an attempt when the backend actually responded OK
+      setLiveAttemptsUsedById((p) => ({ ...p, [qid]: used + 1 }));
 
       if (data?.result === "Success") {
         setLiveStatusById((p) => ({ ...p, [qid]: { status: "correct" } }));
@@ -190,6 +209,7 @@ export default function Quiz({ user, profile }) {
           message: e?.message || "API error. Is the live-checker backend running?",
         },
       }));
+      // ✅ do NOT decrement attempts on network/server error
     }
   };
 
@@ -205,9 +225,11 @@ export default function Quiz({ user, profile }) {
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const goNext = () => currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
+  const goNext = () =>
+    currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
   const goBack = () => currentIndex > 0 && setCurrentIndex((i) => i - 1);
-  const skipQuestion = () => currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
+  const skipQuestion = () =>
+    currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
 
   // ---------------- SUBMIT ----------------
   const handleSubmit = async (reason = "manual") => {
@@ -215,7 +237,6 @@ export default function Quiz({ user, profile }) {
 
     setIsSubmitting(true);
 
-    // ✅ use the same per-type total
     const totalTimeAllowedInSeconds = questions.reduce((acc, q) => {
       const t = q.type || "mcq";
       return acc + (perTypeSeconds[t] ?? 15);
@@ -262,13 +283,16 @@ export default function Quiz({ user, profile }) {
           apiId: q.apiId || null,
           attempt,
           liveStatus: statusObj,
-          attemptsUsed: liveAttemptsUsedById[q.id] ?? 0, // ✅ NEW
-          attemptsLimit: liveAttemptsLimit, // ✅ NEW
+          attemptsUsed: Number(liveAttemptsUsedById[q.id] ?? 0),
+          attemptsLimit: getAttemptsLimit(q),
           isCorrect,
         };
       }
 
-      const correctIds = (q.options || []).filter((o) => o.isCorrect).map((o) => o.id);
+      const correctIds = (q.options || [])
+        .filter((o) => o.isCorrect)
+        .map((o) => o.id);
+
       const picked = selectedById[q.id] || [];
       const pickedSet = new Set(picked);
 
@@ -279,7 +303,8 @@ export default function Quiz({ user, profile }) {
         score += QUIZ_CONFIG.scoring.skipped;
       } else {
         const exactMatch =
-          picked.length === correctIds.length && correctIds.every((id) => pickedSet.has(id));
+          picked.length === correctIds.length &&
+          correctIds.every((id) => pickedSet.has(id));
 
         if (exactMatch) {
           isCorrect = true;
@@ -322,7 +347,7 @@ export default function Quiz({ user, profile }) {
       results: perQuestionResults,
       liveAttempts: attemptById,
       liveStatuses: liveStatusById,
-      liveAttemptsUsed: liveAttemptsUsedById, // ✅ NEW
+      liveAttemptsUsed: liveAttemptsUsedById,
     };
 
     await addDoc(collection(db, "quizResults"), payload);
@@ -347,6 +372,8 @@ export default function Quiz({ user, profile }) {
   }
 
   const isMCQ = (currentQuestion.type || "mcq") === "mcq";
+  const attemptsUsed = Number(liveAttemptsUsedById[currentQuestion.id] ?? 0);
+  const attemptsLimit = getAttemptsLimit(currentQuestion);
 
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-10 md:pt-12 pb-8 px-4 flex justify-center">
@@ -370,13 +397,17 @@ export default function Quiz({ user, profile }) {
 
           <div className="text-sm md:text-base font-mono text-gray-200 text-right">
             Time left:{" "}
-            <span className="font-semibold text-blue-400">{formatTime(globalTimeLeft ?? 0)}</span>
+            <span className="font-semibold text-blue-400">
+              {formatTime(globalTimeLeft ?? 0)}
+            </span>
           </div>
         </div>
 
         {/* QUESTION */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
-          <h2 className="text-sm md:text-base whitespace-pre-wrap">{currentQuestion.question}</h2>
+          <h2 className="text-sm md:text-base whitespace-pre-wrap">
+            {currentQuestion.question}
+          </h2>
 
           {isMCQ ? (
             <>
@@ -413,8 +444,8 @@ export default function Quiz({ user, profile }) {
               }
               status={liveStatusById[currentQuestion.id] || { status: "idle" }}
               onRun={() => runLive(currentQuestion)}
-              attemptsUsed={liveAttemptsUsedById[currentQuestion.id] ?? 0}
-              attemptsLimit={liveAttemptsLimit}
+              attemptsUsed={attemptsUsed}
+              attemptsLimit={attemptsLimit}
             />
           )}
         </div>

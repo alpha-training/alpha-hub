@@ -39,7 +39,9 @@ export default function LiveCheckerQuestion({
       .then(async (res) => {
         if (!res.ok) {
           const t = await res.text().catch(() => "");
-          throw new Error(`Failed to load format (${res.status}) ${t.slice(0, 120)}`);
+          throw new Error(
+            `Failed to load format (${res.status}) ${t.slice(0, 120)}`
+          );
         }
         return res.json();
       })
@@ -63,8 +65,9 @@ export default function LiveCheckerQuestion({
     if (v == null) return "";
     if (typeof v === "string") return v;
     if (Array.isArray(v)) return v.map(toText).join("\n");
-    // common backend table shape: { labels: [...], values: [...] }
-    if (typeof v === "object" && Array.isArray(v.values)) return v.values.map(toText).join("\n");
+    if (typeof v === "object" && Array.isArray(v.values)) {
+      return v.values.map(toText).join("\n");
+    }
     try {
       return JSON.stringify(v, null, 2);
     } catch {
@@ -81,7 +84,9 @@ export default function LiveCheckerQuestion({
     if (
       r &&
       typeof r === "object" &&
-      (Array.isArray(r.values) || typeof r.prompt === "string" || typeof r.result === "string")
+      (Array.isArray(r.values) ||
+        typeof r.prompt === "string" ||
+        typeof r.result === "string")
     ) {
       return r;
     }
@@ -89,7 +94,9 @@ export default function LiveCheckerQuestion({
   }, [formatData]);
 
   // Attempts
-  const attemptsLeft = Math.max(0, attemptsLimit - attemptsUsed);
+  const safeLimit = Math.max(1, Number(attemptsLimit) || 1);
+  const safeUsed = Math.max(0, Number(attemptsUsed) || 0);
+  const attemptsLeft = Math.max(0, safeLimit - safeUsed);
   const isOutOfAttempts = attemptsLeft === 0;
 
   // Prompt: avoid duplicating the question text
@@ -112,37 +119,25 @@ export default function LiveCheckerQuestion({
     return ["t"];
   }, [question?.display]);
 
-  /**
-   * Extract per-display input blocks from fd.
-   * We support a few shapes:
-   * - fd.tables is an object: { t: "...", t2: "...", ... } or { t: {values...}, ... }
-   * - fd.labels/fd.values is parallel arrays (values is array of table strings)
-   * - fallback to fd.values or fd.input/table as single block
-   */
   const getBlockForKey = (key) => {
-    // Prefer fd.tables map
     if (fd?.tables && typeof fd.tables === "object" && !Array.isArray(fd.tables)) {
       const v = fd.tables[key];
       if (v != null) return toText(v);
     }
 
-    // If backend labels/values align
     if (Array.isArray(fd?.labels) && Array.isArray(fd?.values)) {
-      const idx = fd.labels.findIndex((x) => String(x).trim() === String(key).trim());
+      const idx = fd.labels.findIndex(
+        (x) => String(x).trim() === String(key).trim()
+      );
       if (idx >= 0) {
         const v = fd.values[idx];
         if (v != null) return toText(v);
       }
     }
 
-    // Alternate single table fields
     if (fd?.input != null) return toText(fd.input);
     if (fd?.table != null) return toText(fd.table);
-
-    // Common case: fd.values is "the input"
     if (Array.isArray(fd?.values)) return toText(fd.values);
-
-    // Last resort
     if (fd?.tables != null) return toText(fd.tables);
 
     return "";
@@ -161,7 +156,7 @@ export default function LiveCheckerQuestion({
   const onEditorKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (!isOutOfAttempts) onRun?.();
+      if (!runDisabled) onRun?.();
     }
   };
 
@@ -173,7 +168,6 @@ export default function LiveCheckerQuestion({
       return {
         tone: "danger",
         title: "Incorrect answer",
-        // keep short; backend often sends raw messages
         subtitle: status?.message || "Try again.",
       };
     if (s === "error")
@@ -207,26 +201,29 @@ export default function LiveCheckerQuestion({
       {/* Attempts */}
       <div className="text-xs text-gray-400">
         Attempts left:{" "}
-        <span className={`font-semibold ${isOutOfAttempts ? "text-rose-300" : "text-gray-200"}`}>
+        <span
+          className={`font-semibold ${
+            isOutOfAttempts ? "text-rose-300" : "text-gray-200"
+          }`}
+        >
           {attemptsLeft}
         </span>{" "}
-        / {attemptsLimit}
+        / {safeLimit}
       </div>
 
       {showPrompt ? (
         <p className="text-xs text-gray-400 whitespace-pre-wrap">{promptText}</p>
       ) : null}
 
-      {/* Blocks: each display key gets its own Input+Expected pair stacked */}
+      {/* Blocks */}
       <div className="space-y-2">
         {displayKeys.map((k, idx) => {
           const inputText = loading
             ? "Loading..."
             : error
-              ? error
-              : getBlockForKey(k);
+            ? error
+            : getBlockForKey(k);
 
-          // Expected is usually shared; still show per-block (boss wants pairs)
           const expectedForBlock = loading ? "Loading..." : error ? "" : expectedText;
 
           return (
@@ -236,14 +233,14 @@ export default function LiveCheckerQuestion({
               </Panel>
 
               <Panel title="Expected Result" className="min-w-0">
-                <PreBlock text={expectedForBlock} dim={false} />
+                <PreBlock text={expectedForBlock} />
               </Panel>
             </div>
           );
         })}
       </div>
 
-      {/* Editor + Run (tighter) */}
+      {/* Editor + Run */}
       <div className="relative rounded-lg border border-gray-800 bg-gray-950/40 overflow-hidden">
         <div className="absolute left-0 top-0 bottom-0 w-10 bg-black/20 border-r border-gray-800 flex items-start justify-center pt-2">
           <span className="text-xs font-mono text-gray-500">1</span>
@@ -256,16 +253,23 @@ export default function LiveCheckerQuestion({
           placeholder="Enter = Run, Shift+Enter = new line"
           spellCheck={false}
           disabled={isOutOfAttempts}
-          className="w-full min-h-[50px] pl-12 pr-3 py-2 bg-transparent text-xs md:text-sm font-mono text-gray-100 outline-none resize-none disabled:opacity-60"
+          className="w-full min-h-[50px] pl-12 pr-3 py-2 bg-transparent text-xs md:text-sm font-mono text-gray-100 outline-none resize-none disabled:opacity-60 disabled:cursor-not-allowed"
         />
 
         <div className="flex justify-end px-3 pb-3">
           <button
             type="button"
-            onClick={onRun}
-            className="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 transition text-sm font-medium disabled:opacity-60"
+            onClick={() => {
+              if (!runDisabled) onRun?.();
+            }}
             disabled={runDisabled}
             title={isOutOfAttempts ? "No attempts left" : ""}
+            className={[
+              "px-5 py-2 rounded-md text-sm font-medium transition",
+              runDisabled
+                ? "bg-gray-700 text-gray-300 cursor-not-allowed opacity-60"
+                : "bg-blue-600 hover:bg-blue-700 text-white",
+            ].join(" ")}
           >
             Run
           </button>
@@ -274,7 +278,11 @@ export default function LiveCheckerQuestion({
 
       {/* Status banner */}
       {banner ? (
-        <div className={`rounded-xl border p-3 ${bannerClasses(banner.tone)} flex items-start gap-3`}>
+        <div
+          className={`rounded-xl border p-3 ${bannerClasses(
+            banner.tone
+          )} flex items-start gap-3`}
+        >
           <div className="mt-0.5 shrink-0">
             <StatusIcon tone={banner.tone} />
           </div>

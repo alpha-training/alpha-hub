@@ -1,69 +1,19 @@
 {
-    "questions": [
-      {
-        "type": "live",
-        "apiId": "q1",
-        "source": "t1",
-        "display": ["t"],
-        "question": "notional is the total value",
-        "options": []
-      },
-      {
-        "type": "live",
-        "apiId": "q2",
-        "source": "t1",
-        "display": ["t"],
-        "question": "notional is the total value",
-        "options": []
-      },
-      {
-        "type": "live",
-        "apiId": "q3",
-        "source": "t1",
-        "display": ["t"],
-        "question": "Difference between the current price and the opening price",
-        "options": []
-      },
-      {
-        "type": "live",
-        "apiId": "q4",
-        "source": "s1",
-        "display": ["s"],
-        "question": "Write an expression that returns s parsed into a dictionary",
-        "options": []
-      },
-      {
-        "type": "live",
-        "apiId": "q5",
-        "source": "t1",
-        "display": ["kti"],
-        "question": "Write an expression that returns these indices from kti",
-        "options": []
-      },
-      {
-        "type": "live",
-        "apiId": "q6",
-        "source": "t1",
-        "display": ["kti"],
-        "question": "Write an expression that returns these indices from kti",
-        "options": []
-      },
-      {
-        "type": "live",
-        "apiId": "q7",
-        "source": "t1",
-        "display": ["t2"],
-        "question": "Add a ticker column",
-        "options": []
-      },
-      {
-        "type": "live",
-        "apiId": "q8",
-        "source": "t1",
-        "display": ["t2"],
-        "question": "Get the notional by exchange",
-        "options": []
-      }
-    ]
-  }
-  
+  "title": "Live Checker",
+  "questions": [
+    { "type": "live", "apiId": "q1",  "source": "t1", "display": ["t"],  "question": "notional is the total value", "tries": 2, "options": [] },
+    { "type": "live", "apiId": "q2",  "source": "t1", "display": ["t"],  "question": "notional is the total value", "tries": 2, "options": [] },
+    { "type": "live", "apiId": "q3",  "source": "t1", "display": ["t"],  "question": "Difference between the current price and the opening price", "tries": 2, "options": [] },
+    { "type": "live", "apiId": "q4",  "source": "s1", "display": ["s"],  "question": "Write an expression that returns s parsed into a dictionary", "tries": 3, "options": [] },
+    { "type": "live", "apiId": "q5",  "source": "t1", "display": ["kti"],"question": "Write an expression that returns these indices from kti", "tries": 2, "options": [] },
+    { "type": "live", "apiId": "q6",  "source": "t1", "display": ["kti"],"question": "Write an expression that returns these indices from kti", "tries": 1, "options": [] },
+    { "type": "live", "apiId": "q7",  "source": "t1", "display": ["t2"], "question": "Add a ticker column", "tries": 3, "options": [] },
+    { "type": "live", "apiId": "q8",  "source": "t1", "display": ["t2"], "question": "Get the notional by exchange", "tries": 3, "options": [] },
+
+    { "type": "live", "apiId": "q9",  "source": "r1", "display": ["L1", "L2"], "question": "Find the distinct universe of numbers", "tries": 1, "disallow": ["[0-9]*"], "options": [] },
+    { "type": "live", "apiId": "q10", "source": "r1", "display": ["A1", "A2"], "question": "Return all the permutations", "tries": 2, "options": [] },
+    { "type": "live", "apiId": "q11", "source": "r1", "display": ["A1", "A2"], "question": "Join A2 to each item in A1", "tries": 1, "options": [] },
+    { "type": "live", "apiId": "q12", "source": "r1", "display": ["C", ".Q.s1 C", "raze C", "raze raze C"], "question": "How would you flatten C no matter its depth?", "tries": 2, "disallow": ["*raze raze*"], "options": [] },
+    { "type": "live", "apiId": "q13", "source": "r1", "display": ["L1", "L2"], "question": "Find the numbers that are in both lists", "tries": 1, "disallow": ["[0-9]*"], "options": [] }
+  ]
+}
