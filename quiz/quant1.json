@@ -1,0 +1,3129 @@
+{
+  "title": "Quant/Stats 1",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Which statement best describes probability?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A measure of likelihood",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "A guaranteed outcome",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Always negative",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Only applies to finance",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "question": "Which values can a probability take?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Between 0 and 1 inclusive",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Any real number",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Only integers",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Only values greater than 1",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q3",
+      "question": "What does the median represent?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The middle value of ordered data",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "The most common value",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "The average of values",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "The maximum value",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q4",
+      "question": "Which statistic is most sensitive to outliers?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Mean",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Median",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Rank",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Percentile",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q5",
+      "question": "What does variance measure?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Average squared deviation from the mean",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Average return",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Trend direction",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Maximum loss",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q6",
+      "question": "Standard deviation is the square root of what?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Variance",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Mean",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Covariance",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Correlation",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q7",
+      "question": "Which statements describe a normal distribution?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Symmetric around the mean",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Bell-shaped",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Always skewed",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Has zero variance",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q8",
+      "question": "In a normal distribution, most observations lie:",
+      "options": [
+        {
+          "id": "a",
+          "text": "Within a few standard deviations of the mean",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Only at the extremes",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Uniformly across values",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Only above the mean",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q9",
+      "question": "What does correlation measure?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Strength of a linear relationship",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Causation",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Expected return",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Volatility level",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q10",
+      "question": "Which correlation value indicates no linear relationship?",
+      "options": [
+        {
+          "id": "a",
+          "text": "0",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "1",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "-1",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "0.8",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q11",
+      "question": "Which statement about correlation is correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It ranges from -1 to 1",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "It implies causation",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "It cannot change over time",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "It guarantees diversification",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q12",
+      "question": "What does covariance measure?",
+      "options": [
+        {
+          "id": "a",
+          "text": "How two variables move together",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Individual volatility only",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Probability of loss",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Expected return",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q13",
+      "question": "Why is correlation often preferred to covariance?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It is scale-independent",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "It removes noise",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "It predicts prices",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "It guarantees profit",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q14",
+      "question": "Which is an example of a time series?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Daily stock prices",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Company balance sheet",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "List of employees",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Static portfolio weights",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q15",
+      "question": "What does stationarity loosely imply?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Statistical properties are stable over time",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Prices never change",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Guaranteed mean reversion",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "No volatility",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q16",
+      "question": "Which process is often associated with mean reversion?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Ornstein-Uhlenbeck process",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Random walk with drift",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Pure trend following",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Deterministic growth",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q17",
+      "question": "What does a z-score measure?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Distance from the mean in standard deviations",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Absolute price level",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Trade size",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Execution latency",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q18",
+      "question": "A positive z-score indicates:",
+      "options": [
+        {
+          "id": "a",
+          "text": "Value above the mean",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Value below the mean",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Zero variance",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Guaranteed reversal",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q19",
+      "question": "What does expected value represent?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Probability-weighted average outcome",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Worst-case loss",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Most frequent outcome",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Guaranteed result",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q20",
+      "question": "Which concept relates risk to return?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Sharpe ratio",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Mean",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Median",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Volume",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q21",
+      "question": "What does a higher Sharpe ratio generally indicate?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Better risk-adjusted returns",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Higher leverage",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Guaranteed profits",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Lower volatility only",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q22",
+      "question": "What is drawdown?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Peak-to-trough loss",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Daily volatility",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Expected return",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Trade frequency",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q23",
+      "question": "Which metric focuses on downside risk?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Maximum drawdown",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Mean return",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Win rate",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Turnover",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q24",
+      "question": "What does overfitting mean?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Model fits noise rather than signal",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Model is too simple",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Model ignores data",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Model guarantees accuracy",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q25",
+      "question": "Why is out-of-sample testing important?",
+      "options": [
+        {
+          "id": "a",
+          "text": "To assess generalisation",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "To increase returns",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "To reduce volatility",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "To eliminate risk",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q26",
+      "question": "What is a random walk?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A process with unpredictable steps",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "A mean-reverting process",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "A deterministic trend",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "A seasonal pattern",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q27",
+      "question": "Which assumption underlies many basic statistical models?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Independence of observations",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Guaranteed profits",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Zero volatility",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Perfect markets",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q28",
+      "question": "What does sample size mainly affect?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Statistical confidence",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Market direction",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Price levels",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Execution speed",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q29",
+      "question": "What does diversification aim to reduce?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Unsystematic risk",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Expected return",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Market exposure",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "All risk entirely",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q30",
+      "question": "Which statement best reflects a quant mindset?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Models are probabilistic, not certain",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Markets are fully predictable",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Data is optional",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Backtests guarantee future results",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "questions": [
+        {
+          "id": "q31",
+          "question": "What does the mode represent?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Most frequently occurring value",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Average value",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Middle value",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Maximum value",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q32",
+          "question": "Which dataset could have more than one mode?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A bimodal distribution",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "A strictly increasing series",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "A constant series",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "A single observation",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q33",
+          "question": "What does skewness measure?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Asymmetry of a distribution",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Average deviation",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Tail thickness",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Overall volatility",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q34",
+          "question": "A right-skewed distribution typically has:",
+          "options": [
+            {
+              "id": "a",
+              "text": "A longer tail on the right side",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "A longer tail on the left side",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Perfect symmetry",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Zero variance",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q35",
+          "question": "What does kurtosis describe?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Tail heaviness of a distribution",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Central tendency",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Linear dependence",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Trend direction",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q36",
+          "question": "Financial return distributions are often observed to be:",
+          "options": [
+            {
+              "id": "a",
+              "text": "Fat-tailed",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Perfectly normal",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Uniform",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Deterministic",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q37",
+          "question": "Which is a common way to express asset returns?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Percentage returns",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Absolute price levels",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Trading volume",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Market capitalisation",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q38",
+          "question": "Why are returns often analysed instead of raw prices?",
+          "options": [
+            {
+              "id": "a",
+              "text": "They allow comparison across assets",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "They remove all risk",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "They guarantee stationarity",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "They eliminate volatility",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q39",
+          "question": "What does autocorrelation measure?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Correlation of a series with its past values",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Cross-asset dependence",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Causation over time",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Expected return",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q40",
+          "question": "Positive autocorrelation often suggests:",
+          "options": [
+            {
+              "id": "a",
+              "text": "Momentum or persistence",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Mean reversion",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Pure randomness",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Zero volatility",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q41",
+          "question": "Negative autocorrelation is commonly associated with:",
+          "options": [
+            {
+              "id": "a",
+              "text": "Mean reversion",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Strong trends",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Explosive growth",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "No noise",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q42",
+          "question": "What is the purpose of a rolling window?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Estimating statistics that evolve over time",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Fixing parameters permanently",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Increasing trade frequency",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Removing volatility",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q43",
+          "question": "What does volatility clustering mean?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Periods of high volatility tend to follow each other",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Prices move in straight lines",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Returns are constant",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Markets are perfectly efficient",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q44",
+          "question": "Which model family is designed to capture changing volatility?",
+          "options": [
+            {
+              "id": "a",
+              "text": "GARCH",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Linear regression",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Moving averages",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Decision trees",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q45",
+          "question": "What does beta measure?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sensitivity to market movements",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Total volatility",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Expected return",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Liquidity risk",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q46",
+          "question": "A beta greater than 1 indicates:",
+          "options": [
+            {
+              "id": "a",
+              "text": "More sensitivity than the market",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Less risk than the market",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "No correlation with the market",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Risk-free behaviour",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q47",
+          "question": "In factor models, what is a factor?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A systematic source of risk or return",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "A single trade",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Random noise only",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Transaction cost",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q48",
+          "question": "Which is a commonly cited equity factor?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Value",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Latency",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Tick size",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Venue",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q49",
+          "question": "What does leverage mean in trading?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Using borrowed capital to increase exposure",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Reducing position size",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Removing risk",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Increasing diversification",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q50",
+          "question": "A key risk of leverage is:",
+          "options": [
+            {
+              "id": "a",
+              "text": "Amplified losses",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Lower volatility",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Guaranteed profits",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Reduced transaction costs",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q51",
+          "question": "What does liquidity describe?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ease of trading without impacting price",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Expected return",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Portfolio volatility",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Holding period",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q52",
+          "question": "Low liquidity is typically associated with:",
+          "options": [
+            {
+              "id": "a",
+              "text": "Higher transaction costs",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Lower risk",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Faster execution",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Tighter spreads",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q53",
+          "question": "What does slippage refer to?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Difference between expected and executed price",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Daily volatility",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Commission fees",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Market impact only",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q54",
+          "question": "Which are components of transaction costs?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Commissions",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Bid-ask spread",
+              "isCorrect": true
+            },
+            {
+              "id": "c",
+              "text": "Slippage",
+              "isCorrect": true
+            },
+            {
+              "id": "d",
+              "text": "Expected return",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q55",
+          "question": "Why do transaction costs matter for quant strategies?",
+          "options": [
+            {
+              "id": "a",
+              "text": "They can materially reduce profitability",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "They increase signal strength",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "They remove noise",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "They guarantee execution",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q56",
+          "question": "What does portfolio turnover measure?",
+          "options": [
+            {
+              "id": "a",
+              "text": "How frequently positions change",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Total return",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Market exposure",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Cash level",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q57",
+          "question": "High turnover strategies usually imply:",
+          "options": [
+            {
+              "id": "a",
+              "text": "Higher transaction costs",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Lower execution risk",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "No slippage",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Guaranteed alpha",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q58",
+          "question": "What is alpha in investment terms?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Return beyond a benchmark or model",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Market return",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Risk-free rate",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Trading volume",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q59",
+          "question": "What does the efficient market hypothesis suggest?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Prices reflect available information",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Markets are fully predictable",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Volatility does not exist",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Alpha is guaranteed",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "id": "q60",
+          "question": "Which best reflects a sound quant mindset?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Model uncertainty explicitly and manage risk",
+              "isCorrect": true
+            },
+            {
+              "id": "b",
+              "text": "Assume models are permanent",
+              "isCorrect": false
+            },
+            {
+              "id": "c",
+              "text": "Ignore costs and frictions",
+              "isCorrect": false
+            },
+            {
+              "id": "d",
+              "text": "Rely on intuition over data",
+              "isCorrect": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q61",
+      "question": "What does skewness primarily describe?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Asymmetry of a distribution",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Average value",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Overall volatility",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Correlation strength",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q62",
+      "question": "If the mean is greater than the median, the distribution is typically:",
+      "options": [
+        {
+          "id": "a",
+          "text": "Right-skewed",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Left-skewed",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Perfectly symmetric",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Uniform",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q63",
+      "question": "What does kurtosis mainly measure?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Tail heaviness of a distribution",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Location of the mean",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Direction of trends",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Linear dependence",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q64",
+      "question": "Which distribution property is most related to extreme events?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Fat tails",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Low variance",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Symmetry",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Stationarity",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q65",
+      "question": "What are \"fat tails\" in a distribution?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Higher probability of extreme outcomes than a normal distribution",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "More observations near the mean only",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "A perfectly symmetric shape",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Zero probability of outliers",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q66",
+      "question": "Why do fat tails matter in finance?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Extreme losses occur more often than expected",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They remove all risk",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "They guarantee profits",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They imply prices are constant",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q67",
+      "question": "Which assumption is most questionable for financial returns?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Returns are normally distributed",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Prices change over time",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Markets have risk",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Data can be noisy",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q68",
+      "question": "What is heteroskedasticity?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Variance changes over time",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Mean is constant",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Returns are independent",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Prices follow a trend",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q69",
+      "question": "Volatility clustering implies:",
+      "options": [
+        {
+          "id": "a",
+          "text": "High volatility periods tend to group together",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Prices are random noise only",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Returns are always stable",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Markets are inefficient",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q70",
+      "question": "Which statistic is most affected by extreme outliers?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Mean",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Median",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Mode",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Rank",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q71",
+      "question": "Why is the median often preferred for income data?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It is less sensitive to extreme values",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "It uses more data",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "It maximises returns",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "It measures volatility",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q72",
+      "question": "What does the law of large numbers suggest?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Sample averages converge to expected values",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Outcomes become guaranteed",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Variance disappears",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Extreme events stop occurring",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q73",
+      "question": "Which best describes estimation error?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Uncertainty in estimated parameters",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Guaranteed bias",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Execution slippage",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Market impact",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q74",
+      "question": "Smaller sample sizes usually imply:",
+      "options": [
+        {
+          "id": "a",
+          "text": "Higher estimation uncertainty",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "More reliable statistics",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Lower variance",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Guaranteed stationarity",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q75",
+      "question": "What does independence between observations imply?",
+      "options": [
+        {
+          "id": "a",
+          "text": "One observation does not influence another",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Values are identical",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "There is no volatility",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Returns are always zero",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q76",
+      "question": "Why is independence often violated in financial time series?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Autocorrelation and volatility clustering",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Prices never change",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Markets are deterministic",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Transaction costs disappear",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q77",
+      "question": "What does a confidence interval represent?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A range likely to contain the true parameter",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "A guaranteed outcome",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Maximum possible loss",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Exact future value",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q78",
+      "question": "Increasing sample size generally makes confidence intervals:",
+      "options": [
+        {
+          "id": "a",
+          "text": "Narrower",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Wider",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Unrelated",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Invalid",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q79",
+      "question": "What is tail risk?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Risk of rare but severe outcomes",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Average daily volatility",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Small frequent losses",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Transaction cost risk",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q80",
+      "question": "Which risk measure focuses on extreme losses?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Value at Risk (VaR)",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Mean return",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Turnover",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Beta",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q81",
+      "question": "What does Value at Risk estimate?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Potential loss over a given horizon at a confidence level",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Maximum possible loss",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Expected return",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Liquidity cost",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q82",
+      "question": "A limitation of VaR is that it:",
+      "options": [
+        {
+          "id": "a",
+          "text": "Does not describe losses beyond the threshold",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Always overestimates risk",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Eliminates tail risk",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Requires no assumptions",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q83",
+      "question": "What is Conditional Value at Risk (CVaR)?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Average loss given that losses exceed VaR",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Median return",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Maximum drawdown",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Volatility estimate",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q84",
+      "question": "Why is CVaR often preferred to VaR?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It better captures tail risk",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "It ignores extreme events",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "It removes volatility",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "It guarantees profits",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q85",
+      "question": "What does normalization of data usually achieve?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Improved comparability across scales",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Removal of all noise",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Guaranteed stationarity",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Higher returns",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q86",
+      "question": "Why is log-return often used instead of simple return?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They are additive over time",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They eliminate risk",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "They remove volatility",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They guarantee normality",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q87",
+      "question": "Which assumption is least realistic in finance?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Markets follow perfect normal distributions",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Prices can be volatile",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Risk exists",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Data is noisy",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q88",
+      "question": "What does robustness mean in a model?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Performance is stable across conditions",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Perfect prediction",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Zero variance",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "No assumptions",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q89",
+      "question": "Why are stress tests useful?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They explore behaviour under extreme scenarios",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They replace backtests",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "They guarantee safety",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They reduce volatility",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q90",
+      "question": "Which attitude best reflects good risk awareness?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Expect rare events to happen eventually",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Assume extremes are impossible",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Ignore tail risk",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Rely on averages only",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q91",
+      "question": "Which statement best describes a quantitative analyst (quant)?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Uses data and models to analyse markets",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Trades based only on news headlines",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Avoids mathematics",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Predicts markets with certainty",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q92",
+      "question": "Which tasks might a quant reasonably work on?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Building trading models",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Analysing financial data",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Managing office facilities",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Risk analysis",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "q93",
+      "question": "Which skills are commonly useful for quants?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Statistics",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Programming",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Astrology",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Data analysis",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "id": "q94",
+      "question": "Which statement about the mean is correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It is an average value",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "It ignores all data points",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "It is always the most common value",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "It cannot change over time",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q95",
+      "question": "Which of the following are basic descriptive statistics?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Mean",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Median",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Standard deviation",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Sharpe ratio",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q96",
+      "question": "What does standard deviation measure?",
+      "options": [
+        {
+          "id": "a",
+          "text": "How spread out values are",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "The direction of prices",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "The highest return",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Execution speed",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q97",
+      "question": "Which statement about volatility is correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Higher volatility means larger price swings",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Volatility equals return",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Volatility guarantees profit",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Volatility is always bad",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q98",
+      "question": "Which of the following is a volatility-related indicator?",
+      "options": [
+        {
+          "id": "a",
+          "text": "ATR",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Standard deviation",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "RSI",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Mean",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q99",
+      "question": "What does a Sharpe ratio compare?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Return relative to risk",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Price relative to volume",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Trades relative to time",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Profit relative to fees only",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q100",
+      "question": "Which statement about Sharpe ratios is true?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Higher Sharpe is generally better",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Sharpe guarantees future performance",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Sharpe ignores volatility",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Sharpe only applies to stocks",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q101",
+      "question": "What does a z-score represent?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Deviation from a reference level",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Trade size",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Execution cost",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Volume imbalance",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q102",
+      "question": "Which inputs are typically needed to compute a z-score?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Mean or reference value",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Standard deviation",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Order ID",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Exchange code",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q103",
+      "question": "Which statement about moving averages is correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "They smooth data",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "They predict exact turning points",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "They remove all noise",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "They are never lagged",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q104",
+      "question": "Which of the following are moving averages?",
+      "options": [
+        {
+          "id": "a",
+          "text": "SMA",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "EMA",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "ATR",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Sharpe ratio",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q105",
+      "question": "Which statement about RSI is correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It is a bounded indicator",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "It measures price dispersion",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "It predicts returns perfectly",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "It is a volatility index",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q106",
+      "question": "Which of the following describe mean reversion?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Prices tend to move back toward a typical level",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Prices always trend forever",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Extreme moves may reverse",
+          "isCorrect": true
+        },
+        {
+          "id": "d",
+          "text": "Risk is eliminated",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q107",
+      "question": "Which situation is hardest for mean-reversion strategies?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Strong trends",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Sideways markets",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Stable volatility",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Low noise",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q108",
+      "question": "What is backtesting?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Testing a strategy on historical data",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Trading live with real money",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Guessing future prices",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Ignoring data",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q109",
+      "question": "Which statement about backtests is correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Good backtests do not guarantee future success",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Backtests eliminate uncertainty",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Backtests always fail",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Backtests require no assumptions",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q110",
+      "question": "What is lookahead bias?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Using future information unintentionally",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Trading too slowly",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Using old data",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Normalising prices",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q111",
+      "question": "Which practice can cause lookahead bias?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Using end-of-day data for intraday decisions",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Lagging indicators properly",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Timestamp alignment",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Out-of-sample testing",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q112",
+      "question": "What is survivorship bias?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Only successful assets remain in the dataset",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "All assets are included historically",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Bias caused by noise",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Execution bias",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q113",
+      "question": "Which dataset is most at risk of survivorship bias?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Fund databases excluding closed funds",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Raw exchange trades",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Order book snapshots",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Tick timestamps",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q114",
+      "question": "What is data snooping?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Testing many ideas until something works by chance",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Cleaning data carefully",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Using one hypothesis once",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Out-of-sample testing",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q115",
+      "question": "Which behaviour increases data snooping risk?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Trying many parameter combinations",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Fixing rules in advance",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Using validation sets",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Limiting hypotheses",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q116",
+      "question": "Which statement about risk is correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Higher returns usually involve higher risk",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Risk can be eliminated completely",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Risk equals volatility only",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Risk is irrelevant",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q117",
+      "question": "Which of the following are risk management tools?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Stop losses",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Position sizing",
+          "isCorrect": true
+        },
+        {
+          "id": "c",
+          "text": "Ignoring drawdowns",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Unlimited leverage",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q118",
+      "question": "Which statement about indicators is correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Indicators summarise information from data",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Indicators guarantee profits",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Indicators replace judgement entirely",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Indicators eliminate uncertainty",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q119",
+      "question": "Which statement about models is correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Models are simplifications of reality",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Models are always correct",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Models remove risk",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Models do not need testing",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": "q120",
+      "question": "Which statement best reflects good quantitative attitude?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Be sceptical and test assumptions",
+          "isCorrect": true
+        },
+        {
+          "id": "b",
+          "text": "Trust one backtest completely",
+          "isCorrect": false
+        },
+        {
+          "id": "c",
+          "text": "Ignore data quality",
+          "isCorrect": false
+        },
+        {
+          "id": "d",
+          "text": "Assume markets are easy",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

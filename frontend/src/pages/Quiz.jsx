@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { db } from "../firebase";
 import { addDoc, collection } from "firebase/firestore";
-import { QUIZ_CONFIG, QUESTION_POOLS } from "../config";
+import { QUIZ_CONFIG, QUESTION_POOLS, LIVE_CHECKER_API } from "../config";
+import LiveCheckerQuestion from "../components/LiveCheckerQuestion";
 
 export default function Quiz({ user, profile }) {
   const navigate = useNavigate();
@@ -11,21 +12,37 @@ export default function Quiz({ user, profile }) {
 
   const topics = location.state?.topics || ["git", "linux", "q"];
 
-  // Redirect if not logged in (ProtectedRoute should handle it, but safe)
   useEffect(() => {
     if (!user) navigate("/", { replace: true });
   }, [user, navigate]);
 
-  // ---------------- STATE ----------------
   const [questions, setQuestions] = useState([]);
-
   const [currentIndex, setCurrentIndex] = useState(0);
+
   const [selectedById, setSelectedById] = useState({});
+  const [attemptById, setAttemptById] = useState({});
+  const [liveStatusById, setLiveStatusById] = useState({});
+  const [liveAttemptsUsedById, setLiveAttemptsUsedById] = useState({}); // ✅ attempts per question id
 
   const [globalTimeLeft, setGlobalTimeLeft] = useState(null);
-
   const [startedAt, setStartedAt] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const perTypeSeconds = QUIZ_CONFIG.timePerQuestionSecondsByType || {
+    mcq: 15,
+    live: 20,
+  };
+
+  // ✅ Boss: global default should be 2 if no "tries"
+  const defaultLiveAttemptsLimit =
+    Number(QUIZ_CONFIG.attemptsLimitByType?.live ?? 2) || 2;
+
+  // ✅ per-question limit (uses json "tries" if present)
+  const getAttemptsLimit = (q) => {
+    const n = Number(q?.tries);
+    if (Number.isFinite(n) && n > 0) return n;
+    return defaultLiveAttemptsLimit;
+  };
 
   // ---------------- PREPARE QUESTIONS ----------------
   useEffect(() => {
@@ -34,25 +51,30 @@ export default function Quiz({ user, profile }) {
       if (QUESTION_POOLS[t]) pool.push(...QUESTION_POOLS[t]);
     });
 
-    // Deduplicate by id or question text (lowercase)
+    // dedupe by question OR id
     const map = new Map();
     pool.forEach((q) => {
-      const key = (q.id || q.question || "").toString().trim().toLowerCase();
+      const key = (q.type === "live" ? q.apiId : q.id || q.question || "")
+        .toString()
+        .trim()
+        .toLowerCase();
       if (!map.has(key)) map.set(key, q);
     });
 
     const uniqueQuestions = Array.from(map.values());
-
-    // Shuffle questions
     const shuffled = [...uniqueQuestions].sort(() => Math.random() - 0.5);
 
     const sliceCount = Math.min(QUIZ_CONFIG.questionsPerAttempt, shuffled.length);
 
-    // Normalize + shuffle options
     const normalized = shuffled.slice(0, sliceCount).map((q, qi) => {
       const qid = q.id || `q_${qi}`;
+      const type = q.type || "mcq";
 
-      const shuffledOptions = [...q.options]
+      if (type === "live") {
+        return { ...q, id: qid, type: "live", options: [] };
+      }
+
+      const shuffledOptions = [...(q.options || [])]
         .map((opt, oi) => ({
           id: opt.id || `${qid}_opt_${oi}`,
           text: opt.text,
@@ -60,24 +82,29 @@ export default function Quiz({ user, profile }) {
         }))
         .sort(() => Math.random() - 0.5);
 
-      return {
-        ...q,
-        id: qid,
-        options: shuffledOptions,
-      };
+      return { ...q, id: qid, type: "mcq", options: shuffledOptions };
     });
 
     setQuestions(normalized);
     setCurrentIndex(0);
+
     setSelectedById({});
+    setAttemptById({});
+    setLiveStatusById({});
+    setLiveAttemptsUsedById({});
     setIsSubmitting(false);
 
     const now = new Date();
     setStartedAt(now);
 
-    // Global timer total
-    const total = QUIZ_CONFIG.timePerQuestionSeconds * sliceCount;
+    // ✅ per-type total time (boss formula)
+    const total = normalized.reduce((acc, q) => {
+      const t = q.type || "mcq";
+      return acc + (perTypeSeconds[t] ?? 15);
+    }, 0);
+
     setGlobalTimeLeft(total);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topics]);
 
   const totalQuestions = questions.length;
@@ -95,13 +122,12 @@ export default function Quiz({ user, profile }) {
     return () => clearInterval(interval);
   }, [globalTimeLeft]);
 
-  // Auto-submit on timeout
   useEffect(() => {
     if (globalTimeLeft === 0) handleSubmit("timeout");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [globalTimeLeft]);
 
-  // ---------------- OPTION SELECT ----------------
+  // ---------------- MCQ select ----------------
   const toggleOption = (questionId, optionId) => {
     setSelectedById((prev) => {
       const existing = new Set(prev[questionId] || []);
@@ -110,7 +136,84 @@ export default function Quiz({ user, profile }) {
     });
   };
 
-  // ---------------- PROGRESS ----------------
+  // ---------------- LIVE run ----------------
+  const runLive = async (question) => {
+    const qid = question.id;
+    const apiId = question.apiId;
+
+    const limit = getAttemptsLimit(question);
+    const used = Number(liveAttemptsUsedById[qid] ?? 0);
+
+    const currentStatus = liveStatusById[qid]?.status || "idle";
+
+    // ✅ UX: if already correct, do nothing (don't consume attempts)
+    if (currentStatus === "correct") return;
+
+    if (used >= limit) {
+      setLiveStatusById((p) => ({
+        ...p,
+        [qid]: { status: "error", message: "No attempts left." },
+      }));
+      return;
+    }
+
+    const attempt = (attemptById[qid] || "").trim();
+    if (!attempt) {
+      setLiveStatusById((p) => ({
+        ...p,
+        [qid]: { status: "error", message: "Type an answer first." },
+      }));
+      return;
+    }
+
+    if (!apiId) {
+      setLiveStatusById((p) => ({
+        ...p,
+        [qid]: { status: "error", message: "Missing apiId for this question." },
+      }));
+      return;
+    }
+
+    setLiveStatusById((p) => ({ ...p, [qid]: { status: "running" } }));
+
+    try {
+      const res = await fetch(`${LIVE_CHECKER_API}/check/${apiId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attempt }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(`Check failed (${res.status}): ${text.slice(0, 120)}`);
+      }
+
+      const data = await res.json();
+
+      // ✅ Only count an attempt when the backend actually responded OK
+      setLiveAttemptsUsedById((p) => ({ ...p, [qid]: used + 1 }));
+
+      if (data?.result === "Success") {
+        setLiveStatusById((p) => ({ ...p, [qid]: { status: "correct" } }));
+      } else {
+        setLiveStatusById((p) => ({
+          ...p,
+          [qid]: { status: "incorrect", message: data?.result || "Incorrect" },
+        }));
+      }
+    } catch (e) {
+      setLiveStatusById((p) => ({
+        ...p,
+        [qid]: {
+          status: "error",
+          message: e?.message || "API error. Is the live-checker backend running?",
+        },
+      }));
+      // ✅ do NOT decrement attempts on network/server error
+    }
+  };
+
+  // ---------------- UI helpers ----------------
   const progressPercent = useMemo(() => {
     if (!totalQuestions) return 0;
     return Math.round(((currentIndex + 1) / totalQuestions) * 100);
@@ -122,17 +225,11 @@ export default function Quiz({ user, profile }) {
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const goNext = () => {
-    if (currentIndex < totalQuestions - 1) setCurrentIndex((i) => i + 1);
-  };
-
-  const goBack = () => {
-    if (currentIndex > 0) setCurrentIndex((i) => i - 1);
-  };
-
-  const skipQuestion = () => {
-    if (currentIndex < totalQuestions - 1) setCurrentIndex((i) => i + 1);
-  };
+  const goNext = () =>
+    currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
+  const goBack = () => currentIndex > 0 && setCurrentIndex((i) => i - 1);
+  const skipQuestion = () =>
+    currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
 
   // ---------------- SUBMIT ----------------
   const handleSubmit = async (reason = "manual") => {
@@ -140,19 +237,16 @@ export default function Quiz({ user, profile }) {
 
     setIsSubmitting(true);
 
-    const totalTimeAllowedInSeconds =
-      QUIZ_CONFIG.questionsPerAttempt * QUIZ_CONFIG.timePerQuestionSeconds;
+    const totalTimeAllowedInSeconds = questions.reduce((acc, q) => {
+      const t = q.type || "mcq";
+      return acc + (perTypeSeconds[t] ?? 15);
+    }, 0);
 
-    let finishedAt;
+    const finishedAt =
+      reason === "timeout"
+        ? new Date(startedAt.getTime() + totalTimeAllowedInSeconds * 1000)
+        : new Date();
 
-    if (reason === "timeout") {
-      // Force finish time to be EXACTLY the max allowed time
-      finishedAt = new Date(startedAt.getTime() + totalTimeAllowedInSeconds * 1000);
-    } else {
-      finishedAt = new Date();
-    }
-
-    // Duration cannot exceed allowed limit
     let durationSeconds = Math.round((finishedAt - startedAt) / 1000);
     durationSeconds = Math.min(durationSeconds, totalTimeAllowedInSeconds);
 
@@ -162,7 +256,43 @@ export default function Quiz({ user, profile }) {
       skippedCount = 0;
 
     const perQuestionResults = questions.map((q) => {
-      const correctIds = q.options.filter((o) => o.isCorrect).map((o) => o.id);
+      const type = q.type || "mcq";
+
+      if (type === "live") {
+        const statusObj = liveStatusById[q.id] || { status: "idle" };
+        const attempt = attemptById[q.id] || "";
+
+        let isCorrect = false;
+
+        if (!attempt.trim()) {
+          skippedCount++;
+          score += QUIZ_CONFIG.scoring.skipped;
+        } else if (statusObj.status === "correct") {
+          isCorrect = true;
+          correctCount++;
+          score += QUIZ_CONFIG.scoring.correct;
+        } else {
+          wrongCount++;
+          score += QUIZ_CONFIG.scoring.wrong;
+        }
+
+        return {
+          questionId: q.id,
+          questionText: q.question,
+          type: "live",
+          apiId: q.apiId || null,
+          attempt,
+          liveStatus: statusObj,
+          attemptsUsed: Number(liveAttemptsUsedById[q.id] ?? 0),
+          attemptsLimit: getAttemptsLimit(q),
+          isCorrect,
+        };
+      }
+
+      const correctIds = (q.options || [])
+        .filter((o) => o.isCorrect)
+        .map((o) => o.id);
+
       const picked = selectedById[q.id] || [];
       const pickedSet = new Set(picked);
 
@@ -189,6 +319,7 @@ export default function Quiz({ user, profile }) {
       return {
         questionId: q.id,
         questionText: q.question,
+        type: "mcq",
         options: q.options,
         correctOptionIds: correctIds,
         selectedOptionIds: picked,
@@ -199,7 +330,6 @@ export default function Quiz({ user, profile }) {
     const payload = {
       uid: user.uid,
       email: user.email,
-      // Optional: store profile fields for reporting (handy)
       userFirstName: profile?.firstName || null,
       userLastName: profile?.lastName || null,
 
@@ -213,7 +343,11 @@ export default function Quiz({ user, profile }) {
       finishedAt,
       durationSeconds,
       reason,
+
       results: perQuestionResults,
+      liveAttempts: attemptById,
+      liveStatuses: liveStatusById,
+      liveAttemptsUsed: liveAttemptsUsedById,
     };
 
     await addDoc(collection(db, "quizResults"), payload);
@@ -237,13 +371,17 @@ export default function Quiz({ user, profile }) {
     );
   }
 
+  const isMCQ = (currentQuestion.type || "mcq") === "mcq";
+  const attemptsUsed = Number(liveAttemptsUsedById[currentQuestion.id] ?? 0);
+  const attemptsLimit = getAttemptsLimit(currentQuestion);
+
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-14 md:pt-24 pb-10 px-4 flex justify-center">
-      <div className="w-full max-w-3xl space-y-6">
+    <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-10 md:pt-12 pb-8 px-4 flex justify-center">
+      <div className="w-full max-w-3xl space-y-4">
         {/* TOP BAR */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div className="flex-1">
-            <div className="flex justify-between text-sm md:text-lg text-gray-400 mb-1">
+            <div className="flex justify-between text-sm md:text-base text-gray-400 mb-1">
               <span>
                 Question {currentIndex + 1} / {totalQuestions}
               </span>
@@ -266,43 +404,59 @@ export default function Quiz({ user, profile }) {
         </div>
 
         {/* QUESTION */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
           <h2 className="text-sm md:text-base whitespace-pre-wrap">
             {currentQuestion.question}
           </h2>
 
-          <p className="text-xs text-gray-400">
-            Select all answers you believe are correct.
-          </p>
+          {isMCQ ? (
+            <>
+              <p className="text-xs text-gray-400">
+                Select all answers you believe are correct.
+              </p>
 
-          <div className="space-y-2 mt-2">
-            {currentQuestion.options.map((opt) => {
-              const picked = selectedById[currentQuestion.id] || [];
-              return (
-                <label
-                  key={opt.id}
-                  className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-700 bg-gray-950/60 hover:bg-gray-800/70 cursor-pointer text-xs md:text-sm font-mono whitespace-pre-wrap"
-                >
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 accent-blue-500"
-                    checked={picked.includes(opt.id)}
-                    onChange={() => toggleOption(currentQuestion.id, opt.id)}
-                  />
-                  <span>{opt.text}</span>
-                </label>
-              );
-            })}
-          </div>
+              <div className="space-y-2 mt-1">
+                {currentQuestion.options.map((opt) => {
+                  const picked = selectedById[currentQuestion.id] || [];
+                  return (
+                    <label
+                      key={opt.id}
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-700 bg-gray-950/60 hover:bg-gray-800/70 cursor-pointer text-xs md:text-sm font-mono whitespace-pre-wrap"
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-blue-500"
+                        checked={picked.includes(opt.id)}
+                        onChange={() => toggleOption(currentQuestion.id, opt.id)}
+                      />
+                      <span>{opt.text}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <LiveCheckerQuestion
+              question={currentQuestion}
+              attempt={attemptById[currentQuestion.id] || ""}
+              onAttemptChange={(val) =>
+                setAttemptById((p) => ({ ...p, [currentQuestion.id]: val }))
+              }
+              status={liveStatusById[currentQuestion.id] || { status: "idle" }}
+              onRun={() => runLive(currentQuestion)}
+              attemptsUsed={attemptsUsed}
+              attemptsLimit={attemptsLimit}
+            />
+          )}
         </div>
 
-        {/* NAVIGATION */}
+        {/* NAV */}
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           <div className="flex gap-2">
             <button
               onClick={goBack}
               disabled={currentIndex === 0}
-              className="px-6 py-2 rounded-md bg-gray-700 disabled:opacity-40"
+              className="px-5 py-2 rounded-md bg-gray-700 disabled:opacity-40"
             >
               Back
             </button>
@@ -310,24 +464,22 @@ export default function Quiz({ user, profile }) {
             <button
               onClick={skipQuestion}
               disabled={currentIndex === totalQuestions - 1}
-              className="px-6 py-2 rounded-md bg-gray-700 disabled:opacity-40"
+              className="px-5 py-2 rounded-md bg-gray-700 disabled:opacity-40"
             >
               Skip
             </button>
 
-            {currentIndex < totalQuestions - 1 && (
+            {currentIndex < totalQuestions - 1 ? (
               <button
                 onClick={goNext}
-                className="px-6 py-2 rounded-md bg-blue-600 hover:bg-blue-700 transition"
+                className="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 transition"
               >
                 Next
               </button>
-            )}
-
-            {currentIndex === totalQuestions - 1 && (
+            ) : (
               <button
                 onClick={() => handleSubmit("manual")}
-                className="px-6 py-2 rounded-md bg-green-600 hover:bg-green-700 transition"
+                className="px-5 py-2 rounded-md bg-green-600 hover:bg-green-700 transition"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Submitting..." : "Submit Quiz"}

@@ -12,32 +12,43 @@ import {
 import { useNavigate, Link } from "react-router-dom";
 import { QUIZ_CONFIG, TOPICS } from "../config";
 
+function toMillis(ts) {
+  if (!ts) return null;
+  if (ts.toDate) return ts.toDate().getTime();         // Firestore Timestamp
+  if (typeof ts.seconds === "number") return ts.seconds * 1000;
+  if (ts instanceof Date) return ts.getTime();
+  if (typeof ts === "string" || typeof ts === "number") {
+    const d = new Date(ts);
+    return isNaN(d.getTime()) ? null : d.getTime();
+  }
+  return null;
+}
+
 export default function Home({ user, profile }) {
   const navigate = useNavigate();
 
   const [lastResult, setLastResult] = useState(null);
   const [loadingResult, setLoadingResult] = useState(true);
-  const [selectedTopics, setSelectedTopics] = useState(["git", "linux", "q"]);
+
+  // ✅ include "live" by default
+  const [selectedTopics, setSelectedTopics] = useState([
+    "git",
+    "linux",
+    "q",
+    "live",
+  ]);
 
   const displayName = useMemo(() => {
-    // 1) Prefer firstName from Firestore
     if (profile?.firstName) return profile.firstName;
-  
-    // 2) Fallback to Auth displayName (if you ever set it)
     if (user?.displayName) return user.displayName;
-  
-    // 3) Last resort: email local part
     if (user?.email) return user.email.split("@")[0];
-  
     return "there";
   }, [profile, user]);
 
-  // If somehow user is missing, bounce (ProtectedRoute should prevent this anyway)
   useEffect(() => {
     if (!user) navigate("/", { replace: true });
   }, [user, navigate]);
 
-  // LOAD LAST RESULT
   useEffect(() => {
     const load = async () => {
       if (!user) return;
@@ -52,8 +63,7 @@ export default function Home({ user, profile }) {
         );
 
         const snap = await getDocs(q);
-        if (!snap.empty) setLastResult(snap.docs[0].data());
-        else setLastResult(null);
+        setLastResult(!snap.empty ? snap.docs[0].data() : null);
       } catch (e) {
         console.error("Error loading last result:", e);
       } finally {
@@ -66,7 +76,6 @@ export default function Home({ user, profile }) {
 
   if (!user) return null;
 
-  // Format total time (global timer)
   const totalSeconds =
     QUIZ_CONFIG.questionsPerAttempt * QUIZ_CONFIG.timePerQuestionSeconds;
 
@@ -76,18 +85,17 @@ export default function Home({ user, profile }) {
 
   const toggleTopic = (id) => {
     setSelectedTopics((prev) =>
-      prev.includes(id)
-        ? prev.filter((t) => t !== id)
-        : [...prev, id]
+      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
     );
   };
 
   const noTopicsSelected = selectedTopics.length === 0;
 
+  const lastAttemptMs = toMillis(lastResult?.startedAt);
+
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white flex flex-col items-center justify-start px-4 pt-14 md:pt-24 pb-16">
       <div className="max-w-3xl w-full flex flex-col items-center text-center gap-6">
-
         {/* WELCOME */}
         <div>
           <h1 className="text-3xl md:text-5xl font-bold mb-3">
@@ -96,43 +104,46 @@ export default function Home({ user, profile }) {
 
           <p className="text-sm md:text-base text-gray-300 max-w-3xl mx-auto mt-6">
             You will receive a random selection of{" "}
-            <span className="font-bold">{QUIZ_CONFIG.questionsPerAttempt}{" "}
-            questions</span> from the topics you choose below.
-            <br /><br />
+            <span className="font-bold">
+              {QUIZ_CONFIG.questionsPerAttempt} questions
+            </span>{" "}
+            from the topics you choose below.
+            <br />
+            <br />
             You will have{" "}
             <span className="font-bold">{formattedTotalTime}</span> total time
-            to complete the quiz. You may take longer on some questions and less on
-            others — the timer counts down overall, not per question.
-            <br /><br />
+            to complete the quiz. You may take longer on some questions and less
+            on others — the timer counts down overall, not per question.
+            <br />
+            <br />
             Scoring:
-            <br />
-            • <span className="text-green-400 font-semibold">+1 point</span> for each correct answer  
-            <br />
-            • <span className="text-red-400 font-semibold">-1 point</span> for a wrong answer  
-            <br />
-            • <span className="text-yellow-300 font-semibold">0 points</span> for skipping  
+            <br />•{" "}
+            <span className="text-green-400 font-semibold">+1 point</span> for
+            each correct answer
+            <br />•{" "}
+            <span className="text-red-400 font-semibold">-1 point</span> for a
+            wrong answer
+            <br />•{" "}
+            <span className="text-yellow-300 font-semibold">0 points</span> for
+            skipping
           </p>
         </div>
 
         {/* LAST RESULT */}
         <div className="w-full max-w-xl bg-gray-900 border border-gray-800 rounded-xl p-2 text-left">
-          <h2 className="font-semibold text-gray-200 m-2">
-            Last attempt
-          </h2>
+          <h2 className="font-semibold text-gray-200 m-2">Last attempt</h2>
 
           {loadingResult ? (
-            <p className="text-xs text-gray-400">Loading...</p>
+            <p className="text-xs text-gray-400 m-2">Loading...</p>
           ) : !lastResult ? (
-            <p className="text-xs text-gray-400">
-              You haven't taken the quiz yet.
+            <p className="text-xs text-gray-400 m-2">
+              You haven&apos;t taken the quiz yet.
             </p>
           ) : (
             <div className="text-xs text-gray-300 space-y-1 m-2">
               <p>
                 Score:{" "}
-                <span className="font-semibold text-white">
-                  {lastResult.score}
-                </span>
+                <span className="font-semibold text-white">{lastResult.score}</span>
               </p>
 
               <p>
@@ -150,21 +161,17 @@ export default function Home({ user, profile }) {
                 </span>
               </p>
 
-              {lastResult.startedAt && (
-                <p className="text-gray-400">
-                  Taken at:{" "}
-                  {new Date(lastResult.startedAt.seconds * 1000).toLocaleString()}
-                </p>
-              )}
+              <p className="text-gray-400">
+                Taken at:{" "}
+                {lastAttemptMs ? new Date(lastAttemptMs).toLocaleString() : "—"}
+              </p>
             </div>
           )}
         </div>
 
         {/* TOPIC SELECTION */}
         <div className="bg-gray-900 p-4 rounded-lg border border-gray-700 w-full max-w-xl">
-          <h3 className="font-semibold mb-2 text-gray-200">
-            Select topics
-          </h3>
+          <h3 className="font-semibold mb-2 text-gray-200">Select topics</h3>
 
           <p className="text-xs text-gray-400 mb-3">
             You must select at least one topic before starting the quiz.
