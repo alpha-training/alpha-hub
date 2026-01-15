@@ -22,10 +22,14 @@ export default function Quiz({ user, profile }) {
   const [selectedById, setSelectedById] = useState({});
   const [attemptById, setAttemptById] = useState({});
   const [liveStatusById, setLiveStatusById] = useState({});
+  const [liveAttemptsUsedById, setLiveAttemptsUsedById] = useState({}); // ✅ NEW
 
   const [globalTimeLeft, setGlobalTimeLeft] = useState(null);
   const [startedAt, setStartedAt] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const perTypeSeconds = QUIZ_CONFIG.timePerQuestionSecondsByType || { mcq: 15, live: 20 };
+  const liveAttemptsLimit = QUIZ_CONFIG.attemptsLimitByType?.live ?? 3;
 
   // ---------------- PREPARE QUESTIONS ----------------
   useEffect(() => {
@@ -37,8 +41,7 @@ export default function Quiz({ user, profile }) {
     // dedupe by question OR id
     const map = new Map();
     pool.forEach((q) => {
-      const key =
-      (q.type === "live" ? q.apiId : q.id || q.question || "")
+      const key = (q.type === "live" ? q.apiId : q.id || q.question || "")
         .toString()
         .trim()
         .toLowerCase();
@@ -75,14 +78,20 @@ export default function Quiz({ user, profile }) {
     setSelectedById({});
     setAttemptById({});
     setLiveStatusById({});
+    setLiveAttemptsUsedById({}); // ✅ reset
     setIsSubmitting(false);
 
     const now = new Date();
     setStartedAt(now);
 
-    const total = QUIZ_CONFIG.timePerQuestionSeconds * sliceCount;
+    // ✅ per-type total time (boss formula)
+    const total = normalized.reduce((acc, q) => {
+      const t = q.type || "mcq";
+      return acc + (perTypeSeconds[t] ?? 15);
+    }, 0);
+
     setGlobalTimeLeft(total);
-  }, [topics]);
+  }, [topics]); // keep dependency minimal on purpose
 
   const totalQuestions = questions.length;
   const currentQuestion = questions[currentIndex];
@@ -118,6 +127,18 @@ export default function Quiz({ user, profile }) {
     const qid = question.id;
     const apiId = question.apiId;
 
+    const used = liveAttemptsUsedById[qid] ?? 0;
+    if (used >= liveAttemptsLimit) {
+      setLiveStatusById((p) => ({
+        ...p,
+        [qid]: {
+          status: "error",
+          message: `No attempts left (${liveAttemptsLimit}/${liveAttemptsLimit}).`,
+        },
+      }));
+      return;
+    }
+
     const attempt = (attemptById[qid] || "").trim();
     if (!attempt) {
       setLiveStatusById((p) => ({
@@ -135,6 +156,8 @@ export default function Quiz({ user, profile }) {
       return;
     }
 
+    // ✅ count this attempt
+    setLiveAttemptsUsedById((p) => ({ ...p, [qid]: (p[qid] ?? 0) + 1 }));
     setLiveStatusById((p) => ({ ...p, [qid]: { status: "running" } }));
 
     try {
@@ -192,8 +215,11 @@ export default function Quiz({ user, profile }) {
 
     setIsSubmitting(true);
 
-    const totalTimeAllowedInSeconds =
-      QUIZ_CONFIG.questionsPerAttempt * QUIZ_CONFIG.timePerQuestionSeconds;
+    // ✅ use the same per-type total
+    const totalTimeAllowedInSeconds = questions.reduce((acc, q) => {
+      const t = q.type || "mcq";
+      return acc + (perTypeSeconds[t] ?? 15);
+    }, 0);
 
     const finishedAt =
       reason === "timeout"
@@ -236,6 +262,8 @@ export default function Quiz({ user, profile }) {
           apiId: q.apiId || null,
           attempt,
           liveStatus: statusObj,
+          attemptsUsed: liveAttemptsUsedById[q.id] ?? 0, // ✅ NEW
+          attemptsLimit: liveAttemptsLimit, // ✅ NEW
           isCorrect,
         };
       }
@@ -294,6 +322,7 @@ export default function Quiz({ user, profile }) {
       results: perQuestionResults,
       liveAttempts: attemptById,
       liveStatuses: liveStatusById,
+      liveAttemptsUsed: liveAttemptsUsedById, // ✅ NEW
     };
 
     await addDoc(collection(db, "quizResults"), payload);
@@ -320,41 +349,42 @@ export default function Quiz({ user, profile }) {
   const isMCQ = (currentQuestion.type || "mcq") === "mcq";
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-14 md:pt-24 pb-10 px-4 flex justify-center">
-      <div className="w-full max-w-3xl space-y-6">
+    <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-10 md:pt-12 pb-8 px-4 flex justify-center">
+      <div className="w-full max-w-3xl space-y-4">
         {/* TOP BAR */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div className="flex-1">
-            <div className="flex justify-between text-sm md:text-lg text-gray-400 mb-1">
+            <div className="flex justify-between text-sm md:text-base text-gray-400 mb-1">
               <span>
                 Question {currentIndex + 1} / {totalQuestions}
               </span>
             </div>
 
             <div className="h-2 rounded-full bg-gray-800 overflow-hidden">
-              <div className="h-full bg-blue-500 transition-all" style={{ width: `${progressPercent}%` }} />
+              <div
+                className="h-full bg-blue-500 transition-all"
+                style={{ width: `${progressPercent}%` }}
+              />
             </div>
           </div>
 
           <div className="text-sm md:text-base font-mono text-gray-200 text-right">
             Time left:{" "}
-            <span className="font-semibold text-blue-400">
-              {formatTime(globalTimeLeft ?? 0)}
-            </span>
+            <span className="font-semibold text-blue-400">{formatTime(globalTimeLeft ?? 0)}</span>
           </div>
         </div>
 
         {/* QUESTION */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
-          <h2 className="text-sm md:text-base whitespace-pre-wrap">
-            {currentQuestion.question}
-          </h2>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
+          <h2 className="text-sm md:text-base whitespace-pre-wrap">{currentQuestion.question}</h2>
 
           {isMCQ ? (
             <>
-              <p className="text-xs text-gray-400">Select all answers you believe are correct.</p>
+              <p className="text-xs text-gray-400">
+                Select all answers you believe are correct.
+              </p>
 
-              <div className="space-y-2 mt-2">
+              <div className="space-y-2 mt-1">
                 {currentQuestion.options.map((opt) => {
                   const picked = selectedById[currentQuestion.id] || [];
                   return (
@@ -383,6 +413,8 @@ export default function Quiz({ user, profile }) {
               }
               status={liveStatusById[currentQuestion.id] || { status: "idle" }}
               onRun={() => runLive(currentQuestion)}
+              attemptsUsed={liveAttemptsUsedById[currentQuestion.id] ?? 0}
+              attemptsLimit={liveAttemptsLimit}
             />
           )}
         </div>
@@ -390,22 +422,33 @@ export default function Quiz({ user, profile }) {
         {/* NAV */}
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           <div className="flex gap-2">
-            <button onClick={goBack} disabled={currentIndex === 0} className="px-6 py-2 rounded-md bg-gray-700 disabled:opacity-40">
+            <button
+              onClick={goBack}
+              disabled={currentIndex === 0}
+              className="px-5 py-2 rounded-md bg-gray-700 disabled:opacity-40"
+            >
               Back
             </button>
 
-            <button onClick={skipQuestion} disabled={currentIndex === totalQuestions - 1} className="px-6 py-2 rounded-md bg-gray-700 disabled:opacity-40">
+            <button
+              onClick={skipQuestion}
+              disabled={currentIndex === totalQuestions - 1}
+              className="px-5 py-2 rounded-md bg-gray-700 disabled:opacity-40"
+            >
               Skip
             </button>
 
             {currentIndex < totalQuestions - 1 ? (
-              <button onClick={goNext} className="px-6 py-2 rounded-md bg-blue-600 hover:bg-blue-700 transition">
+              <button
+                onClick={goNext}
+                className="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 transition"
+              >
                 Next
               </button>
             ) : (
               <button
                 onClick={() => handleSubmit("manual")}
-                className="px-6 py-2 rounded-md bg-green-600 hover:bg-green-700 transition"
+                className="px-5 py-2 rounded-md bg-green-600 hover:bg-green-700 transition"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Submitting..." : "Submit Quiz"}

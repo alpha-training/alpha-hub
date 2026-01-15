@@ -5,7 +5,13 @@ import { LIVE_CHECKER_API } from "../config";
 /**
  * LiveCheckerQuestion
  * - POSTs /format/:id to fetch prompt + input + expected
- * - Uses parent onRun() to run /check/:id (Quiz orchestrates)
+ * - Uses parent onRun() to run /check/:id
+ *
+ * Requirements implemented:
+ * 1) Attempts limit UI + disable Run after limit
+ * 2) Left title "q)t" (from display)
+ * 3) Support multiple input/expected blocks (stacked)
+ * 4) Tables not scrollable internally (no fixed height), tighter layout
  */
 export default function LiveCheckerQuestion({
   question,
@@ -13,6 +19,8 @@ export default function LiveCheckerQuestion({
   onAttemptChange,
   status,
   onRun,
+  attemptsUsed = 0,
+  attemptsLimit = 3,
 }) {
   const [formatData, setFormatData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -54,11 +62,9 @@ export default function LiveCheckerQuestion({
   const toText = (v) => {
     if (v == null) return "";
     if (typeof v === "string") return v;
-    if (Array.isArray(v)) return v.map(toText).join("\n\n");
+    if (Array.isArray(v)) return v.map(toText).join("\n");
     // common backend table shape: { labels: [...], values: [...] }
-    if (typeof v === "object" && Array.isArray(v.values)) {
-      return v.values.map(toText).join("\n\n");
-    }
+    if (typeof v === "object" && Array.isArray(v.values)) return v.values.map(toText).join("\n");
     try {
       return JSON.stringify(v, null, 2);
     } catch {
@@ -67,10 +73,8 @@ export default function LiveCheckerQuestion({
   };
 
   /**
-   * ✅ IMPORTANT:
-   * Backend returns:
-   * { result: { labels, values, prompt, result } }
-   * So we "unwrap" formatData.result when it looks like that.
+   * Backend often returns: { result: { labels, values, prompt, result } }
+   * unwrap to make access consistent.
    */
   const fd = useMemo(() => {
     const r = formatData?.result;
@@ -84,47 +88,72 @@ export default function LiveCheckerQuestion({
     return formatData;
   }, [formatData]);
 
+  // Attempts
+  const attemptsLeft = Math.max(0, attemptsLimit - attemptsUsed);
+  const isOutOfAttempts = attemptsLeft === 0;
+
+  // Prompt: avoid duplicating the question text
   const promptText = useMemo(() => {
     if (loading || error) return "";
     return toText(fd?.prompt || "");
   }, [fd, loading, error]);
-  const showPrompt = useMemo(() => {
-    const q = (question?.question || "").trim();
-    const p = (promptText || "").trim();
-    if (!p) return false;
 
-    // don't duplicate if backend prompt matches the already-shown question text
-    return p.toLowerCase() !== q.toLowerCase();
+  const showPrompt = useMemo(() => {
+    const qText = (question?.question || "").trim();
+    const pText = (promptText || "").trim();
+    if (!pText) return false;
+    return pText.toLowerCase() !== qText.toLowerCase();
   }, [promptText, question?.question]);
 
-  const inputText = useMemo(() => {
-    if (loading) return "Loading...";
-    if (error) return error;
+  // Display labels => q)t, q)kti etc
+  const displayKeys = useMemo(() => {
+    const d = question?.display;
+    if (Array.isArray(d) && d.length) return d;
+    return ["t"];
+  }, [question?.display]);
 
-    // Prefer explicit input/table fields if they exist
-    if (fd?.tables != null) return toText(fd.tables);
+  /**
+   * Extract per-display input blocks from fd.
+   * We support a few shapes:
+   * - fd.tables is an object: { t: "...", t2: "...", ... } or { t: {values...}, ... }
+   * - fd.labels/fd.values is parallel arrays (values is array of table strings)
+   * - fallback to fd.values or fd.input/table as single block
+   */
+  const getBlockForKey = (key) => {
+    // Prefer fd.tables map
+    if (fd?.tables && typeof fd.tables === "object" && !Array.isArray(fd.tables)) {
+      const v = fd.tables[key];
+      if (v != null) return toText(v);
+    }
+
+    // If backend labels/values align
+    if (Array.isArray(fd?.labels) && Array.isArray(fd?.values)) {
+      const idx = fd.labels.findIndex((x) => String(x).trim() === String(key).trim());
+      if (idx >= 0) {
+        const v = fd.values[idx];
+        if (v != null) return toText(v);
+      }
+    }
+
+    // Alternate single table fields
     if (fd?.input != null) return toText(fd.input);
     if (fd?.table != null) return toText(fd.table);
 
-    // ✅ Backend live-checker input is usually here:
+    // Common case: fd.values is "the input"
     if (Array.isArray(fd?.values)) return toText(fd.values);
 
+    // Last resort
+    if (fd?.tables != null) return toText(fd.tables);
+
     return "";
-  }, [fd, loading, error]);
+  };
 
   const expectedText = useMemo(() => {
     if (loading) return "Loading...";
     if (error) return "";
-
-    // ✅ Backend expected output is usually here:
     if (typeof fd?.result === "string") return fd.result;
-
-    // Some variants might use "expected"
     if (fd?.expected != null) return toText(fd.expected);
-
-    // Last resort (should rarely be needed)
     if (fd?.result != null) return toText(fd.result);
-
     return "";
   }, [fd, loading, error]);
 
@@ -132,7 +161,7 @@ export default function LiveCheckerQuestion({
   const onEditorKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      onRun?.();
+      if (!isOutOfAttempts) onRun?.();
     }
   };
 
@@ -140,20 +169,19 @@ export default function LiveCheckerQuestion({
     const s = status?.status || "idle";
     if (s === "correct") return { tone: "success", title: "Correct answer!" };
     if (s === "running") return { tone: "info", title: "Running..." };
-    if (s === "incorrect") {
+    if (s === "incorrect")
       return {
         tone: "danger",
         title: "Incorrect answer",
+        // keep short; backend often sends raw messages
         subtitle: status?.message || "Try again.",
       };
-    }
-    if (s === "error") {
+    if (s === "error")
       return {
         tone: "warning",
         title: "Error",
         subtitle: status?.message || "Something went wrong.",
       };
-    }
     return null;
   }, [status]);
 
@@ -172,38 +200,52 @@ export default function LiveCheckerQuestion({
     }
   };
 
+  const runDisabled = status?.status === "running" || isOutOfAttempts;
+
   return (
-    <div className="space-y-4">
-    {showPrompt ? (
-      <p className="text-xs md:text-sm text-gray-400 whitespace-pre-wrap">
-        {promptText}
-      </p>
-    ) : null}
-
-      {/* Input + Expected (2 cols on md+) */}
-      <div className="w-full grid md:grid-cols-2 gap-4">
-        <Panel title="Input" className="min-w-0">
-          <textarea
-            readOnly
-            value={inputText}
-            spellCheck={false}
-            className="w-full h-80 rounded-lg bg-gray-950/50 border border-gray-800 p-3 text-xs font-mono text-gray-200 resize-none whitespace-pre overflow-auto"
-          />
-        </Panel>
-
-        <Panel title="Expected Result" className="min-w-0">
-          <textarea
-            readOnly
-            value={expectedText}
-            spellCheck={false}
-            className="w-full h-80 rounded-lg bg-gray-950/50 border border-gray-800 p-3 text-xs font-mono text-gray-200 resize-none whitespace-pre overflow-auto"
-          />
-        </Panel>
+    <div className="space-y-2">
+      {/* Attempts */}
+      <div className="text-xs text-gray-400">
+        Attempts left:{" "}
+        <span className={`font-semibold ${isOutOfAttempts ? "text-rose-300" : "text-gray-200"}`}>
+          {attemptsLeft}
+        </span>{" "}
+        / {attemptsLimit}
       </div>
 
-      {/* Editor + Run */}
+      {showPrompt ? (
+        <p className="text-xs text-gray-400 whitespace-pre-wrap">{promptText}</p>
+      ) : null}
+
+      {/* Blocks: each display key gets its own Input+Expected pair stacked */}
+      <div className="space-y-2">
+        {displayKeys.map((k, idx) => {
+          const inputText = loading
+            ? "Loading..."
+            : error
+              ? error
+              : getBlockForKey(k);
+
+          // Expected is usually shared; still show per-block (boss wants pairs)
+          const expectedForBlock = loading ? "Loading..." : error ? "" : expectedText;
+
+          return (
+            <div key={`${k}_${idx}`} className="w-full grid md:grid-cols-2 gap-3">
+              <Panel title={`q)${k}`} className="min-w-0">
+                <PreBlock text={inputText} dim={!!error} />
+              </Panel>
+
+              <Panel title="Expected Result" className="min-w-0">
+                <PreBlock text={expectedForBlock} dim={false} />
+              </Panel>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Editor + Run (tighter) */}
       <div className="relative rounded-lg border border-gray-800 bg-gray-950/40 overflow-hidden">
-        <div className="absolute left-0 top-0 bottom-0 w-10 bg-black/20 border-r border-gray-800 flex items-start justify-center pt-3">
+        <div className="absolute left-0 top-0 bottom-0 w-10 bg-black/20 border-r border-gray-800 flex items-start justify-center pt-2">
           <span className="text-xs font-mono text-gray-500">1</span>
         </div>
 
@@ -213,28 +255,26 @@ export default function LiveCheckerQuestion({
           onKeyDown={onEditorKeyDown}
           placeholder="Enter = Run, Shift+Enter = new line"
           spellCheck={false}
-          className="w-full min-h-[78px] pl-12 pr-3 py-3 bg-transparent text-xs md:text-sm font-mono text-gray-100 outline-none resize-none"
+          disabled={isOutOfAttempts}
+          className="w-full min-h-[50px] pl-12 pr-3 py-2 bg-transparent text-xs md:text-sm font-mono text-gray-100 outline-none resize-none disabled:opacity-60"
         />
 
-        <div className="flex justify-end p-3 pt-0">
+        <div className="flex justify-end px-3 pb-3">
           <button
             type="button"
             onClick={onRun}
-            className="px-6 py-2 rounded-md bg-blue-600 hover:bg-blue-700 transition text-sm font-medium disabled:opacity-60"
-            disabled={status?.status === "running"}
+            className="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 transition text-sm font-medium disabled:opacity-60"
+            disabled={runDisabled}
+            title={isOutOfAttempts ? "No attempts left" : ""}
           >
             Run
           </button>
         </div>
       </div>
 
-      {/* Status banner (no duplicate result box) */}
+      {/* Status banner */}
       {banner ? (
-        <div
-          className={`rounded-xl border p-4 ${bannerClasses(
-            banner.tone
-          )} flex items-start gap-3`}
-        >
+        <div className={`rounded-xl border p-3 ${bannerClasses(banner.tone)} flex items-start gap-3`}>
           <div className="mt-0.5 shrink-0">
             <StatusIcon tone={banner.tone} />
           </div>
@@ -250,6 +290,18 @@ export default function LiveCheckerQuestion({
         </div>
       ) : null}
     </div>
+  );
+}
+
+function PreBlock({ text, dim }) {
+  return (
+    <pre
+      className={`w-full rounded-lg bg-gray-950/50 border border-gray-800 p-3 text-xs font-mono text-gray-200 whitespace-pre-wrap break-words ${
+        dim ? "opacity-90" : ""
+      }`}
+    >
+      {text || ""}
+    </pre>
   );
 }
 

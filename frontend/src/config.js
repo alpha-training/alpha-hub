@@ -40,13 +40,19 @@ export const TOPICS = [
 
 // --- QUIZ CONFIG ---
 export const QUIZ_CONFIG = {
-  // Number of questions per quiz
   questionsPerAttempt: 30,
 
-  // Global timer parameter
-  timePerQuestionSeconds: 15,
+  // per-type seconds (configurable)
+  timePerQuestionSecondsByType: {
+    mcq: 15,
+    live: 20,
+  },
 
-  // Scoring rules
+  // attempt limits per type
+  attemptsLimitByType: {
+    live: 3,
+  },
+
   scoring: {
     correct: 1,
     wrong: -1,
