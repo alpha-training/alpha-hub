@@ -1,29 +1,555 @@
-[
-  {
-    "id": "q22",
-    "question": "What command shows the commit history?",
-    "options": [
-      { "id": "a", "text": "git log", "isCorrect": true },
-      { "id": "b", "text": "git history", "isCorrect": false },
-      { "id": "c", "text": "git commits", "isCorrect": false }
-    ]
-  },
-  {
-    "id": "q23",
-    "question": "Which command stages a file?",
-    "options": [
-      { "id": "a", "text": "git add <file>", "isCorrect": true },
-      { "id": "b", "text": "git stage <file>", "isCorrect": false },
-      { "id": "c", "text": "git commit <file>", "isCorrect": false }
-    ]
-  },
-  {
-    "id": "q24",
-    "question": "Which command initializes a new Git repository?",
-    "options": [
-      { "id": "a", "text": "git init", "isCorrect": true },
-      { "id": "b", "text": "git start", "isCorrect": false },
-      { "id": "c", "text": "git create", "isCorrect": false }
-    ]
-  }
-]
+{
+  "title": "Git 1",
+  "questions": [
+    {
+      "id": "h1",
+      "question": "Which command clones a repository and creates a local working copy, but only includes the last five commits?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git clone --shallow 5 <repo>", "isCorrect": false },
+        { "id": "b", "text": "git clone --depth 5 <repo>", "isCorrect": true },
+        { "id": "c", "text": "git clone -n 5 <repo>", "isCorrect": false },
+        { "id": "d", "text": "git fetch --limit 5 <repo>", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h2",
+      "question": "Which commands can be used to discard unstaged changes in the working directory for a single file named `config.yaml`?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "git reset --hard config.yaml", "isCorrect": false },
+        { "id": "b", "text": "git restore config.yaml", "isCorrect": true },
+        { "id": "c", "text": "git checkout -- config.yaml", "isCorrect": true },
+        { "id": "d", "text": "git clean config.yaml", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h3",
+      "question": "What is the primary function of the Git object known as a 'blob'?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "To link a commit to its parent.", "isCorrect": false },
+        { "id": "b", "text": "To store the compressed content of a file.", "isCorrect": true },
+        { "id": "c", "text": "To record the directory structure.", "isCorrect": false },
+        { "id": "d", "text": "To reference a specific branch name.", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h4",
+      "question": "Which command is used to display the commit that introduced a specific string (e.g., 'API_KEY') into the repository history?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git log -G 'API_KEY'", "isCorrect": true },
+        { "id": "b", "text": "git blame 'API_KEY'", "isCorrect": false },
+        { "id": "c", "text": "git show 'API_KEY'", "isCorrect": false },
+        { "id": "d", "text": "git search 'API_KEY'", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h5",
+      "question": "How do you display the differences between your local `main` branch and the remote `origin/main` branch?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git diff origin main", "isCorrect": false },
+        { "id": "b", "text": "git diff main origin/main", "isCorrect": true },
+        { "id": "c", "text": "git compare main origin", "isCorrect": false },
+        { "id": "d", "text": "git status -v", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h6",
+      "question": "If you have a merge conflict, which commands are typically used after manually resolving the files?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "git add <resolved-file>", "isCorrect": true },
+        { "id": "b", "text": "git merge --continue", "isCorrect": false },
+        { "id": "c", "text": "git commit", "isCorrect": true },
+        { "id": "d", "text": "git rebase --skip", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h7",
+      "question": "Which command shows the merge history (who merged what) by showing the relationships between commits?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git reflog", "isCorrect": false },
+        { "id": "b", "text": "git log --merges", "isCorrect": true },
+        { "id": "c", "text": "git history --merge", "isCorrect": false },
+        { "id": "d", "text": "git branch -m", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h8",
+      "question": "How do you display the list of remote repositories currently configured in your Git project?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git list remote", "isCorrect": false },
+        { "id": "b", "text": "git remote -v", "isCorrect": true },
+        { "id": "c", "text": "git config --list | grep remote", "isCorrect": false },
+        { "id": "d", "text": "git fetch --remotes", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h9",
+      "question": "Which commands can be used to create a new branch named 'develop'?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "git branch develop", "isCorrect": true },
+        { "id": "b", "text": "git checkout -b develop", "isCorrect": true },
+        { "id": "c", "text": "git create develop", "isCorrect": false },
+        { "id": "d", "text": "git switch -c develop", "isCorrect": true }
+      ]
+    },
+    {
+      "id": "h10",
+      "question": "What is the purpose of the `git config --system` scope?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "To apply settings only to the current repository.", "isCorrect": false },
+        { "id": "b", "text": "To apply settings to the current user's operating system.", "isCorrect": false },
+        { "id": "c", "text": "To apply settings globally to all users on the machine.", "isCorrect": true },
+        { "id": "d", "text": "To apply settings to all repositories for the current user.", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h11",
+      "question": "Which command allows you to view the staging area (index) without committing?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git log --staged", "isCorrect": false },
+        { "id": "b", "text": "git ls-files -s", "isCorrect": true },
+        { "id": "c", "text": "git show --index", "isCorrect": false },
+        { "id": "d", "text": "git diff --cached", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h12",
+      "question": "What happens when you execute `git reset --mixed HEAD^`?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "The last commit is undone, and changes are discarded.", "isCorrect": false },
+        { "id": "b", "text": "The last commit is undone, and changes remain staged.", "isCorrect": false },
+        { "id": "c", "text": "The last commit is undone, and changes are unstaged but remain in the working directory.", "isCorrect": true },
+        { "id": "d", "text": "The current branch pointer is moved back, and the working directory is reset.", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h13",
+      "question": "Which Git command is used to remove a remote repository connection named 'old-remote'?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git remote delete old-remote", "isCorrect": false },
+        { "id": "b", "text": "git remote rm old-remote", "isCorrect": true },
+        { "id": "c", "text": "git unlink old-remote", "isCorrect": false },
+        { "id": "d", "text": "git push --delete old-remote", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h14",
+      "question": "Which Git commands are used to permanently discard all untracked files and directories?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "git clean -f -d", "isCorrect": true },
+        { "id": "b", "text": "git clean -x", "isCorrect": false },
+        { "id": "c", "text": "git clean -fd", "isCorrect": true },
+        { "id": "d", "text": "git prune --all", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h15",
+      "question": "What is the key characteristic of an **annotated tag** compared to a lightweight tag?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "It can be pushed automatically.", "isCorrect": false },
+        { "id": "b", "text": "It stores its own metadata, like the tagger's name and date.", "isCorrect": true },
+        { "id": "c", "text": "It is not recommended for production releases.", "isCorrect": false },
+        { "id": "d", "text": "It can only point to a tree object.", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h16",
+      "question": "Which command is used to integrate a rebase operation that was previously stopped due to a conflict?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git rebase --continue", "isCorrect": true },
+        { "id": "b", "text": "git merge --resolve", "isCorrect": false },
+        { "id": "c", "text": "git commit -i", "isCorrect": false },
+        { "id": "d", "text": "git rebase --resume", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h17",
+      "question": "Which of the following describes a conflict that can occur during a merge or rebase?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "Both branches changed the same file, but in different areas.", "isCorrect": false },
+        { "id": "b", "text": "Both branches deleted the same file.", "isCorrect": false },
+        { "id": "c", "text": "Both branches changed the same lines in the same file.", "isCorrect": true },
+        { "id": "d", "text": "One branch changed a file, and the other changed a different file.", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h18",
+      "question": "If you need to fix a spelling error in a commit that is 5 commits back, which command is the standard way to do this?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git fixup <commit-hash>", "isCorrect": false },
+        { "id": "b", "text": "git commit --amend HEAD~5", "isCorrect": false },
+        { "id": "c", "text": "git rebase -i HEAD~6", "isCorrect": true },
+        { "id": "d", "text": "git revert <commit-hash> --edit", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h19",
+      "question": "Which command is used to change the commit message of the most recent commit?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git log --edit", "isCorrect": false },
+        { "id": "b", "text": "git commit --amend", "isCorrect": true },
+        { "id": "c", "text": "git reset --soft HEAD", "isCorrect": false },
+        { "id": "d", "text": "git change-message", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h20",
+      "question": "What happens if you run `git push --tags`?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "It pushes only annotated tags that point to the latest commit.", "isCorrect": false },
+        { "id": "b", "text": "It pushes all local tags (lightweight and annotated) to the remote.", "isCorrect": true },
+        { "id": "c", "text": "It pushes the current branch and all commits that are tagged.", "isCorrect": false },
+        { "id": "d", "text": "It automatically converts lightweight tags into annotated tags.", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h21",
+      "question": "Which command shows only the files that have been changed between two specific commits, but not the file content differences?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git diff --name-only <commit1> <commit2>", "isCorrect": true },
+        { "id": "b", "text": "git log --files <commit1>..<commit2>", "isCorrect": false },
+        { "id": "c", "text": "git status -n <commit1> <commit2>", "isCorrect": false },
+        { "id": "d", "text": "git show --stat <commit1> <commit2>", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h22",
+      "question": "Which commands can be used to temporarily switch to another branch, but keep your current unstaged changes?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "git stash && git checkout <branch>", "isCorrect": true },
+        { "id": "b", "text": "git checkout <branch> (if changes don't conflict)", "isCorrect": true },
+        { "id": "c", "text": "git switch <branch> (if changes don't conflict)", "isCorrect": true },
+        { "id": "d", "text": "git merge <branch>", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h23",
+      "question": "What does Git do when you execute a 'squash' operation during an interactive rebase?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "It creates a fast-forward merge commit.", "isCorrect": false },
+        { "id": "b", "text": "It combines the commit with the commit immediately before it, using the previous commit's message.", "isCorrect": false },
+        { "id": "c", "text": "It combines the commit with the commit immediately before it, allowing you to edit the combined message.", "isCorrect": true },
+        { "id": "d", "text": "It removes the commit entirely from history.", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h24",
+      "question": "Which of the following is true about a **lightweight tag**?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "It is a separate, full Git object.", "isCorrect": false },
+        { "id": "b", "text": "It is essentially a simple pointer to a commit, stored in `.git/refs/tags/`.", "isCorrect": true },
+        { "id": "c", "text": "It is created using the `-a` flag with `git tag`.", "isCorrect": false },
+        { "id": "d", "text": "It contains the tagger's name, email, and date.", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h25",
+      "question": "Which command is typically used to download the changes from a remote repository, but also remove any remote-tracking branches that no longer exist on the remote?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git pull --clean", "isCorrect": false },
+        { "id": "b", "text": "git fetch --prune", "isCorrect": true },
+        { "id": "c", "text": "git remote --delete-stale", "isCorrect": false },
+        { "id": "d", "text": "git gc --aggressive", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h26",
+      "question": "Which command can be used to list the contents of the last stash entry?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git stash show -p", "isCorrect": true },
+        { "id": "b", "text": "git stash list -v", "isCorrect": false },
+        { "id": "c", "text": "git diff stash@{0}", "isCorrect": false },
+        { "id": "d", "text": "git log --stash", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h27",
+      "question": "Which of the following options can be used with `git log` to filter commits by the author's email?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "--author='<email>'", "isCorrect": true },
+        { "id": "b", "text": "--committer='<email>'", "isCorrect": true },
+        { "id": "c", "text": "--user='<email>'", "isCorrect": false },
+        { "id": "d", "text": "-E '<email>'", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h28",
+      "question": "How do you view a graphical history of the current branch, including all merge points?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git log --pretty=format:'%h %d' --graph", "isCorrect": true },
+        { "id": "b", "text": "git log --visual", "isCorrect": false },
+        { "id": "c", "text": "git history --tree", "isCorrect": false },
+        { "id": "d", "text": "git show-reflog", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h29",
+      "question": "The three numbers in the `git diff` output (e.g., `--- a/file.txt`, `+++ b/file.txt`) represent what in the file metadata?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "The index, object ID, and mode of the file.", "isCorrect": true },
+        { "id": "b", "text": "The line number, line count, and file size.", "isCorrect": false },
+        { "id": "c", "text": "The file size, hash, and timestamp.", "isCorrect": false },
+        { "id": "d", "text": "The permission, ownership, and group.", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h30",
+      "question": "Which Git command is used to remove a file from the repository's history *and* the working directory?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git rm --cached <file>", "isCorrect": false },
+        { "id": "b", "text": "git reset --hard <file>", "isCorrect": false },
+        { "id": "c", "text": "git rm <file>", "isCorrect": true },
+        { "id": "d", "text": "git delete <file>", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h31",
+      "question": "Which Git configuration level defines settings for the current user across all their repositories?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "--local", "isCorrect": false },
+        { "id": "b", "text": "--system", "isCorrect": false },
+        { "id": "c", "text": "--global", "isCorrect": true },
+        { "id": "d", "text": "--user", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h32",
+      "question": "What is the primary danger of rebasing commits that have already been pushed and shared with others?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "It deletes the original commits, requiring a forced push.", "isCorrect": false },
+        { "id": "b", "text": "It creates duplicate branches on the remote.", "isCorrect": false },
+        { "id": "c", "text": "It rewrites history, forcing collaborators to manually re-sync their divergent histories.", "isCorrect": true },
+        { "id": "d", "text": "It voids all pull requests associated with those commits.", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h33",
+      "question": "Which of the following describes a 'semi-safe' way to push history that has been re-written locally?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git push --force", "isCorrect": false },
+        { "id": "b", "text": "git push --force-with-lease", "isCorrect": true },
+        { "id": "c", "text": "git push -f", "isCorrect": false },
+        { "id": "d", "text": "git push --rebase", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h34",
+      "question": "What does the `git restore --staged <file>` command achieve?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "It discards changes in the working directory.", "isCorrect": false },
+        { "id": "b", "text": "It copies the file from the last commit to the staging area.", "isCorrect": false },
+        { "id": "c", "text": "It unstages the file, moving changes back to the working directory.", "isCorrect": true },
+        { "id": "d", "text": "It removes the file from the repository entirely.", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h35",
+      "question": "You made a bad commit and pushed it. Which command is the safest way to undo the changes, preserving history?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git reset --hard HEAD^", "isCorrect": false },
+        { "id": "b", "text": "git commit --amend", "isCorrect": false },
+        { "id": "c", "text": "git revert <bad-commit-hash>", "isCorrect": true },
+        { "id": "d", "text": "git checkout <good-commit>", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h36",
+      "question": "Which `git log` options allow you to view the commits that are present in branch A but *not* in branch B?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "git log B..A", "isCorrect": true },
+        { "id": "b", "text": "git log ^B A", "isCorrect": true },
+        { "id": "c", "text": "git log A...B", "isCorrect": false },
+        { "id": "d", "text": "git log --only B A", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h37",
+      "question": "How do you apply a specific stash entry (e.g., the second one in the list, `stash@{1}`) without removing it from the stash list?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git stash apply stash@{1}", "isCorrect": true },
+        { "id": "b", "text": "git stash pop stash@{1}", "isCorrect": false },
+        { "id": "c", "text": "git stash apply --keep stash@{1}", "isCorrect": false },
+        { "id": "d", "text": "git apply stash@{1}", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h38",
+      "question": "What is the file path inside the `.git` directory that usually stores the name of the currently checked-out branch?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": ".git/refs/heads/HEAD", "isCorrect": false },
+        { "id": "b", "text": ".git/config", "isCorrect": false },
+        { "id": "c", "text": ".git/HEAD", "isCorrect": true },
+        { "id": "d", "text": ".git/index", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h39",
+      "question": "Which commands can be used to switch to a branch, discarding any local changes in the working directory and staging area?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "git checkout -f <branch>", "isCorrect": true },
+        { "id": "b", "text": "git switch -f <branch>", "isCorrect": true },
+        { "id": "c", "text": "git reset --hard", "isCorrect": false },
+        { "id": "d", "text": "git checkout --force <branch>", "isCorrect": true }
+      ]
+    },
+    {
+      "id": "h40",
+      "question": "How do you list all stashed changes, including their commit information and messages?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git stash show", "isCorrect": false },
+        { "id": "b", "text": "git stash list", "isCorrect": true },
+        { "id": "c", "text": "git stash info", "isCorrect": false },
+        { "id": "d", "text": "git log --stash", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h41",
+      "question": "Which of the following actions requires a force push (`-f`) to the remote repository?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "Pushing a new local branch that the remote doesn't have.", "isCorrect": false },
+        { "id": "b", "text": "Pushing a branch after a local rebase operation.", "isCorrect": true },
+        { "id": "c", "text": "Pushing after a `git commit --amend` that changed the last commit's hash.", "isCorrect": true },
+        { "id": "d", "text": "Pushing changes that resulted from a fast-forward merge.", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h42",
+      "question": "What is the default action for Git when merging two branches with diverging history if no strategy is specified?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "Fast-forward, if possible.", "isCorrect": false },
+        { "id": "b", "text": "Create a new merge commit (recursive strategy).", "isCorrect": true },
+        { "id": "c", "text": "Automatically perform a rebase.", "isCorrect": false },
+        { "id": "d", "text": "Stop and ask the user for manual input.", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h43",
+      "question": "What is the primary function of the `git worktree` command?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "To switch between different stashed changes.", "isCorrect": false },
+        { "id": "b", "text": "To manage multiple working directories checked out from the same repository.", "isCorrect": true },
+        { "id": "c", "text": "To list all branches in their original creation order.", "isCorrect": false },
+        { "id": "d", "text": "To interactively review and discard changes in the working directory.", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h44",
+      "question": "Which command is used to remove stale (deleted on remote) remote-tracking branches from your local repository?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git remote --delete", "isCorrect": false },
+        { "id": "b", "text": "git branch --cleanup", "isCorrect": false },
+        { "id": "c", "text": "git remote prune origin", "isCorrect": true },
+        { "id": "d", "text": "git fetch --clean", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h45",
+      "question": "If a file is listed in `.gitignore`, but you *must* track it in the repository, which command stages it?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git add --track <file>", "isCorrect": false },
+        { "id": "b", "text": "git add -f <file>", "isCorrect": true },
+        { "id": "c", "text": "git add --force-track <file>", "isCorrect": false },
+        { "id": "d", "text": "git unignore <file>", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h46",
+      "question": "When configuring a remote, the `--set-upstream` flag on `git push` is equivalent to which shorthand option?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "-u", "isCorrect": true },
+        { "id": "b", "text": "-s", "isCorrect": false },
+        { "id": "c", "text": "-U", "isCorrect": false },
+        { "id": "d", "text": "-t", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h47",
+      "question": "Which of the following commands are used to inspect the index (staging area)?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "git ls-files --stage", "isCorrect": true },
+        { "id": "b", "text": "git diff --cached", "isCorrect": true },
+        { "id": "c", "text": "git cat-file -p HEAD", "isCorrect": false },
+        { "id": "d", "text": "git status", "isCorrect": true }
+      ]
+    },
+    {
+      "id": "h48",
+      "question": "What is the core difference between `git merge` and `git rebase`?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "Merge rewrites history, Rebase creates a merge commit.", "isCorrect": false },
+        { "id": "b", "text": "Merge creates a new merge commit, Rebase moves (rewrites) the commits to a new base.", "isCorrect": true },
+        { "id": "c", "text": "Merge only works locally, Rebase works on the remote.", "isCorrect": false },
+        { "id": "d", "text": "Merge is for branches, Rebase is for single commits.", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h49",
+      "question": "Which log command shows commits based on a time range, e.g., commits made in the last two weeks?",
+      "mode": "radio",
+      "options": [
+        { "id": "a", "text": "git log --since='2 weeks ago'", "isCorrect": true },
+        { "id": "b", "text": "git log --age=2w", "isCorrect": false },
+        { "id": "c", "text": "git log --last-two-weeks", "isCorrect": false },
+        { "id": "d", "text": "git log -t 2w", "isCorrect": false }
+      ]
+    },
+    {
+      "id": "h50",
+      "question": "Which commands can be used to compare two branches and see which commits are unique to each?",
+      "mode": "check",
+      "options": [
+        { "id": "a", "text": "git log <branch1>...<branch2>", "isCorrect": true },
+        { "id": "b", "text": "git diff <branch1> <branch2>", "isCorrect": false },
+        { "id": "c", "text": "git log <branch1>.. <branch2>", "isCorrect": true },
+        { "id": "d", "text": "git branch --compare <branch1> <branch2>", "isCorrect": false }
+      ]
+    }
+  ]
+}
