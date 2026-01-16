@@ -78,8 +78,14 @@ export default function Home({ user, profile }) {
 
   if (!user) return null;
 
-  const totalSeconds =
-    QUIZ_CONFIG.questionsPerAttempt * QUIZ_CONFIG.timePerQuestionSeconds;
+  const perTypeSeconds = QUIZ_CONFIG.timePerQuestionSecondsByType || { mcq: 15, live: 20 };
+
+  // Home screen doesn’t know the exact mix of question types,
+  // so show a reasonable estimate using a default (mcq).
+  const defaultPerQuestionSeconds = perTypeSeconds.mcq ?? 15;
+  
+  const totalSeconds = QUIZ_CONFIG.questionsPerAttempt * defaultPerQuestionSeconds;
+  
 
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
@@ -96,7 +102,7 @@ export default function Home({ user, profile }) {
   const lastAttemptMs = toMillis(lastResult?.startedAt);
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white flex flex-col items-center justify-start px-4 pt-14 md:pt-18 pb-16">
+    <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white flex flex-col items-center justify-start px-4 pt-14 pb-16">
       <div className="max-w-3xl w-full flex flex-col items-center text-center gap-6">
         {/* WELCOME */}
         <div>
@@ -104,19 +110,17 @@ export default function Home({ user, profile }) {
             Welcome, {displayName}!
           </h1>
 
-          <p className="text-sm md:text-base text-gray-300 max-w-3xl mx-auto mt-6">
+          <p className="text-sm md:text-base text-gray-300 max-w-3xl mx-auto mt-3">
             You will receive a random selection of{" "}
             <span className="font-bold">
               {QUIZ_CONFIG.questionsPerAttempt} questions
             </span>{" "}
             from the topics you choose below.
             <br />
-            <br />
-            You will have{" "}
+            You will have ~{" "}
             <span className="font-bold">{formattedTotalTime}</span> total time
             to complete the quiz. You may take longer on some questions and less
             on others — the timer counts down overall, not per question.
-            <br />
             <br />
             Scoring:
             <br />•{" "}
@@ -132,7 +136,7 @@ export default function Home({ user, profile }) {
         </div>
 
         {/* LAST RESULT */}
-        <div className="w-full max-w-xl bg-gray-900 border border-gray-800 rounded-xl p-2 text-left">
+        <div className="w-full max-w-xl bg-gray-900 border border-gray-800 rounded-xl p-1 text-left">
           <h2 className="font-semibold text-gray-200 m-2">Last attempt</h2>
 
           {loadingResult ? (

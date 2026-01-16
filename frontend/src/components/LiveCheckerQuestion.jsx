@@ -7,11 +7,11 @@ import { LIVE_CHECKER_API } from "../config";
  * - POSTs /format/:id to fetch prompt + input + expected
  * - Uses parent onRun() to run /check/:id
  *
- * Requirements implemented:
- * 1) Attempts limit UI + disable Run after limit
- * 2) Left title "q)t" (from display)
- * 3) Support multiple input/expected blocks (stacked)
- * 4) Tables not scrollable internally (no fixed height), tighter layout
+ * Updates (per feedback):
+ * ✅ Reserve space for status banner to prevent layout jump
+ * ✅ Move Attempts left into the header row (same line as prompt/title)
+ * ✅ Reduce vertical space (smaller textarea + Run button)
+ * ✅ Disabled Run looks truly disabled (no hover, cursor-not-allowed)
  */
 export default function LiveCheckerQuestion({
   question,
@@ -39,9 +39,7 @@ export default function LiveCheckerQuestion({
       .then(async (res) => {
         if (!res.ok) {
           const t = await res.text().catch(() => "");
-          throw new Error(
-            `Failed to load format (${res.status}) ${t.slice(0, 120)}`
-          );
+          throw new Error(`Failed to load format (${res.status}) ${t.slice(0, 120)}`);
         }
         return res.json();
       })
@@ -65,9 +63,7 @@ export default function LiveCheckerQuestion({
     if (v == null) return "";
     if (typeof v === "string") return v;
     if (Array.isArray(v)) return v.map(toText).join("\n");
-    if (typeof v === "object" && Array.isArray(v.values)) {
-      return v.values.map(toText).join("\n");
-    }
+    if (typeof v === "object" && Array.isArray(v.values)) return v.values.map(toText).join("\n");
     try {
       return JSON.stringify(v, null, 2);
     } catch {
@@ -84,16 +80,14 @@ export default function LiveCheckerQuestion({
     if (
       r &&
       typeof r === "object" &&
-      (Array.isArray(r.values) ||
-        typeof r.prompt === "string" ||
-        typeof r.result === "string")
+      (Array.isArray(r.values) || typeof r.prompt === "string" || typeof r.result === "string")
     ) {
       return r;
     }
     return formatData;
   }, [formatData]);
 
-  // Attempts
+  // Attempts (safe)
   const safeLimit = Math.max(1, Number(attemptsLimit) || 1);
   const safeUsed = Math.max(0, Number(attemptsUsed) || 0);
   const attemptsLeft = Math.max(0, safeLimit - safeUsed);
@@ -126,9 +120,7 @@ export default function LiveCheckerQuestion({
     }
 
     if (Array.isArray(fd?.labels) && Array.isArray(fd?.values)) {
-      const idx = fd.labels.findIndex(
-        (x) => String(x).trim() === String(key).trim()
-      );
+      const idx = fd.labels.findIndex((x) => String(x).trim() === String(key).trim());
       if (idx >= 0) {
         const v = fd.values[idx];
         if (v != null) return toText(v);
@@ -151,6 +143,8 @@ export default function LiveCheckerQuestion({
     if (fd?.result != null) return toText(fd.result);
     return "";
   }, [fd, loading, error]);
+
+  const runDisabled = status?.status === "running" || isOutOfAttempts;
 
   // Enter runs, Shift+Enter newline
   const onEditorKeyDown = (e) => {
@@ -194,36 +188,30 @@ export default function LiveCheckerQuestion({
     }
   };
 
-  const runDisabled = status?.status === "running" || isOutOfAttempts;
-
   return (
     <div className="space-y-2">
-      {/* Attempts */}
-      <div className="text-xs text-gray-400">
-        Attempts left:{" "}
-        <span
-          className={`font-semibold ${
-            isOutOfAttempts ? "text-rose-300" : "text-gray-200"
-          }`}
-        >
-          {attemptsLeft}
-        </span>{" "}
-        / {safeLimit}
+      {/* Header row: Attempts moved up (saves vertical space) */}
+      <div className="flex items-center justify-between gap-3">
+        {showPrompt ? (
+          <p className="text-xs text-gray-400 whitespace-pre-wrap">{promptText}</p>
+        ) : (
+          <span className="text-xs text-gray-500" />
+        )}
+      {/*    
+        <div className="text-xs text-gray-400 shrink-0">
+          Attempts left:{" "}
+          <span className={`font-semibold ${isOutOfAttempts ? "text-rose-300" : "text-gray-200"}`}>
+            {attemptsLeft}
+          </span>{" "}
+          / {safeLimit}
+        </div>
+        */}
       </div>
-
-      {showPrompt ? (
-        <p className="text-xs text-gray-400 whitespace-pre-wrap">{promptText}</p>
-      ) : null}
 
       {/* Blocks */}
       <div className="space-y-2">
         {displayKeys.map((k, idx) => {
-          const inputText = loading
-            ? "Loading..."
-            : error
-            ? error
-            : getBlockForKey(k);
-
+          const inputText = loading ? "Loading..." : error ? error : getBlockForKey(k);
           const expectedForBlock = loading ? "Loading..." : error ? "" : expectedText;
 
           return (
@@ -240,9 +228,9 @@ export default function LiveCheckerQuestion({
         })}
       </div>
 
-      {/* Editor + Run */}
+      {/* Editor + Run (more compact) */}
       <div className="relative rounded-lg border border-gray-800 bg-gray-950/40 overflow-hidden">
-        <div className="absolute left-0 top-0 bottom-0 w-10 bg-black/20 border-r border-gray-800 flex items-start justify-center pt-2">
+        <div className="absolute left-0 top-0 bottom-0 w-10 bg-black/20 border-r border-gray-800 flex items-start justify-center pt-1.5">
           <span className="text-xs font-mono text-gray-500">1</span>
         </div>
 
@@ -253,10 +241,10 @@ export default function LiveCheckerQuestion({
           placeholder="Enter = Run, Shift+Enter = new line"
           spellCheck={false}
           disabled={isOutOfAttempts}
-          className="w-full min-h-[50px] pl-12 pr-3 py-2 bg-transparent text-xs md:text-sm font-mono text-gray-100 outline-none resize-none disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full  pl-12 pr-3 py-1.5 bg-transparent text-xs md:text-sm font-mono text-gray-100 outline-none resize-none disabled:opacity-60 disabled:cursor-not-allowed"
         />
 
-        <div className="flex justify-end px-3 pb-3">
+        <div className="flex justify-end px-3 pb-2">
           <button
             type="button"
             onClick={() => {
@@ -265,9 +253,9 @@ export default function LiveCheckerQuestion({
             disabled={runDisabled}
             title={isOutOfAttempts ? "No attempts left" : ""}
             className={[
-              "px-5 py-2 rounded-md text-sm font-medium transition",
+              "px-4 py-1.5 rounded-md text-xs font-medium transition",
               runDisabled
-                ? "bg-gray-700 text-gray-300 cursor-not-allowed opacity-60"
+                ? "bg-gray-800 text-gray-300 cursor-not-allowed opacity-60"
                 : "bg-blue-600 hover:bg-blue-700 text-white",
             ].join(" ")}
           >
@@ -276,27 +264,35 @@ export default function LiveCheckerQuestion({
         </div>
       </div>
 
-      {/* Status banner */}
-      {banner ? (
+      {/* Status banner (reserved space to prevent layout jump) */}
+      <div className="min-h-[24px]">
         <div
-          className={`rounded-xl border p-3 ${bannerClasses(
-            banner.tone
-          )} flex items-start gap-3`}
+          className={`transition-opacity duration-200 ${
+            banner ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
         >
-          <div className="mt-0.5 shrink-0">
-            <StatusIcon tone={banner.tone} />
-          </div>
-
-          <div className="min-w-0">
-            <div className="font-semibold">{banner.title}</div>
-            {banner.subtitle ? (
-              <div className="text-xs mt-1 opacity-90 whitespace-pre-wrap">
-                {banner.subtitle}
+          {banner ? (
+            <div
+              className={`rounded-xl border p-2 ${bannerClasses(
+                banner.tone
+              )} flex items-start gap-3`}
+            >
+              <div className="mt-0.5 shrink-0">
+                <StatusIcon tone={banner.tone} />
               </div>
-            ) : null}
-          </div>
+
+              <div className="min-w-0">
+                <div className="font-semibold">{banner.title}</div>
+                {banner.subtitle ? (
+                  <div className="text-xs opacity-90 whitespace-pre-wrap">
+                    {banner.subtitle}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </div>
-      ) : null}
+      </div>
     </div>
   );
 }
