@@ -22,7 +22,7 @@ export default function Quiz({ user, profile }) {
   const [selectedById, setSelectedById] = useState({});
   const [attemptById, setAttemptById] = useState({});
   const [liveStatusById, setLiveStatusById] = useState({});
-  const [liveAttemptsUsedById, setLiveAttemptsUsedById] = useState({}); // ✅ attempts per question id
+  const [liveAttemptsUsedById, setLiveAttemptsUsedById] = useState({}); 
 
   const [globalTimeLeft, setGlobalTimeLeft] = useState(null);
   const [startedAt, setStartedAt] = useState(null);
@@ -33,11 +33,9 @@ export default function Quiz({ user, profile }) {
     live: 20,
   };
 
-  // ✅ Boss: global default should be 2 if no "tries"
   const defaultLiveAttemptsLimit =
     Number(QUIZ_CONFIG.attemptsLimitByType?.live ?? 2) || 2;
 
-  // ✅ per-question limit (uses json "tries" if present)
   const getAttemptsLimit = (q) => {
     const n = Number(q?.tries);
     if (Number.isFinite(n) && n > 0) return n;
@@ -97,7 +95,6 @@ export default function Quiz({ user, profile }) {
     const now = new Date();
     setStartedAt(now);
 
-    // ✅ per-type total time (boss formula)
     const total = normalized.reduce((acc, q) => {
       const t = q.type || "mcq";
       return acc + (perTypeSeconds[t] ?? 15);
@@ -146,7 +143,6 @@ export default function Quiz({ user, profile }) {
 
     const currentStatus = liveStatusById[qid]?.status || "idle";
 
-    // ✅ UX: if already correct, do nothing (don't consume attempts)
     if (currentStatus === "correct") return;
 
     if (used >= limit) {
@@ -190,7 +186,6 @@ export default function Quiz({ user, profile }) {
 
       const data = await res.json();
 
-      // ✅ Only count an attempt when the backend actually responded OK
       setLiveAttemptsUsedById((p) => ({ ...p, [qid]: used + 1 }));
 
       if (data?.result === "Success") {
@@ -209,7 +204,6 @@ export default function Quiz({ user, profile }) {
           message: e?.message || "API error. Is the live-checker backend running?",
         },
       }));
-      // ✅ do NOT decrement attempts on network/server error
     }
   };
 
@@ -374,10 +368,13 @@ export default function Quiz({ user, profile }) {
   const isMCQ = (currentQuestion.type || "mcq") === "mcq";
   const attemptsUsed = Number(liveAttemptsUsedById[currentQuestion.id] ?? 0);
   const attemptsLimit = getAttemptsLimit(currentQuestion);
+  const attemptsLeft = Math.max(0, attemptsLimit - attemptsUsed);
+  const isOutOfAttempts = attemptsLeft === 0;
+
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-10 md:pt-12 pb-8 px-4 flex justify-center">
-      <div className="w-full max-w-3xl space-y-4">
+    <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-10 pb-2 px-4 flex justify-center">
+      <div className="w-full max-w-3xl space-y-3">
         {/* TOP BAR */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div className="flex-1">
@@ -395,16 +392,42 @@ export default function Quiz({ user, profile }) {
             </div>
           </div>
 
-          <div className="text-sm md:text-base font-mono text-gray-200 text-right">
-            Time left:{" "}
-            <span className="font-semibold text-blue-400">
-              {formatTime(globalTimeLeft ?? 0)}
-            </span>
+          <div className="w-full md:w-auto">
+          <div className="grid grid-cols-3 items-center w-full md:min-w-[520px]">
+            {/* LEFT spacer */}
+            <div className="justify-self-start" />
+
+            {/* CENTER: Time */}
+            <div className="justify-self-center text-sm font-mono text-gray-200">
+              Time left:{" "}
+              <span className="font-semibold text-blue-400">
+                {formatTime(globalTimeLeft ?? 0)}
+              </span>
+            </div>
+
+            {/* RIGHT: Attempts */}
+            <div className="justify-self-end text-xs font-mono text-gray-400 mr-2 shrink-0">
+              {!isMCQ ? (
+                <>
+                  Attempts left:{" "}
+                  <span
+                    className={`font-semibold ${
+                      isOutOfAttempts ? "text-rose-300" : "text-gray-200"
+                    }`}
+                  >
+                    {attemptsLeft}
+                  </span>{" "}
+                  / {attemptsLimit}
+                </>
+              ) : null}
+            </div>
           </div>
         </div>
 
+        </div>
+
         {/* QUESTION */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-2 space-y-2">
           <h2 className="text-sm md:text-base whitespace-pre-wrap">
             {currentQuestion.question}
           </h2>
