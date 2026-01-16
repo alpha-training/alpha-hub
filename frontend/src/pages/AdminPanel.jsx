@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import { isAdmin } from "../utils/admin";
+import { QUIZ_CONFIG } from "../config"; // ✅ NEW
 
 // --- helpers ---
 function toJsDate(value) {
@@ -40,6 +41,23 @@ function getNameFromEmail(email) {
 function normalizeTopic(t) {
   if (!t) return "";
   return t.toLowerCase().trim();
+}
+
+// ✅ topic labels (single source of truth)
+const TOPIC_LABELS = {
+  git: "Git",
+  linux: "Linux",
+  q: "q / kdb+",
+  live: "Live Checker",
+  finance: "Finance",
+  quant: "Quant / Stats",
+  trading: "Trading",
+};
+
+function formatTopics(topicsArr) {
+  const arr = Array.isArray(topicsArr) ? topicsArr : [];
+  if (!arr.length) return "No topics";
+  return arr.map((t) => TOPIC_LABELS[normalizeTopic(t)] || t).join(", ");
 }
 
 // Prefer stored names from quiz result payload, fallback to email parsing
@@ -269,10 +287,13 @@ export default function AdminPanel({ user }) {
           <div className="mt-2 flex flex-wrap gap-2">
             {[
               { label: "All", value: "all" },
-              { label: "Git", value: "git" },
-              { label: "Linux", value: "linux" },
-              { label: "q / kdb+", value: "q" },
-              { label: "Live Checker", value: "live" }, // ✅ NEW
+              { label: TOPIC_LABELS.git, value: "git" },
+              { label: TOPIC_LABELS.linux, value: "linux" },
+              { label: TOPIC_LABELS.q, value: "q" },
+              { label: TOPIC_LABELS.live, value: "live" },
+              { label: TOPIC_LABELS.finance, value: "finance" },
+              { label: TOPIC_LABELS.quant, value: "quant" },
+              { label: TOPIC_LABELS.trading, value: "trading" },
             ].map((btn) => (
               <button
                 key={btn.value}
@@ -357,6 +378,9 @@ export default function AdminPanel({ user }) {
           const topicsArr = Array.isArray(r.topics) ? r.topics : [];
           const isExpanded = expandedId === r.id;
 
+          // ✅ match Results page scoring denominator
+          const maxScore = (r.totalQuestions ?? 0) * (QUIZ_CONFIG?.scoring?.correct ?? 1);
+
           let scoreColor = "text-gray-200";
           if (r.score >= 24) scoreColor = "text-green-400";
           else if (r.score >= 15) scoreColor = "text-blue-400";
@@ -364,14 +388,7 @@ export default function AdminPanel({ user }) {
           else scoreColor = "text-red-400";
 
           const displayName = getProfileDisplayName(r.uid, profilesByUid, r);
-
-          const topicLabel = topicsArr.length
-            ? topicsArr
-                .map((t) =>
-                  t === "q" ? "q / kdb+" : t === "live" ? "Live Checker" : t
-                )
-                .join(", ")
-            : "No topics";
+          const topicLabel = formatTopics(topicsArr); // ✅ NEW
 
           return (
             <div
@@ -402,7 +419,7 @@ export default function AdminPanel({ user }) {
 
                 <div className="text-right text-xs md:text-sm">
                   <div className={`font-bold ${scoreColor}`}>
-                    {r.score} / {r.totalQuestions}
+                    {r.score} / {maxScore}
                   </div>
                   <div className="text-gray-400 text-xs">
                     {formatDuration(r.durationSeconds)}
@@ -420,9 +437,7 @@ export default function AdminPanel({ user }) {
                   <div className="flex flex-wrap gap-4">
                     <div>
                       <span className="text-gray-400">Topics: </span>
-                      <span className="text-gray-200">
-                        {topicsArr.length ? topicsArr.join(", ") : "—"}
-                      </span>
+                      <span className="text-gray-200">{topicLabel}</span>
                     </div>
                     <div>
                       <span className="text-gray-400">Started: </span>
