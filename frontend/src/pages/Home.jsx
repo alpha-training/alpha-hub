@@ -1,20 +1,13 @@
 // src/pages/Home.jsx
 import { useEffect, useState, useMemo } from "react";
 import { db } from "../firebase";
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  limit,
-  getDocs,
-} from "firebase/firestore";
+import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
 import { QUIZ_CONFIG, TOPICS } from "../config";
 
 function toMillis(ts) {
   if (!ts) return null;
-  if (ts.toDate) return ts.toDate().getTime();         // Firestore Timestamp
+  if (ts.toDate) return ts.toDate().getTime();
   if (typeof ts.seconds === "number") return ts.seconds * 1000;
   if (ts instanceof Date) return ts.getTime();
   if (typeof ts === "string" || typeof ts === "number") {
@@ -37,7 +30,7 @@ export default function Home({ user, profile }) {
     "live",
     "finance",
     "quant",
-    "trading"
+    "trading",
   ]);
 
   const displayName = useMemo(() => {
@@ -79,13 +72,10 @@ export default function Home({ user, profile }) {
   if (!user) return null;
 
   const perTypeSeconds = QUIZ_CONFIG.timePerQuestionSecondsByType || { mcq: 15, live: 20 };
+  const defaultPerQuestionSeconds = Number(perTypeSeconds.mcq ?? 15) || 15;
 
-  // Home screen doesn’t know the exact mix of question types,
-  // so show a reasonable estimate using a default (mcq).
-  const defaultPerQuestionSeconds = perTypeSeconds.mcq ?? 15;
-  
-  const totalSeconds = QUIZ_CONFIG.questionsPerAttempt * defaultPerQuestionSeconds;
-  
+  // Home screen can’t know the exact mix, so show an estimate (mcq default)
+  const totalSeconds = (Number(QUIZ_CONFIG.questionsPerAttempt) || 0) * defaultPerQuestionSeconds;
 
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
@@ -97,8 +87,10 @@ export default function Home({ user, profile }) {
     );
   };
 
-  const noTopicsSelected = selectedTopics.length === 0;
+  const selectAll = () => setSelectedTopics(TOPICS.map((t) => t.id));
+  const deselectAll = () => setSelectedTopics([]);
 
+  const noTopicsSelected = selectedTopics.length === 0;
   const lastAttemptMs = toMillis(lastResult?.startedAt);
 
   return (
@@ -106,32 +98,21 @@ export default function Home({ user, profile }) {
       <div className="max-w-3xl w-full flex flex-col items-center text-center gap-6">
         {/* WELCOME */}
         <div>
-          <h1 className="text-3xl md:text-5xl font-bold mb-3">
-            Welcome, {displayName}!
-          </h1>
+          <h1 className="text-3xl md:text-5xl font-bold mb-3">Welcome, {displayName}!</h1>
 
           <p className="text-sm md:text-base text-gray-300 max-w-3xl mx-auto mt-3">
             You will receive a random selection of{" "}
-            <span className="font-bold">
-              {QUIZ_CONFIG.questionsPerAttempt} questions
-            </span>{" "}
+            <span className="font-bold">{QUIZ_CONFIG.questionsPerAttempt} questions</span>{" "}
             from the topics you choose below.
             <br />
-            You will have ~{" "}
-            <span className="font-bold">{formattedTotalTime}</span> total time
-            to complete the quiz. You may take longer on some questions and less
-            on others — the timer counts down overall, not per question.
+            You will have ~ <span className="font-bold">{formattedTotalTime}</span> total time to
+            complete the quiz. You may take longer on some questions and less on others — the timer
+            counts down overall, not per question.
             <br />
             Scoring:
-            <br />•{" "}
-            <span className="text-green-400 font-semibold">+1 point</span> for
-            each correct answer
-            <br />•{" "}
-            <span className="text-red-400 font-semibold">-1 point</span> for a
-            wrong answer
-            <br />•{" "}
-            <span className="text-yellow-300 font-semibold">0 points</span> for
-            skipping
+            <br />• <span className="text-green-400 font-semibold">+1 point</span> for each correct answer
+            <br />• <span className="text-red-400 font-semibold">-1 point</span> for a wrong answer
+            <br />• <span className="text-yellow-300 font-semibold">0 points</span> for skipping
           </p>
         </div>
 
@@ -142,53 +123,39 @@ export default function Home({ user, profile }) {
           {loadingResult ? (
             <p className="text-xs text-gray-400 m-2">Loading...</p>
           ) : !lastResult ? (
-            <p className="text-xs text-gray-400 m-2">
-              You haven&apos;t taken the quiz yet.
-            </p>
+            <p className="text-xs text-gray-400 m-2">You haven&apos;t taken the quiz yet.</p>
           ) : (
             <div className="text-xs text-gray-300 space-y-1 m-2">
               <p>
-                Score:{" "}
-                <span className="font-semibold text-white">{lastResult.score}</span>
+                Score: <span className="font-semibold text-white">{lastResult.score}</span>
               </p>
 
               <p>
                 Correct:{" "}
-                <span className="text-green-400 font-semibold">
-                  {lastResult.correctCount}
-                </span>{" "}
-                · Wrong:{" "}
-                <span className="text-red-400 font-semibold">
-                  {lastResult.wrongCount}
-                </span>{" "}
-                · Skipped:{" "}
-                <span className="text-yellow-300 font-semibold">
-                  {lastResult.skippedCount}
-                </span>
+                <span className="text-green-400 font-semibold">{lastResult.correctCount}</span> · Wrong:{" "}
+                <span className="text-red-400 font-semibold">{lastResult.wrongCount}</span> · Skipped:{" "}
+                <span className="text-yellow-300 font-semibold">{lastResult.skippedCount}</span>
               </p>
 
               <p className="text-gray-400">
-                Taken at:{" "}
-                {lastAttemptMs ? new Date(lastAttemptMs).toLocaleString() : "—"}
+                Taken at: {lastAttemptMs ? new Date(lastAttemptMs).toLocaleString() : "—"}
               </p>
             </div>
           )}
         </div>
 
         {/* TOPIC SELECTION */}
-        <div className="bg-gray-900 p-4 rounded-lg border border-gray-700 w-full max-w-xl">
-          <h3 className="font-semibold mb-2 text-gray-200">Select topics</h3>
+        <div className="bg-gray-900 p-4 rounded-lg border border-gray-700 w-full max-w-xl text-left">
+          <h3 className="font-semibold mb-2 text-gray-200 text-center">Select topics</h3>
 
-          <p className="text-xs text-gray-400 mb-3">
+          <p className="text-xs text-gray-400 mb-3 text-center">
             You must select at least one topic before starting the quiz.
           </p>
 
-          <div className="flex flex-col gap-2">
+          {/* ✅ 4 left / 3 right */}
+          <div className="grid grid-rows-4 grid-flow-col gap-y-2 gap-x-8">
             {TOPICS.map((t) => (
-              <label
-                key={t.id}
-                className="flex items-center gap-2 cursor-pointer text-sm"
-              >
+              <label key={t.id} className="flex items-center gap-2 cursor-pointer text-sm">
                 <input
                   type="checkbox"
                   className="accent-blue-500"
@@ -200,11 +167,23 @@ export default function Home({ user, profile }) {
             ))}
           </div>
 
-          {noTopicsSelected && (
-            <p className="text-xs text-red-400 mt-3">
-              Please select at least one topic.
-            </p>
-          )}
+          {/* ✅ Select all / Deselect all buttons */}
+          <div className="mt-4 flex gap-2 justify-center">
+            <button
+              type="button"
+              onClick={selectAll}
+              className="px-4 py-2 rounded-md bg-teal-800 hover:bg-teal-800 transition text-sm cursor-pointer"
+            >
+              Select all
+            </button>
+            <button
+              type="button"
+              onClick={deselectAll}
+              className="px-4 py-2 rounded-md bg-slate-700 hover:bg-slate-600 transition text-sm cursor-pointer"
+            >
+              Deselect all
+            </button>
+          </div>
         </div>
 
         {/* ACTION BUTTONS */}
