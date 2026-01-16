@@ -30,12 +30,14 @@ export default function Home({ user, profile }) {
   const [lastResult, setLastResult] = useState(null);
   const [loadingResult, setLoadingResult] = useState(true);
 
-  // ✅ include "live" by default
   const [selectedTopics, setSelectedTopics] = useState([
     "git",
     "linux",
     "q",
     "live",
+    "finance",
+    "quant",
+    "trading"
   ]);
 
   const displayName = useMemo(() => {
@@ -94,7 +96,7 @@ export default function Home({ user, profile }) {
   const lastAttemptMs = toMillis(lastResult?.startedAt);
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white flex flex-col items-center justify-start px-4 pt-14 md:pt-24 pb-16">
+    <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white flex flex-col items-center justify-start px-4 pt-14 md:pt-18 pb-16">
       <div className="max-w-3xl w-full flex flex-col items-center text-center gap-6">
         {/* WELCOME */}
         <div>
