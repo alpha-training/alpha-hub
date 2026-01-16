@@ -22,7 +22,7 @@ export default function Quiz({ user, profile }) {
   const [selectedById, setSelectedById] = useState({});
   const [attemptById, setAttemptById] = useState({});
   const [liveStatusById, setLiveStatusById] = useState({});
-  const [liveAttemptsUsedById, setLiveAttemptsUsedById] = useState({}); 
+  const [liveAttemptsUsedById, setLiveAttemptsUsedById] = useState({});
 
   const [globalTimeLeft, setGlobalTimeLeft] = useState(null);
   const [startedAt, setStartedAt] = useState(null);
@@ -42,6 +42,15 @@ export default function Quiz({ user, profile }) {
     return defaultLiveAttemptsLimit;
   };
 
+  const getQuestionSeconds = (q) => {
+    const t = q.type || "mcq";
+    if (t === "live") {
+      const s = Number(q?.seconds);
+      if (Number.isFinite(s) && s > 0) return s;
+    }
+    return Number(perTypeSeconds[t] ?? 15) || 15;
+  };
+
   // ---------------- PREPARE QUESTIONS ----------------
   useEffect(() => {
     let pool = [];
@@ -49,7 +58,6 @@ export default function Quiz({ user, profile }) {
       if (QUESTION_POOLS[t]) pool.push(...QUESTION_POOLS[t]);
     });
 
-    // dedupe by question OR id
     const map = new Map();
     pool.forEach((q) => {
       const key = (q.type === "live" ? q.apiId : q.id || q.question || "")
@@ -95,11 +103,7 @@ export default function Quiz({ user, profile }) {
     const now = new Date();
     setStartedAt(now);
 
-    const total = normalized.reduce((acc, q) => {
-      const t = q.type || "mcq";
-      return acc + (perTypeSeconds[t] ?? 15);
-    }, 0);
-
+    const total = normalized.reduce((acc, q) => acc + getQuestionSeconds(q), 0);
     setGlobalTimeLeft(total);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topics]);
@@ -214,14 +218,16 @@ export default function Quiz({ user, profile }) {
   }, [currentIndex, totalQuestions]);
 
   const formatTime = (sec) => {
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
+    const safe = Number.isFinite(sec) ? sec : 0;
+    const m = Math.floor(safe / 60);
+    const s = safe % 60;
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
   const goNext = () =>
     currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
   const goBack = () => currentIndex > 0 && setCurrentIndex((i) => i - 1);
+
   const skipQuestion = () =>
     currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
 
@@ -231,10 +237,10 @@ export default function Quiz({ user, profile }) {
 
     setIsSubmitting(true);
 
-    const totalTimeAllowedInSeconds = questions.reduce((acc, q) => {
-      const t = q.type || "mcq";
-      return acc + (perTypeSeconds[t] ?? 15);
-    }, 0);
+    const totalTimeAllowedInSeconds = questions.reduce(
+      (acc, q) => acc + getQuestionSeconds(q),
+      0
+    );
 
     const finishedAt =
       reason === "timeout"
@@ -279,6 +285,7 @@ export default function Quiz({ user, profile }) {
           liveStatus: statusObj,
           attemptsUsed: Number(liveAttemptsUsedById[q.id] ?? 0),
           attemptsLimit: getAttemptsLimit(q),
+          seconds: getQuestionSeconds(q),
           isCorrect,
         };
       }
@@ -318,6 +325,7 @@ export default function Quiz({ user, profile }) {
         correctOptionIds: correctIds,
         selectedOptionIds: picked,
         isCorrect,
+        seconds: getQuestionSeconds(q),
       };
     });
 
@@ -366,11 +374,28 @@ export default function Quiz({ user, profile }) {
   }
 
   const isMCQ = (currentQuestion.type || "mcq") === "mcq";
+
   const attemptsUsed = Number(liveAttemptsUsedById[currentQuestion.id] ?? 0);
   const attemptsLimit = getAttemptsLimit(currentQuestion);
   const attemptsLeft = Math.max(0, attemptsLimit - attemptsUsed);
   const isOutOfAttempts = attemptsLeft === 0;
 
+  const liveStatusObj = liveStatusById[currentQuestion.id] || { status: "idle" };
+  const liveStatus = liveStatusObj.status || "idle";
+  const liveIsCorrect = !isMCQ && liveStatus === "correct";
+
+  const isLast = currentIndex === totalQuestions - 1;
+
+  const canProceedLive = liveIsCorrect || isOutOfAttempts;
+
+  const nextDisabled = !isMCQ ? !canProceedLive : false;
+  
+  const skipDisabled = !isMCQ
+    ? canProceedLive
+    : currentIndex === totalQuestions - 1;
+  
+
+  const submitDisabled = !isMCQ ? !liveIsCorrect || isSubmitting : isSubmitting;
 
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-10 pb-2 px-4 flex justify-center">
@@ -393,41 +418,37 @@ export default function Quiz({ user, profile }) {
           </div>
 
           <div className="w-full md:w-auto">
-          <div className="grid grid-cols-3 items-center w-full md:min-w-[520px]">
-            {/* LEFT spacer */}
-            <div className="justify-self-start" />
+            <div className="grid grid-cols-3 items-center w-full md:min-w-[520px]">
+              <div className="justify-self-start" />
 
-            {/* CENTER: Time */}
-            <div className="justify-self-center text-sm font-mono text-gray-200">
-              Time left:{" "}
-              <span className="font-semibold text-blue-400">
-                {formatTime(globalTimeLeft ?? 0)}
-              </span>
-            </div>
+              <div className="justify-self-center text-sm font-mono text-gray-200">
+                Time left:{" "}
+                <span className="font-semibold text-blue-400">
+                  {formatTime(globalTimeLeft ?? 0)}
+                </span>
+              </div>
 
-            {/* RIGHT: Attempts */}
-            <div className="justify-self-end text-xs font-mono text-gray-400 mr-2 shrink-0">
-              {!isMCQ ? (
-                <>
-                  Attempts left:{" "}
-                  <span
-                    className={`font-semibold ${
-                      isOutOfAttempts ? "text-rose-300" : "text-gray-200"
-                    }`}
-                  >
-                    {attemptsLeft}
-                  </span>{" "}
-                  / {attemptsLimit}
-                </>
-              ) : null}
+              <div className="justify-self-end text-xs font-mono text-gray-400 mr-2 shrink-0">
+                {!isMCQ ? (
+                  <>
+                    Attempts left:{" "}
+                    <span
+                      className={`font-semibold ${
+                        isOutOfAttempts ? "text-rose-300" : "text-gray-200"
+                      }`}
+                    >
+                      {attemptsLeft}
+                    </span>{" "}
+                    / {attemptsLimit}
+                  </>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>
 
-        </div>
-
         {/* QUESTION */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-2 space-y-2">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-2 space-y-3">
           <h2 className="text-sm md:text-base whitespace-pre-wrap">
             {currentQuestion.question}
           </h2>
@@ -438,7 +459,7 @@ export default function Quiz({ user, profile }) {
                 Select all answers you believe are correct.
               </p>
 
-              <div className="space-y-2 mt-1">
+              <div className="space-y-3 mt-1">
                 {currentQuestion.options.map((opt) => {
                   const picked = selectedById[currentQuestion.id] || [];
                   return (
@@ -465,16 +486,15 @@ export default function Quiz({ user, profile }) {
               onAttemptChange={(val) =>
                 setAttemptById((p) => ({ ...p, [currentQuestion.id]: val }))
               }
-              status={liveStatusById[currentQuestion.id] || { status: "idle" }}
+              status={liveStatusObj}
               onRun={() => runLive(currentQuestion)}
-              attemptsUsed={attemptsUsed}
-              attemptsLimit={attemptsLimit}
+              attemptsLeft={attemptsLeft}  
             />
           )}
         </div>
 
-        {/* NAV */}
-        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        {/* NAV + STATUS (status lives here to avoid layout jump) */}
+        <div className="flex items-center justify-between gap-3">
           <div className="flex gap-2">
             <button
               onClick={goBack}
@@ -486,27 +506,65 @@ export default function Quiz({ user, profile }) {
 
             <button
               onClick={skipQuestion}
-              disabled={currentIndex === totalQuestions - 1}
+              disabled={skipDisabled}
               className="px-5 py-2 rounded-md bg-gray-700 disabled:opacity-40"
+              title={!isMCQ && liveIsCorrect ? "Correct already — use Next" : ""}
             >
               Skip
             </button>
 
-            {currentIndex < totalQuestions - 1 ? (
+            {!isLast ? (
               <button
                 onClick={goNext}
-                className="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 transition"
+                disabled={nextDisabled}
+                className="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 transition disabled:opacity-40 disabled:hover:bg-blue-600"
+                title={
+                  !isMCQ && !liveIsCorrect ? "Submit a correct answer to continue" : ""
+                }
               >
                 Next
               </button>
             ) : (
               <button
                 onClick={() => handleSubmit("manual")}
-                className="px-5 py-2 rounded-md bg-green-600 hover:bg-green-700 transition"
-                disabled={isSubmitting}
+                className="px-5 py-2 rounded-md bg-green-600 hover:bg-green-700 transition disabled:opacity-40 disabled:hover:bg-green-600"
+                disabled={submitDisabled}
+                title={!isMCQ && !liveIsCorrect ? "Submit a correct answer to finish" : ""}
               >
                 {isSubmitting ? "Submitting..." : "Submit Quiz"}
               </button>
+            )}
+          </div>
+
+          {/* Right-side reserved slot (no jumping) */}
+          <div className="min-w-[220px] h-[40px] flex items-center justify-end">
+            {!isMCQ && liveStatus === "running" ? (
+              <div className="text-xs font-mono text-blue-300">Running...</div>
+            ) : !isMCQ && liveStatus === "correct" ? (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-emerald-950/40 border border-emerald-900/50 text-emerald-200 font-semibold">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  className="text-emerald-300"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2m-1 14-4-4 1.4-1.4L11 13.2l5.6-5.6L18 9z"
+                  />
+                </svg>
+                <span>Correct answer!</span>
+              </div>
+            ) : !isMCQ && liveStatus === "incorrect" ? (
+              <div className="text-xs font-mono text-rose-300">
+                Incorrect{liveStatusObj?.message ? `: ${liveStatusObj.message}` : ""}
+              </div>
+            ) : !isMCQ && liveStatus === "error" ? (
+              <div className="text-xs font-mono text-amber-300">
+                Error{liveStatusObj?.message ? `: ${liveStatusObj.message}` : ""}
+              </div>
+            ) : (
+              <span className="text-xs text-gray-500"> </span>
             )}
           </div>
         </div>
