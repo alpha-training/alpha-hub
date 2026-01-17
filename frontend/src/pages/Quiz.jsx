@@ -5,12 +5,17 @@ import { db } from "../firebase";
 import { addDoc, collection } from "firebase/firestore";
 import { QUIZ_CONFIG, QUESTION_POOLS, LIVE_CHECKER_API } from "../config";
 import LiveCheckerQuestion from "../components/LiveCheckerQuestion";
+import { fetchLiveQuestions } from "../api/liveQuestions";
 
 export default function Quiz({ user, profile }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const topics = location.state?.topics || ["git", "linux", "q"];
+  const topics = useMemo(
+    () => location.state?.topics ?? ["git", "linux", "q"],
+    [location.state?.topics]
+  );
+  const topicsKey = useMemo(() => topics.join("|"), [topics]);
 
   useEffect(() => {
     if (!user) navigate("/", { replace: true });
@@ -53,60 +58,86 @@ export default function Quiz({ user, profile }) {
 
   // ---------------- PREPARE QUESTIONS ----------------
   useEffect(() => {
-    let pool = [];
-    topics.forEach((t) => {
-      if (QUESTION_POOLS[t]) pool.push(...QUESTION_POOLS[t]);
-    });
+    let cancelled = false;
 
-    const map = new Map();
-    pool.forEach((q) => {
-      const key = (q.type === "live" ? q.apiId : q.id || q.question || "")
-        .toString()
-        .trim()
-        .toLowerCase();
-      if (!map.has(key)) map.set(key, q);
-    });
+    const build = async () => {
+      let pool = [];
 
-    const uniqueQuestions = Array.from(map.values());
-    const shuffled = [...uniqueQuestions].sort(() => Math.random() - 0.5);
+      // local pools (everything except live)
+      topics.forEach((t) => {
+        if (t !== "live" && QUESTION_POOLS[t]) pool.push(...QUESTION_POOLS[t]);
+      });
 
-    const sliceCount = Math.min(QUIZ_CONFIG.questionsPerAttempt, shuffled.length);
-
-    const normalized = shuffled.slice(0, sliceCount).map((q, qi) => {
-      const qid = q.id || `q_${qi}`;
-      const type = q.type || "mcq";
-
-      if (type === "live") {
-        return { ...q, id: qid, type: "live", options: [] };
+      // live from backend
+      if (topics.includes("live")) {
+        try {
+          const liveQs = await fetchLiveQuestions();       
+          pool.push(...liveQs);
+        } catch (e) {
+          console.error("Failed to load live questions:", e);
+          // quiz still works with non-live topics
+        }
       }
 
-      const shuffledOptions = [...(q.options || [])]
-        .map((opt, oi) => ({
-          id: opt.id || `${qid}_opt_${oi}`,
-          text: opt.text,
-          isCorrect: !!opt.isCorrect,
-        }))
-        .sort(() => Math.random() - 0.5);
+      // dedupe
+      const map = new Map();
+      pool.forEach((q) => {
+        const key = (q.type === "live" ? q.apiId : q.id || q.question || "")
+          .toString()
+          .trim()
+          .toLowerCase();
+        if (!map.has(key)) map.set(key, q);
+      });
 
-      return { ...q, id: qid, type: "mcq", options: shuffledOptions };
-    });
+      const uniqueQuestions = Array.from(map.values());
+      const shuffled = [...uniqueQuestions].sort(() => Math.random() - 0.5);
 
-    setQuestions(normalized);
-    setCurrentIndex(0);
+      const sliceCount = Math.min(QUIZ_CONFIG.questionsPerAttempt, shuffled.length);
 
-    setSelectedById({});
-    setAttemptById({});
-    setLiveStatusById({});
-    setLiveAttemptsUsedById({});
-    setIsSubmitting(false);
+      const normalized = shuffled.slice(0, sliceCount).map((q, qi) => {
+        const qid = q.id || `q_${qi}`;
+        const type = q.type || "mcq";
 
-    const now = new Date();
-    setStartedAt(now);
+        if (type === "live") {
+          return { ...q, id: qid, type: "live", options: [] };
+        }
 
-    const total = normalized.reduce((acc, q) => acc + getQuestionSeconds(q), 0);
-    setGlobalTimeLeft(total);
+        const shuffledOptions = [...(q.options || [])]
+          .map((opt, oi) => ({
+            id: opt.id || `${qid}_opt_${oi}`,
+            text: opt.text,
+            isCorrect: !!opt.isCorrect,
+          }))
+          .sort(() => Math.random() - 0.5);
+
+        return { ...q, id: qid, type: "mcq", options: shuffledOptions };
+      });
+
+      if (cancelled) return;
+      setQuestions(normalized);
+      setCurrentIndex(0);
+
+      setSelectedById({});
+      setAttemptById({});
+      setLiveStatusById({});
+      setLiveAttemptsUsedById({});
+      setIsSubmitting(false);
+
+      const now = new Date();
+      setStartedAt(now);
+
+      const total = normalized.reduce((acc, q) => acc + getQuestionSeconds(q), 0);
+      
+      setGlobalTimeLeft(total);
+    };
+
+    build();
+
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [topics]);
+  }, [topicsKey]);
 
   const totalQuestions = questions.length;
   const currentQuestion = questions[currentIndex];
@@ -146,7 +177,6 @@ export default function Quiz({ user, profile }) {
     const used = Number(liveAttemptsUsedById[qid] ?? 0);
 
     const currentStatus = liveStatusById[qid]?.status || "idle";
-
     if (currentStatus === "correct") return;
 
     if (used >= limit) {
@@ -192,12 +222,15 @@ export default function Quiz({ user, profile }) {
 
       setLiveAttemptsUsedById((p) => ({ ...p, [qid]: used + 1 }));
 
-      if (data?.result === "Success") {
+      // your backend returns: { result: ... }
+      const result = data?.result;
+
+      if (result === "Success") {
         setLiveStatusById((p) => ({ ...p, [qid]: { status: "correct" } }));
       } else {
         setLiveStatusById((p) => ({
           ...p,
-          [qid]: { status: "incorrect", message: data?.result || "Incorrect" },
+          [qid]: { status: "incorrect", message: result || "Incorrect" },
         }));
       }
     } catch (e) {
@@ -224,12 +257,9 @@ export default function Quiz({ user, profile }) {
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const goNext = () =>
-    currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
+  const goNext = () => currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
   const goBack = () => currentIndex > 0 && setCurrentIndex((i) => i - 1);
-
-  const skipQuestion = () =>
-    currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
+  const skipQuestion = () => currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
 
   // ---------------- SUBMIT ----------------
   const handleSubmit = async (reason = "manual") => {
@@ -365,7 +395,18 @@ export default function Quiz({ user, profile }) {
   };
 
   // ---------------- RENDER ----------------
-  if (!user || !currentQuestion) {
+  if (!user) return null;
+
+  // IMPORTANT: distinguish "still building" vs "built but empty"
+  if (!questions.length) {
+    return (
+      <div className="min-h-[calc(100vh-56px)] flex items-center justify-center text-gray-300 pt-20">
+        No questions available.
+      </div>
+    );
+  }
+
+  if (!currentQuestion) {
     return (
       <div className="min-h-[calc(100vh-56px)] flex items-center justify-center text-gray-300 pt-20">
         Loading quiz...
@@ -386,16 +427,14 @@ export default function Quiz({ user, profile }) {
 
   const isLast = currentIndex === totalQuestions - 1;
 
-  const canProceedLive = liveIsCorrect || isOutOfAttempts;
+  // Requirement:
+  // - not correct yet => Skip enabled, Next disabled
+  // - correct => Skip disabled, Next enabled
+  // plus: if out of attempts, let Next be enabled (otherwise user can be trapped)
+  const nextDisabled = !isMCQ ? (!liveIsCorrect && !isOutOfAttempts) : false;
+  const skipDisabled = !isMCQ ? (liveIsCorrect ? true : false) : currentIndex === totalQuestions - 1;
 
-  const nextDisabled = !isMCQ ? !canProceedLive : false;
-  
-  const skipDisabled = !isMCQ
-    ? canProceedLive
-    : currentIndex === totalQuestions - 1;
-  
-
-  const submitDisabled = !isMCQ ? !liveIsCorrect || isSubmitting : isSubmitting;
+  const submitDisabled = isSubmitting;
 
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-10 pb-2 px-4 flex justify-center">
@@ -488,17 +527,17 @@ export default function Quiz({ user, profile }) {
               }
               status={liveStatusObj}
               onRun={() => runLive(currentQuestion)}
-              attemptsLeft={attemptsLeft}  
+              attemptsLeft={attemptsLeft}
             />
           )}
         </div>
 
-        {/* NAV + STATUS (status lives here to avoid layout jump) */}
+        {/* NAV + STATUS */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex gap-2">
             <button
               onClick={goBack}
-              disabled={currentIndex === 0}
+              disabled={currentIndex === 0 || isSubmitting}
               className="px-5 py-2 rounded-md bg-gray-700 disabled:opacity-40"
             >
               Back
@@ -506,9 +545,8 @@ export default function Quiz({ user, profile }) {
 
             <button
               onClick={skipQuestion}
-              disabled={skipDisabled}
+              disabled={skipDisabled || isSubmitting}
               className="px-5 py-2 rounded-md bg-gray-700 disabled:opacity-40"
-              title={!isMCQ && liveIsCorrect ? "Correct already — use Next" : ""}
             >
               Skip
             </button>
@@ -516,11 +554,8 @@ export default function Quiz({ user, profile }) {
             {!isLast ? (
               <button
                 onClick={goNext}
-                disabled={nextDisabled}
+                disabled={nextDisabled || isSubmitting}
                 className="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 transition disabled:opacity-40 disabled:hover:bg-blue-600"
-                title={
-                  !isMCQ && !liveIsCorrect ? "Submit a correct answer to continue" : ""
-                }
               >
                 Next
               </button>
@@ -529,32 +564,17 @@ export default function Quiz({ user, profile }) {
                 onClick={() => handleSubmit("manual")}
                 className="px-5 py-2 rounded-md bg-green-600 hover:bg-green-700 transition disabled:opacity-40 disabled:hover:bg-green-600"
                 disabled={submitDisabled}
-                title={!isMCQ && !liveIsCorrect ? "Submit a correct answer to finish" : ""}
               >
                 {isSubmitting ? "Submitting..." : "Submit Quiz"}
               </button>
             )}
           </div>
 
-          {/* Right-side reserved slot (no jumping) */}
           <div className="min-w-[220px] h-[40px] flex items-center justify-end">
             {!isMCQ && liveStatus === "running" ? (
               <div className="text-xs font-mono text-blue-300">Running...</div>
             ) : !isMCQ && liveStatus === "correct" ? (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-emerald-950/40 border border-emerald-900/50 text-emerald-200 font-semibold">
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  className="text-emerald-300"
-                >
-                  <path
-                    fill="currentColor"
-                    d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2m-1 14-4-4 1.4-1.4L11 13.2l5.6-5.6L18 9z"
-                  />
-                </svg>
-                <span>Correct answer!</span>
-              </div>
+              <div className="text-xs font-mono text-emerald-200">Correct answer!</div>
             ) : !isMCQ && liveStatus === "incorrect" ? (
               <div className="text-xs font-mono text-rose-300">
                 Incorrect{liveStatusObj?.message ? `: ${liveStatusObj.message}` : ""}

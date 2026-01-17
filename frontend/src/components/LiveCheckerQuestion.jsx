@@ -8,7 +8,7 @@ export default function LiveCheckerQuestion({
   onAttemptChange,
   status,
   onRun,
-  attemptsLeft, // ✅ NEW: pass from Quiz
+  attemptsLeft, // passed from Quiz
 }) {
   const [formatData, setFormatData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -73,6 +73,7 @@ export default function LiveCheckerQuestion({
     return formatData;
   }, [formatData]);
 
+  //  SHOW ACTUAL QUESTION TEXT (prompt) instead of id
   const promptText = useMemo(() => {
     if (loading) return "";
     if (error) return "";
@@ -118,9 +119,10 @@ export default function LiveCheckerQuestion({
     ? Number(attemptsLeft)
     : null;
 
-  const isOutOfAttempts = safeAttemptsLeft !== null ? safeAttemptsLeft <= 0 : false;
+  const isOutOfAttempts =
+    safeAttemptsLeft !== null ? safeAttemptsLeft <= 0 : false;
 
-  // ✅ disable Run when running OR out of attempts
+  // disable Run when running OR out of attempts
   const runDisabled = status?.status === "running" || isOutOfAttempts;
 
   // Enter runs, Shift+Enter newline
@@ -137,13 +139,15 @@ export default function LiveCheckerQuestion({
   };
 
   return (
-    <div className="space-y-2 ">
-      {/* Prompt (keep small, no wasted space)
+    <div className="space-y-2">
+      {/* Prompt (actual question text) */}
       {promptText ? (
-        <p className="text-xs text-gray-400 whitespace-pre-wrap">{promptText}</p>
+        <div className="text-sm md:text-base text-gray-200 whitespace-pre-wrap">
+          {promptText}
+        </div>
       ) : null}
-    */}
-      {/* Setup + Expected (only once) */}
+
+      {/* Setup + Expected */}
       <div className="w-full grid md:grid-cols-2 gap-3">
         <Panel title="Setup" className="min-w-0" titleStyle={monoStyle}>
           <PreBlock text={setupText} dim={!!error} monoStyle={monoStyle} />
@@ -154,7 +158,7 @@ export default function LiveCheckerQuestion({
         </Panel>
       </div>
 
-      {/* Editor + Run (compact) */}
+      {/* Editor + Run */}
       <div className="relative rounded-lg border border-gray-800 bg-gray-950/40 overflow-hidden">
         <div className="absolute left-0 top-0 bottom-0 w-10 bg-black/20 border-r border-gray-800 flex items-start justify-center pt-1.5">
           <span className="text-xs text-gray-500" style={monoStyle}>
@@ -211,7 +215,9 @@ function PreBlock({ text, dim, monoStyle }) {
 
 function Panel({ title, className = "", children, titleStyle }) {
   return (
-    <div className={`rounded-xl border border-gray-800 bg-gray-950/30 p-3 ${className}`}>
+    <div
+      className={`rounded-xl border border-gray-800 bg-gray-950/30 p-3 ${className}`}
+    >
       <div className="text-sm text-gray-200 mb-2" style={titleStyle}>
         {title}
       </div>
