@@ -570,25 +570,121 @@ export default function Quiz({ user, profile }) {
             )}
           </div>
 
+          {/* Right-side status pill */}
           <div className="min-w-[220px] h-[40px] flex items-center justify-end">
-            {!isMCQ && liveStatus === "running" ? (
-              <div className="text-xs font-mono text-blue-300">Running...</div>
-            ) : !isMCQ && liveStatus === "correct" ? (
-              <div className="text-xs font-mono text-emerald-200">Correct answer!</div>
-            ) : !isMCQ && liveStatus === "incorrect" ? (
-              <div className="text-xs font-mono text-rose-300">
-                Incorrect{liveStatusObj?.message ? `: ${liveStatusObj.message}` : ""}
-              </div>
-            ) : !isMCQ && liveStatus === "error" ? (
-              <div className="text-xs font-mono text-amber-300">
-                Error{liveStatusObj?.message ? `: ${liveStatusObj.message}` : ""}
-              </div>
-            ) : (
-              <span className="text-xs text-gray-500"> </span>
-            )}
+          {!isMCQ && liveStatus === "running" ? (
+            <StatusPill variant="info" text="Running..." />
+          ) : !isMCQ && liveStatus === "correct" ? (
+            <StatusPill variant="success" text="Correct answer!" />
+          ) : !isMCQ && liveStatus === "incorrect" ? (
+            <StatusPill
+              variant="error"
+              text={`Incorrect${liveStatusObj?.message ? `: ${liveStatusObj.message}` : ""}`}
+            />
+          ) : !isMCQ && liveStatus === "error" ? (
+            <StatusPill
+              variant="warning"
+              text={`Error${liveStatusObj?.message ? `: ${liveStatusObj.message}` : ""}`}
+            />
+          ) : (
+            <span className="text-xs text-gray-500"> </span>
+          )}
           </div>
+
         </div>
       </div>
+    </div>
+    
+  );
+}
+
+function StatusPill({ variant = "info", text }) {
+  const styles = {
+    success: "bg-emerald-950/40 border-emerald-900/50 text-emerald-200",
+    error: "bg-rose-950/40 border-rose-900/50 text-rose-200",
+    warning: "bg-amber-950/40 border-amber-900/50 text-amber-200",
+    info: "bg-blue-950/40 border-blue-900/50 text-blue-200",
+  };
+
+  const Icon = () => {
+    if (variant === "success") {
+      return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M20 6L9 17l-5-5"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      );
+    }
+    if (variant === "error") {
+      return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M18 6L6 18M6 6l12 12"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      );
+    }
+    if (variant === "warning") {
+      return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M12 9v5"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          />
+          <path
+            d="M12 17h.01"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <path
+            d="M10.3 4.3h3.4L22 20H2L10.3 4.3z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+        </svg>
+      );
+    }
+    // info
+    return (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M12 8h.01M11 12h1v5h1"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        />
+        <path
+          d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10z"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
+      </svg>
+    );
+  };
+
+  return (
+    <div
+      className={[
+        "flex items-center gap-2 px-3 py-2 rounded-md border",
+        "text-xs font-mono",
+        styles[variant] || styles.info,
+      ].join(" ")}
+    >
+      <Icon />
+      <span className="whitespace-nowrap">{text}</span>
     </div>
   );
 }
