@@ -152,7 +152,7 @@ export default function Home({ user, profile }) {
             You must select at least one topic before starting the quiz.
           </p>
 
-          {/* ✅ 4 left / 3 right */}
+          {/* 4 left / 3 right */}
           <div className="grid grid-rows-4 grid-flow-col gap-y-2 gap-x-8">
             {TOPICS.map((t) => (
               <label key={t.id} className="flex items-center gap-2 cursor-pointer text-sm">
@@ -167,19 +167,19 @@ export default function Home({ user, profile }) {
             ))}
           </div>
 
-          {/* ✅ Select all / Deselect all buttons */}
-          <div className="mt-4 flex gap-2 justify-center">
+          {/* Select all / Deselect all buttons */}
+          <div className="mt-3 flex gap-3 justify-center">
             <button
               type="button"
               onClick={selectAll}
-              className="px-4 py-2 rounded-md bg-teal-800 hover:bg-teal-800 transition text-sm cursor-pointer"
+              className="px-2 py-1 rounded-md bg-teal-800 hover:bg-teal-800 transition text-sm cursor-pointer"
             >
               Select all
             </button>
             <button
               type="button"
               onClick={deselectAll}
-              className="px-4 py-2 rounded-md bg-slate-700 hover:bg-slate-600 transition text-sm cursor-pointer"
+              className="px-2 py-1 rounded-md bg-slate-700 hover:bg-slate-600 transition text-sm cursor-pointer"
             >
               Deselect all
             </button>

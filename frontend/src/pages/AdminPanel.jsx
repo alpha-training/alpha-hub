@@ -360,7 +360,8 @@ export default function AdminPanel({ user }) {
                   : "border-gray-700 text-gray-300 hover:border-gray-500"
               }`}
             >
-              {btn.label} {sortField === btn.field ? (sortDir === "asc" ? "↑" : "↓") : ""}
+              {btn.label}{" "}
+              {sortField === btn.field ? (sortDir === "asc" ? "↑" : "↓") : ""}
             </button>
           ))}
         </div>
@@ -379,12 +380,17 @@ export default function AdminPanel({ user }) {
           const isExpanded = expandedId === r.id;
 
           // ✅ match Results page scoring denominator
-          const maxScore = (r.totalQuestions ?? 0) * (QUIZ_CONFIG?.scoring?.correct ?? 1);
+          const maxScore =
+            (r.totalQuestions ?? 0) * (QUIZ_CONFIG?.scoring?.correct ?? 1);
+
+          // ✅ NEW: score color by percentage (works for any question count)
+          const pct = maxScore > 0 ? (Number(r.score ?? 0) / maxScore) : 0;
+          const pctClamped = Math.max(-1, Math.min(1, pct));
 
           let scoreColor = "text-gray-200";
-          if (r.score >= 24) scoreColor = "text-green-400";
-          else if (r.score >= 15) scoreColor = "text-blue-400";
-          else if (r.score >= 8) scoreColor = "text-yellow-300";
+          if (pctClamped >= 0.9) scoreColor = "text-green-400";
+          else if (pctClamped >= 0.7) scoreColor = "text-blue-400";
+          else if (pctClamped >= 0.4) scoreColor = "text-yellow-300";
           else scoreColor = "text-red-400";
 
           const displayName = getProfileDisplayName(r.uid, profilesByUid, r);
@@ -408,7 +414,9 @@ export default function AdminPanel({ user }) {
                       {displayName}
                     </div>
                     <div className="text-xs text-gray-400">
-                      {finishedAt ? finishedAt.toLocaleString() : "Date unavailable"}
+                      {finishedAt
+                        ? finishedAt.toLocaleString()
+                        : "Date unavailable"}
                     </div>
                   </div>
 
