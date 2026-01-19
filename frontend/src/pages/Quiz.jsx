@@ -435,10 +435,10 @@ export default function Quiz({ user, profile }) {
   const skipDisabled = !isMCQ ? (liveIsCorrect ? true : false) : currentIndex === totalQuestions - 1;
 
   const submitDisabled = isSubmitting;
-
+  const containerWidth = isMCQ ? "max-w-4xl" : "max-w-5xl";
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-10 pb-2 px-4 flex justify-center">
-      <div className="w-full max-w-3xl space-y-3">
+    <div className={`w-full ${containerWidth} space-y-3`}>
         {/* TOP BAR */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div className="flex-1">
