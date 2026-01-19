@@ -509,7 +509,7 @@ export default function AdminPanel({ user }) {
                             >
                               <div className="flex justify-between gap-3">
                                 <div className="text-[11px] md:text-xs text-gray-200 whitespace-pre-wrap">
-                                  {idx + 1}. {qRes.questionText}
+                                {idx + 1}. {qRes.questionText || qRes.apiId || qRes.questionId || "(missing question)"}
                                 </div>
                                 <div
                                   className={`text-[11px] md:text-xs font-semibold ${statusColor}`}
