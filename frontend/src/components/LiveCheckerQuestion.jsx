@@ -9,6 +9,7 @@ export default function LiveCheckerQuestion({
   status,
   onRun,
   attemptsLeft, // passed from Quiz
+  onPromptLoaded, // ✅ NEW: tells Quiz the real prompt so it can be saved to Firestore
 }) {
   const [formatData, setFormatData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -34,7 +35,17 @@ export default function LiveCheckerQuestion({
         return res.json();
       })
       .then((data) => {
-        if (!cancelled) setFormatData(data);
+        if (cancelled) return;
+
+        setFormatData(data);
+
+        // ✅ emit prompt up to Quiz so it gets stored in questions state & Firestore
+        const r = data?.result && typeof data.result === "object" ? data.result : data;
+        const prompt = r?.prompt ?? r?.question ?? r?.title ?? r?.name ?? "";
+
+        if (prompt && typeof onPromptLoaded === "function") {
+          onPromptLoaded(String(prompt));
+        }
       })
       .catch((e) => {
         if (!cancelled) setError(e?.message || "Failed to load format");
@@ -46,6 +57,7 @@ export default function LiveCheckerQuestion({
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [question?.apiId]);
 
   // -------- helper: normalize anything to displayable text --------
@@ -73,11 +85,11 @@ export default function LiveCheckerQuestion({
     return formatData;
   }, [formatData]);
 
-  //  SHOW ACTUAL QUESTION TEXT (prompt) instead of id
+  // ✅ show prompt (actual question text) inside live component
   const promptText = useMemo(() => {
     if (loading) return "";
     if (error) return "";
-    return toText(fd?.prompt || "");
+    return toText(fd?.prompt || fd?.question || fd?.title || "");
   }, [fd, loading, error]);
 
   const setupText = useMemo(() => {

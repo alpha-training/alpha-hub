@@ -71,7 +71,7 @@ export default function Quiz({ user, profile }) {
       // live from backend
       if (topics.includes("live")) {
         try {
-          const liveQs = await fetchLiveQuestions();       
+          const liveQs = await fetchLiveQuestions();
           pool.push(...liveQs);
         } catch (e) {
           console.error("Failed to load live questions:", e);
@@ -92,13 +92,18 @@ export default function Quiz({ user, profile }) {
       const uniqueQuestions = Array.from(map.values());
       const shuffled = [...uniqueQuestions].sort(() => Math.random() - 0.5);
 
-      const sliceCount = Math.min(QUIZ_CONFIG.questionsPerAttempt, shuffled.length);
+      const sliceCount = Math.min(
+        QUIZ_CONFIG.questionsPerAttempt,
+        shuffled.length
+      );
 
       const normalized = shuffled.slice(0, sliceCount).map((q, qi) => {
         const qid = q.id || `q_${qi}`;
         const type = q.type || "mcq";
 
         if (type === "live") {
+          // NOTE: question might still be id at this point.
+          // We will replace it when LiveCheckerQuestion loads prompt.
           return { ...q, id: qid, type: "live", options: [] };
         }
 
@@ -114,6 +119,7 @@ export default function Quiz({ user, profile }) {
       });
 
       if (cancelled) return;
+
       setQuestions(normalized);
       setCurrentIndex(0);
 
@@ -126,8 +132,11 @@ export default function Quiz({ user, profile }) {
       const now = new Date();
       setStartedAt(now);
 
-      const total = normalized.reduce((acc, q) => acc + getQuestionSeconds(q), 0);
-      
+      const total = normalized.reduce(
+        (acc, q) => acc + getQuestionSeconds(q),
+        0
+      );
+
       setGlobalTimeLeft(total);
     };
 
@@ -238,7 +247,8 @@ export default function Quiz({ user, profile }) {
         ...p,
         [qid]: {
           status: "error",
-          message: e?.message || "API error. Is the live-checker backend running?",
+          message:
+            e?.message || "API error. Is the live-checker backend running?",
         },
       }));
     }
@@ -257,9 +267,11 @@ export default function Quiz({ user, profile }) {
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const goNext = () => currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
+  const goNext =
+    () => currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
   const goBack = () => currentIndex > 0 && setCurrentIndex((i) => i - 1);
-  const skipQuestion = () => currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
+  const skipQuestion =
+    () => currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
 
   // ---------------- SUBMIT ----------------
   const handleSubmit = async (reason = "manual") => {
@@ -308,7 +320,11 @@ export default function Quiz({ user, profile }) {
 
         return {
           questionId: q.id,
-          questionText: q.question,
+          // ✅ now q.question should be the real prompt (because we update it onPromptLoaded)
+          questionText:
+            q.question && String(q.question).trim()
+              ? q.question
+              : q.apiId || q.id,
           type: "live",
           apiId: q.apiId || null,
           attempt,
@@ -349,7 +365,8 @@ export default function Quiz({ user, profile }) {
 
       return {
         questionId: q.id,
-        questionText: q.question,
+        questionText:
+          q.question && String(q.question).trim() ? q.question : q.apiId || q.id,
         type: "mcq",
         options: q.options,
         correctOptionIds: correctIds,
@@ -397,7 +414,6 @@ export default function Quiz({ user, profile }) {
   // ---------------- RENDER ----------------
   if (!user) return null;
 
-  // IMPORTANT: distinguish "still building" vs "built but empty"
   if (!questions.length) {
     return (
       <div className="min-h-[calc(100vh-56px)] flex items-center justify-center text-gray-300 pt-20">
@@ -421,7 +437,8 @@ export default function Quiz({ user, profile }) {
   const attemptsLeft = Math.max(0, attemptsLimit - attemptsUsed);
   const isOutOfAttempts = attemptsLeft === 0;
 
-  const liveStatusObj = liveStatusById[currentQuestion.id] || { status: "idle" };
+  const liveStatusObj =
+    liveStatusById[currentQuestion.id] || { status: "idle" };
   const liveStatus = liveStatusObj.status || "idle";
   const liveIsCorrect = !isMCQ && liveStatus === "correct";
 
@@ -432,13 +449,18 @@ export default function Quiz({ user, profile }) {
   // - correct => Skip disabled, Next enabled
   // plus: if out of attempts, let Next be enabled (otherwise user can be trapped)
   const nextDisabled = !isMCQ ? (!liveIsCorrect && !isOutOfAttempts) : false;
-  const skipDisabled = !isMCQ ? (liveIsCorrect ? true : false) : currentIndex === totalQuestions - 1;
+  const skipDisabled = !isMCQ
+    ? liveIsCorrect
+      ? true
+      : false
+    : currentIndex === totalQuestions - 1;
 
   const submitDisabled = isSubmitting;
-  const containerWidth = isMCQ ? "max-w-4xl" : "max-w-5xl";
+  const containerWidth = isMCQ ? "max-w-4xl" : "max-w-8xl";
+
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-10 pb-2 px-4 flex justify-center">
-    <div className={`w-full ${containerWidth} space-y-3`}>
+      <div className={`w-full ${containerWidth} space-y-3`}>
         {/* TOP BAR */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div className="flex-1">
@@ -488,9 +510,12 @@ export default function Quiz({ user, profile }) {
 
         {/* QUESTION */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-2 space-y-3">
-          <h2 className="text-sm md:text-base whitespace-pre-wrap">
-            {currentQuestion.question}
-          </h2>
+          {/* MCQ uses this top question header; LIVE shows prompt inside LiveCheckerQuestion */}
+          {isMCQ ? (
+            <h2 className="text-sm md:text-base whitespace-pre-wrap">
+              {currentQuestion.question}
+            </h2>
+          ) : null}
 
           {isMCQ ? (
             <>
@@ -528,6 +553,19 @@ export default function Quiz({ user, profile }) {
               status={liveStatusObj}
               onRun={() => runLive(currentQuestion)}
               attemptsLeft={attemptsLeft}
+              // ✅ IMPORTANT: store prompt into questions state so Results/Admin show it later
+              onPromptLoaded={(prompt) => {
+                const p = String(prompt || "").trim();
+                if (!p) return;
+
+                setQuestions((prev) =>
+                  prev.map((q) =>
+                    q.id === currentQuestion.id && q.question !== p
+                      ? { ...q, question: p }
+                      : q
+                  )
+                );
+              }}
             />
           )}
         </div>
@@ -572,29 +610,31 @@ export default function Quiz({ user, profile }) {
 
           {/* Right-side status pill */}
           <div className="min-w-[220px] h-[40px] flex items-center justify-end">
-          {!isMCQ && liveStatus === "running" ? (
-            <StatusPill variant="info" text="Running..." />
-          ) : !isMCQ && liveStatus === "correct" ? (
-            <StatusPill variant="success" text="Correct answer!" />
-          ) : !isMCQ && liveStatus === "incorrect" ? (
-            <StatusPill
-              variant="error"
-              text={`Incorrect${liveStatusObj?.message ? `: ${liveStatusObj.message}` : ""}`}
-            />
-          ) : !isMCQ && liveStatus === "error" ? (
-            <StatusPill
-              variant="warning"
-              text={`Error${liveStatusObj?.message ? `: ${liveStatusObj.message}` : ""}`}
-            />
-          ) : (
-            <span className="text-xs text-gray-500"> </span>
-          )}
+            {!isMCQ && liveStatus === "running" ? (
+              <StatusPill variant="info" text="Running..." />
+            ) : !isMCQ && liveStatus === "correct" ? (
+              <StatusPill variant="success" text="Correct answer!" />
+            ) : !isMCQ && liveStatus === "incorrect" ? (
+              <StatusPill
+                variant="error"
+                text={`Incorrect${
+                  liveStatusObj?.message ? `: ${liveStatusObj.message}` : ""
+                }`}
+              />
+            ) : !isMCQ && liveStatus === "error" ? (
+              <StatusPill
+                variant="warning"
+                text={`Error${
+                  liveStatusObj?.message ? `: ${liveStatusObj.message}` : ""
+                }`}
+              />
+            ) : (
+              <span className="text-xs text-gray-500"> </span>
+            )}
           </div>
-
         </div>
       </div>
     </div>
-    
   );
 }
 
