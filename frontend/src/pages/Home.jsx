@@ -74,9 +74,8 @@ export default function Home({ user, profile }) {
   const perTypeSeconds = QUIZ_CONFIG.timePerQuestionSecondsByType || { mcq: 15, live: 20 };
   const defaultPerQuestionSeconds = Number(perTypeSeconds.mcq ?? 15) || 15;
 
-  // Home screen can’t know the exact mix, so show an estimate (mcq default)
+  // Home screen estimate
   const totalSeconds = (Number(QUIZ_CONFIG.questionsPerAttempt) || 0) * defaultPerQuestionSeconds;
-
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
   const formattedTotalTime = `${m}:${s.toString().padStart(2, "0")}`;
@@ -92,6 +91,27 @@ export default function Home({ user, profile }) {
 
   const noTopicsSelected = selectedTopics.length === 0;
   const lastAttemptMs = toMillis(lastResult?.startedAt);
+
+  // last attempt metrics (attempted logic)
+  const lastTotal = Number(lastResult?.totalQuestions ?? 0) || 0;
+  const lastSkipped = Number(lastResult?.skippedCount ?? 0) || 0;
+  const lastAttempted =
+    Number.isFinite(Number(lastResult?.attemptedCount))
+      ? Number(lastResult.attemptedCount)
+      : Math.max(0, lastTotal - lastSkipped);
+
+  const lastCorrect =
+    Number.isFinite(Number(lastResult?.correctCount))
+      ? Number(lastResult.correctCount)
+      : 0;
+
+  const lastPoints = Number.isFinite(Number(lastResult?.pointsScore))
+    ? Number(lastResult.pointsScore)
+    : Number.isFinite(Number(lastResult?.score))
+    ? Number(lastResult.score)
+    : 0;
+
+  const maxPointsForAttempted = lastAttempted * (QUIZ_CONFIG?.scoring?.correct ?? 1);
 
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white flex flex-col items-center justify-start px-4 pt-14 pb-16">
@@ -127,12 +147,21 @@ export default function Home({ user, profile }) {
           ) : (
             <div className="text-xs text-gray-300 space-y-1 m-2">
               <p>
-                Score: <span className="font-semibold text-white">{lastResult.score}</span>
+                Score:{" "}
+                <span className="font-semibold text-white">{lastCorrect}</span>{" "}
+                / {lastAttempted}{" "}
+                <span className="text-[11px] text-gray-400">(attempted)</span>
+              </p>
+
+              <p className="text-gray-400">
+                Points:{" "}
+                <span className="font-semibold text-gray-200">{lastPoints}</span>{" "}
+                / {maxPointsForAttempted}
               </p>
 
               <p>
                 Correct:{" "}
-                <span className="text-green-400 font-semibold">{lastResult.correctCount}</span> · Wrong:{" "}
+                <span className="text-green-400 font-semibold">{lastCorrect}</span> · Wrong:{" "}
                 <span className="text-red-400 font-semibold">{lastResult.wrongCount}</span> · Skipped:{" "}
                 <span className="text-yellow-300 font-semibold">{lastResult.skippedCount}</span>
               </p>
@@ -167,7 +196,6 @@ export default function Home({ user, profile }) {
             ))}
           </div>
 
-          {/* Select all / Deselect all buttons */}
           <div className="mt-3 flex gap-3 justify-center">
             <button
               type="button"

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import { isAdmin } from "../utils/admin";
-import { QUIZ_CONFIG } from "../config"; // ✅ NEW
+import { QUIZ_CONFIG, LIVE_CHECKER_API } from "../config";
 
 // --- helpers ---
 function toJsDate(value) {
@@ -28,7 +28,6 @@ function cap(s) {
   return s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : "";
 }
 
-// Fallback only (keep it, but don’t rely on it as primary)
 function getNameFromEmail(email) {
   if (!email) return "Unknown";
   const base = email.split("@")[0] || "";
@@ -43,7 +42,6 @@ function normalizeTopic(t) {
   return t.toLowerCase().trim();
 }
 
-// ✅ topic labels (single source of truth)
 const TOPIC_LABELS = {
   git: "Git",
   linux: "Linux",
@@ -60,7 +58,6 @@ function formatTopics(topicsArr) {
   return arr.map((t) => TOPIC_LABELS[normalizeTopic(t)] || t).join(", ");
 }
 
-// Prefer stored names from quiz result payload, fallback to email parsing
 function getDisplayNameFromResult(r) {
   const first = (r.userFirstName || "").trim();
   const last = (r.userLastName || "").trim();
@@ -69,16 +66,35 @@ function getDisplayNameFromResult(r) {
   return getNameFromEmail(r.email);
 }
 
-// prefer users/{uid} profile names
 function getProfileDisplayName(uid, profilesByUid, fallbackResult) {
   const p = uid ? profilesByUid?.[uid] : null;
   const first = (p?.firstName || "").trim();
   const last = (p?.lastName || "").trim();
   const full = [first, last].filter(Boolean).join(" ").trim();
   if (full) return full;
-
-  // fallback to what you already had
   return getDisplayNameFromResult(fallbackResult);
+}
+
+function looksLikeId(text) {
+  const t = String(text || "").trim();
+  if (!t) return true;
+  if (t.length <= 5) return true; // q11, k7
+  if (/^[a-z]\d+$/i.test(t)) return true;
+  return false;
+}
+
+async function fetchLivePrompt(apiId) {
+  if (!apiId) return "";
+  try {
+    const res = await fetch(`${LIVE_CHECKER_API}/format/${apiId}`, { method: "POST" });
+    if (!res.ok) return "";
+    const data = await res.json().catch(() => null);
+    const r = data?.result && typeof data.result === "object" ? data.result : data;
+    const prompt = r?.prompt ?? r?.question ?? r?.title ?? r?.name ?? "";
+    return prompt ? String(prompt) : "";
+  } catch {
+    return "";
+  }
 }
 
 export default function AdminPanel({ user }) {
@@ -87,19 +103,15 @@ export default function AdminPanel({ user }) {
   const [profilesByUid, setProfilesByUid] = useState({});
   const [error, setError] = useState(null);
 
-  // filters
-  const [selectedUser, setSelectedUser] = useState("all"); // UID or "all"
+  const [selectedUser, setSelectedUser] = useState("all");
   const [selectedTopic, setSelectedTopic] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
 
-  // sorting
   const [sortField, setSortField] = useState("date");
   const [sortDir, setSortDir] = useState("desc");
 
-  // expanded row
   const [expandedId, setExpandedId] = useState(null);
 
-  // -------- LOAD RESULTS + PROFILES (admin only) ----------
   useEffect(() => {
     if (!user || !isAdmin(user)) {
       setLoading(false);
@@ -108,12 +120,10 @@ export default function AdminPanel({ user }) {
 
     async function load() {
       try {
-        // 1) results
         const snap = await getDocs(collection(db, "quizResults"));
         const all = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
         setResults(all);
 
-        // 2) profiles (users/{uid})
         const userSnap = await getDocs(collection(db, "users"));
         const map = {};
         userSnap.docs.forEach((d) => {
@@ -131,13 +141,11 @@ export default function AdminPanel({ user }) {
     load();
   }, [user]);
 
-  // -------- UNIQUE USERS LIST (UIDs) ----------
   const users = useMemo(() => {
     const list = Array.from(new Set(results.map((r) => r.uid))).filter(Boolean);
     return list.sort();
   }, [results]);
 
-  // map uid -> a "sample result" (for fallback email parsing)
   const sampleResultByUid = useMemo(() => {
     const map = new Map();
     for (const r of results) {
@@ -146,7 +154,47 @@ export default function AdminPanel({ user }) {
     return map;
   }, [results]);
 
-  // -------- FILTER + SORT ----------
+  // ✅ Hydrate prompts when expanded (only for that attempt)
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      if (!expandedId) return;
+      const row = results.find((x) => x.id === expandedId);
+      if (!row?.results?.length) return;
+
+      const liveNeeding = row.results
+        .map((q, idx) => ({ q, idx }))
+        .filter(({ q }) => q?.type === "live" && q?.apiId)
+        .filter(({ q }) => {
+          const qt = String(q?.questionText || "").trim();
+          const apiId = String(q?.apiId || "").trim();
+          if (!qt) return true;
+          if (apiId && qt === apiId) return true;
+          return looksLikeId(qt);
+        });
+
+      if (liveNeeding.length === 0) return;
+
+      const updatedRow = { ...row, results: [...row.results] };
+
+      for (const { q, idx } of liveNeeding) {
+        const prompt = await fetchLivePrompt(q.apiId);
+        if (cancelled) return;
+        if (prompt) {
+          updatedRow.results[idx] = { ...updatedRow.results[idx], questionText: prompt };
+        }
+      }
+
+      setResults((prev) => prev.map((x) => (x.id === expandedId ? updatedRow : x)));
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [expandedId, results]);
+
   const filteredResults = useMemo(() => {
     const now = new Date();
 
@@ -179,8 +227,12 @@ export default function AdminPanel({ user }) {
       let valA, valB;
 
       if (sortField === "score") {
-        valA = a.score ?? 0;
-        valB = b.score ?? 0;
+        const attA = Number(a.attemptedCount ?? Math.max(0, (a.totalQuestions ?? 0) - (a.skippedCount ?? 0)));
+        const attB = Number(b.attemptedCount ?? Math.max(0, (b.totalQuestions ?? 0) - (b.skippedCount ?? 0)));
+        const corrA = Number(a.correctCount ?? 0);
+        const corrB = Number(b.correctCount ?? 0);
+        valA = attA > 0 ? corrA / attA : 0;
+        valB = attB > 0 ? corrB / attB : 0;
       } else if (sortField === "user") {
         const nameA = getProfileDisplayName(a.uid, profilesByUid, a);
         const nameB = getProfileDisplayName(b.uid, profilesByUid, b);
@@ -199,17 +251,8 @@ export default function AdminPanel({ user }) {
     });
 
     return sorted;
-  }, [
-    results,
-    profilesByUid,
-    selectedUser,
-    selectedTopic,
-    dateFilter,
-    sortField,
-    sortDir,
-  ]);
+  }, [results, profilesByUid, selectedUser, selectedTopic, dateFilter, sortField, sortDir]);
 
-  // -------- SORT HANDLER ----------
   const toggleSort = (field) => {
     setSortField((prevField) => {
       if (prevField === field) {
@@ -221,11 +264,8 @@ export default function AdminPanel({ user }) {
     });
   };
 
-  // -------- RENDER --------
   if (loading) {
-    return (
-      <div className="pt-20 text-center text-gray-400">Loading admin data…</div>
-    );
+    return <div className="pt-20 text-center text-gray-400">Loading admin data…</div>;
   }
 
   if (!user || !isAdmin(user)) {
@@ -235,9 +275,7 @@ export default function AdminPanel({ user }) {
   return (
     <div className="max-w-4xl mx-auto pt-16 md:pt-24 pb-10 px-4 space-y-6">
       <h1 className="text-2xl md:text-3xl font-bold">Admin Panel</h1>
-      <p className="text-gray-400 text-sm">
-        View and inspect all trainees&apos; quiz results.
-      </p>
+      <p className="text-gray-400 text-sm">View and inspect all trainees&apos; quiz results.</p>
 
       {error && (
         <div className="text-sm text-red-400 bg-red-950/40 border border-red-800 rounded-md px-3 py-2">
@@ -249,9 +287,7 @@ export default function AdminPanel({ user }) {
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-4">
         {/* User */}
         <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-300">
-            Filter by user
-          </label>
+          <label className="block text-xs md:text-sm font-medium text-gray-300">Filter by user</label>
           <div className="mt-2 grid grid-cols-1">
             <select
               className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white/5 py-1.5 pr-8 pl-3 text-base text-white outline-1 -outline-offset-1 outline-white/10 *:bg-gray-800 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-500 sm:text-sm"
@@ -261,29 +297,19 @@ export default function AdminPanel({ user }) {
               <option value="all">All users</option>
               {users.map((uid) => (
                 <option key={uid} value={uid}>
-                  {getProfileDisplayName(
-                    uid,
-                    profilesByUid,
-                    sampleResultByUid.get(uid)
-                  )}
+                  {getProfileDisplayName(uid, profilesByUid, sampleResultByUid.get(uid))}
                 </option>
               ))}
             </select>
-            <svg
-              viewBox="0 0 16 16"
-              aria-hidden="true"
-              className="pointer-events-none col-start-1 row-start-1 mr-2 h-4 w-4 self-center justify-self-end text-gray-400"
-            >
+            <svg viewBox="0 0 16 16" aria-hidden="true" className="pointer-events-none col-start-1 row-start-1 mr-2 h-4 w-4 self-center justify-self-end text-gray-400">
               <path d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" />
             </svg>
           </div>
         </div>
 
-        {/* Topic buttons */}
+        {/* Topic */}
         <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-300 pt-2">
-            Filter by topic
-          </label>
+          <label className="block text-xs md:text-sm font-medium text-gray-300 pt-2">Filter by topic</label>
           <div className="mt-2 flex flex-wrap gap-2">
             {[
               { label: "All", value: "all" },
@@ -311,12 +337,9 @@ export default function AdminPanel({ user }) {
           </div>
         </div>
 
-        {/* Date buttons */}
+        {/* Date */}
         <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-300 pt-2">
-            Filter by date
-          </label>
-
+          <label className="block text-xs md:text-sm font-medium text-gray-300 pt-2">Filter by date</label>
           <div className="mt-2 flex flex-wrap gap-2">
             {[
               { label: "All time", value: "all" },
@@ -340,10 +363,9 @@ export default function AdminPanel({ user }) {
           </div>
         </div>
 
-        {/* Sort controls */}
+        {/* Sort */}
         <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-800 mt-2">
           <span className="text-xs text-gray-300 mr-2 self-center">Sort by:</span>
-
           {[
             { field: "date", label: "Date" },
             { field: "score", label: "Score" },
@@ -360,8 +382,7 @@ export default function AdminPanel({ user }) {
                   : "border-gray-700 text-gray-300 hover:border-gray-500"
               }`}
             >
-              {btn.label}{" "}
-              {sortField === btn.field ? (sortDir === "asc" ? "↑" : "↓") : ""}
+              {btn.label} {sortField === btn.field ? (sortDir === "asc" ? "↑" : "↓") : ""}
             </button>
           ))}
         </div>
@@ -369,9 +390,7 @@ export default function AdminPanel({ user }) {
 
       {/* RESULTS LIST */}
       <div className="space-y-3">
-        {filteredResults.length === 0 && (
-          <div className="text-gray-400 text-sm">No results found.</div>
-        )}
+        {filteredResults.length === 0 && <div className="text-gray-400 text-sm">No results found.</div>}
 
         {filteredResults.map((r) => {
           const finishedAt = toJsDate(r.finishedAt);
@@ -379,44 +398,41 @@ export default function AdminPanel({ user }) {
           const topicsArr = Array.isArray(r.topics) ? r.topics : [];
           const isExpanded = expandedId === r.id;
 
-          // ✅ match Results page scoring denominator
-          const maxScore =
-            (r.totalQuestions ?? 0) * (QUIZ_CONFIG?.scoring?.correct ?? 1);
+          const attempted =
+            Number(r.attemptedCount ?? Math.max(0, (r.totalQuestions ?? 0) - (r.skippedCount ?? 0))) || 0;
 
-          // ✅ NEW: score color by percentage (works for any question count)
-          const pct = maxScore > 0 ? (Number(r.score ?? 0) / maxScore) : 0;
-          const pctClamped = Math.max(-1, Math.min(1, pct));
+          const correct = Number(r.correctCount ?? 0) || 0;
 
+          const points = Number.isFinite(Number(r.pointsScore))
+            ? Number(r.pointsScore)
+            : Number.isFinite(Number(r.score))
+            ? Number(r.score)
+            : 0;
+
+          const pct = attempted > 0 ? correct / attempted : 0;
           let scoreColor = "text-gray-200";
-          if (pctClamped >= 0.9) scoreColor = "text-green-400";
-          else if (pctClamped >= 0.7) scoreColor = "text-blue-400";
-          else if (pctClamped >= 0.4) scoreColor = "text-yellow-300";
+          if (pct >= 0.9) scoreColor = "text-green-400";
+          else if (pct >= 0.7) scoreColor = "text-blue-400";
+          else if (pct >= 0.4) scoreColor = "text-yellow-300";
           else scoreColor = "text-red-400";
 
           const displayName = getProfileDisplayName(r.uid, profilesByUid, r);
-          const topicLabel = formatTopics(topicsArr); // ✅ NEW
+          const topicLabel = formatTopics(topicsArr);
+
+          const maxPoints = attempted * (QUIZ_CONFIG?.scoring?.correct ?? 1);
 
           return (
-            <div
-              key={r.id}
-              className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden"
-            >
+            <div key={r.id} className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
               <button
                 type="button"
-                onClick={() =>
-                  setExpandedId((prev) => (prev === r.id ? null : r.id))
-                }
+                onClick={() => setExpandedId((prev) => (prev === r.id ? null : r.id))}
                 className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-800/70 transition"
               >
                 <div className="flex items-center">
                   <div>
-                    <div className="font-semibold text-sm md:text-base">
-                      {displayName}
-                    </div>
+                    <div className="font-semibold text-sm md:text-base">{displayName}</div>
                     <div className="text-xs text-gray-400">
-                      {finishedAt
-                        ? finishedAt.toLocaleString()
-                        : "Date unavailable"}
+                      {finishedAt ? finishedAt.toLocaleString() : "Date unavailable"}
                     </div>
                   </div>
 
@@ -427,20 +443,14 @@ export default function AdminPanel({ user }) {
 
                 <div className="text-right text-xs md:text-sm">
                   <div className={`font-bold ${scoreColor}`}>
-                    {r.score} / {maxScore}
+                    {correct} / {attempted}{" "}
+                    <span className="text-[11px] text-gray-400 font-normal">(attempted)</span>
                   </div>
-                  <div className="text-gray-400 text-xs">
-                    {formatDuration(r.durationSeconds)}
-                  </div>
+                  <div className="text-gray-400 text-xs">{formatDuration(r.durationSeconds)}</div>
                 </div>
               </button>
 
-              <div
-                className={`
-                  overflow-hidden transition-all duration-300 ease-out
-                  ${isExpanded ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"}
-                `}
-              >
+              <div className={`overflow-hidden transition-all duration-300 ease-out ${isExpanded ? "max-h-[700px] opacity-100" : "max-h-0 opacity-0"}`}>
                 <div className="border-t border-gray-800 px-4 py-3 space-y-3 text-xs md:text-sm bg-gray-950/40">
                   <div className="flex flex-wrap gap-4">
                     <div>
@@ -449,53 +459,45 @@ export default function AdminPanel({ user }) {
                     </div>
                     <div>
                       <span className="text-gray-400">Started: </span>
-                      <span className="text-gray-200">
-                        {startedAt ? startedAt.toLocaleString() : "—"}
-                      </span>
+                      <span className="text-gray-200">{startedAt ? startedAt.toLocaleString() : "—"}</span>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-4">
                     <div>
                       <span className="text-gray-400">Correct: </span>
-                      <span className="text-green-400 font-semibold">
-                        {r.correctCount}
-                      </span>
+                      <span className="text-green-400 font-semibold">{r.correctCount}</span>
                     </div>
                     <div>
                       <span className="text-gray-400">Wrong: </span>
-                      <span className="text-red-400 font-semibold">
-                        {r.wrongCount}
-                      </span>
+                      <span className="text-red-400 font-semibold">{r.wrongCount}</span>
                     </div>
                     <div>
                       <span className="text-gray-400">Skipped: </span>
-                      <span className="text-yellow-300 font-semibold">
-                        {r.skippedCount}
-                      </span>
+                      <span className="text-yellow-300 font-semibold">{r.skippedCount}</span>
                     </div>
+                    <div>
+                      <span className="text-gray-400">Attempted: </span>
+                      <span className="text-gray-200 font-semibold">{attempted}</span>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-gray-400">
+                    Points: <span className="text-gray-200 font-semibold">{points}</span> / {maxPoints}
                   </div>
 
                   {Array.isArray(r.results) && r.results.length > 0 && (
                     <div className="mt-2">
-                      <div className="text-gray-400 text-xs mb-1">
-                        Question breakdown:
-                      </div>
+                      <div className="text-gray-400 text-xs mb-1">Question breakdown:</div>
                       <div className="max-h-60 overflow-y-auto space-y-1 pr-1">
-                        {r.results.map((qRes, idx) => {
+                        {r.results.map((qRes, idx2) => {
                           const type = qRes.type || "mcq";
-
                           const isSkipped =
                             type === "live"
                               ? !(qRes.attempt || "").trim()
                               : (qRes.selectedOptionIds || []).length === 0;
 
-                          const status = qRes.isCorrect
-                            ? "Correct"
-                            : isSkipped
-                            ? "Skipped"
-                            : "Wrong";
-
+                          const status = qRes.isCorrect ? "Correct" : isSkipped ? "Skipped" : "Wrong";
                           const statusColor = qRes.isCorrect
                             ? "text-green-400"
                             : isSkipped
@@ -503,19 +505,12 @@ export default function AdminPanel({ user }) {
                             : "text-red-400";
 
                           return (
-                            <div
-                              key={qRes.questionId || idx}
-                              className="border border-gray-800 rounded-md px-2 py-1"
-                            >
+                            <div key={qRes.questionId || idx2} className="border border-gray-800 rounded-md px-2 py-1">
                               <div className="flex justify-between gap-3">
                                 <div className="text-[11px] md:text-xs text-gray-200 whitespace-pre-wrap">
-                                {idx + 1}. {qRes.questionText || qRes.apiId || qRes.questionId || "(missing question)"}
+                                  {idx2 + 1}. {qRes.questionText || qRes.apiId || qRes.questionId || "(missing question)"}
                                 </div>
-                                <div
-                                  className={`text-[11px] md:text-xs font-semibold ${statusColor}`}
-                                >
-                                  {status}
-                                </div>
+                                <div className={`text-[11px] md:text-xs font-semibold ${statusColor}`}>{status}</div>
                               </div>
                             </div>
                           );

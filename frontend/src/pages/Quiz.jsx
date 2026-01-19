@@ -1,5 +1,5 @@
 // src/pages/Quiz.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { db } from "../firebase";
 import { addDoc, collection } from "firebase/firestore";
@@ -33,6 +33,9 @@ export default function Quiz({ user, profile }) {
   const [startedAt, setStartedAt] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // track when user entered current question (for skip-time deduction)
+  const [enteredAtMs, setEnteredAtMs] = useState(Date.now());
+
   const perTypeSeconds = QUIZ_CONFIG.timePerQuestionSecondsByType || {
     mcq: 15,
     live: 20,
@@ -56,6 +59,19 @@ export default function Quiz({ user, profile }) {
     return Number(perTypeSeconds[t] ?? 15) || 15;
   };
 
+  // --- helper: fetch prompt for apiId ---
+  const fetchLivePrompt = useCallback(async (apiId) => {
+    if (!apiId) return "";
+    const res = await fetch(`${LIVE_CHECKER_API}/format/${apiId}`, {
+      method: "POST",
+    });
+    if (!res.ok) return "";
+    const data = await res.json().catch(() => null);
+    const r = data?.result && typeof data.result === "object" ? data.result : data;
+    const prompt = r?.prompt ?? r?.question ?? r?.title ?? r?.name ?? "";
+    return prompt ? String(prompt) : "";
+  }, []);
+
   // ---------------- PREPARE QUESTIONS ----------------
   useEffect(() => {
     let cancelled = false;
@@ -75,7 +91,6 @@ export default function Quiz({ user, profile }) {
           pool.push(...liveQs);
         } catch (e) {
           console.error("Failed to load live questions:", e);
-          // quiz still works with non-live topics
         }
       }
 
@@ -102,8 +117,6 @@ export default function Quiz({ user, profile }) {
         const type = q.type || "mcq";
 
         if (type === "live") {
-          // NOTE: question might still be id at this point.
-          // We will replace it when LiveCheckerQuestion loads prompt.
           return { ...q, id: qid, type: "live", options: [] };
         }
 
@@ -136,8 +149,23 @@ export default function Quiz({ user, profile }) {
         (acc, q) => acc + getQuestionSeconds(q),
         0
       );
-
       setGlobalTimeLeft(total);
+
+      // ✅ background preload prompts for ALL live questions (fixes "id in Results/Admin" for skipped/unvisited)
+      const liveOnes = normalized.filter((q) => q.type === "live" && q.apiId);
+      liveOnes.forEach(async (q) => {
+        const prompt = await fetchLivePrompt(q.apiId);
+        if (!prompt || cancelled) return;
+        setQuestions((prev) =>
+          prev.map((x) =>
+            x.id === q.id && (!x.question || String(x.question).trim() === String(x.apiId).trim())
+              ? { ...x, question: prompt }
+              : x
+          )
+        );
+      });
+
+      setEnteredAtMs(Date.now());
     };
 
     build();
@@ -146,10 +174,15 @@ export default function Quiz({ user, profile }) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [topicsKey]);
+  }, [topicsKey, fetchLivePrompt]);
 
   const totalQuestions = questions.length;
   const currentQuestion = questions[currentIndex];
+
+  // reset entered time when question changes
+  useEffect(() => {
+    setEnteredAtMs(Date.now());
+  }, [currentIndex]);
 
   // ---------------- GLOBAL TIMER ----------------
   useEffect(() => {
@@ -228,10 +261,8 @@ export default function Quiz({ user, profile }) {
       }
 
       const data = await res.json();
-
       setLiveAttemptsUsedById((p) => ({ ...p, [qid]: used + 1 }));
 
-      // your backend returns: { result: ... }
       const result = data?.result;
 
       if (result === "Success") {
@@ -267,11 +298,22 @@ export default function Quiz({ user, profile }) {
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const goNext =
-    () => currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
+  const goNext = () =>
+    currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
   const goBack = () => currentIndex > 0 && setCurrentIndex((i) => i - 1);
-  const skipQuestion =
-    () => currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
+
+  // ✅ Skip deducts remaining seconds allocated to THIS question from global remaining
+  const skipQuestion = () => {
+    if (currentIndex >= totalQuestions - 1) return;
+    if (!currentQuestion) return;
+
+    const qSec = getQuestionSeconds(currentQuestion);
+    const elapsed = (Date.now() - enteredAtMs) / 1000;
+    const remainingForThisQ = Math.max(0, Math.ceil(qSec - elapsed));
+
+    setGlobalTimeLeft((t) => Math.max(0, (t ?? 0) - remainingForThisQ));
+    setCurrentIndex((i) => i + 1);
+  };
 
   // ---------------- SUBMIT ----------------
   const handleSubmit = async (reason = "manual") => {
@@ -279,7 +321,19 @@ export default function Quiz({ user, profile }) {
 
     setIsSubmitting(true);
 
-    const totalTimeAllowedInSeconds = questions.reduce(
+    // ✅ final safety net: fetch missing prompts for live questions before saving
+    const patchedQuestions = await Promise.all(
+      questions.map(async (q) => {
+        if (q.type !== "live") return q;
+        const text = (q.question || "").trim();
+        const looksMissing = !text || text === String(q.apiId || "").trim();
+        if (!looksMissing || !q.apiId) return q;
+        const prompt = await fetchLivePrompt(q.apiId);
+        return prompt ? { ...q, question: prompt } : q;
+      })
+    );
+
+    const totalTimeAllowedInSeconds = patchedQuestions.reduce(
       (acc, q) => acc + getQuestionSeconds(q),
       0
     );
@@ -297,7 +351,7 @@ export default function Quiz({ user, profile }) {
       wrongCount = 0,
       skippedCount = 0;
 
-    const perQuestionResults = questions.map((q) => {
+    const perQuestionResults = patchedQuestions.map((q) => {
       const type = q.type || "mcq";
 
       if (type === "live") {
@@ -320,11 +374,7 @@ export default function Quiz({ user, profile }) {
 
         return {
           questionId: q.id,
-          // ✅ now q.question should be the real prompt (because we update it onPromptLoaded)
-          questionText:
-            q.question && String(q.question).trim()
-              ? q.question
-              : q.apiId || q.id,
+          questionText: q.question && String(q.question).trim() ? q.question : q.apiId || q.id,
           type: "live",
           apiId: q.apiId || null,
           attempt,
@@ -365,8 +415,7 @@ export default function Quiz({ user, profile }) {
 
       return {
         questionId: q.id,
-        questionText:
-          q.question && String(q.question).trim() ? q.question : q.apiId || q.id,
+        questionText: q.question && String(q.question).trim() ? q.question : q.id,
         type: "mcq",
         options: q.options,
         correctOptionIds: correctIds,
@@ -376,6 +425,8 @@ export default function Quiz({ user, profile }) {
       };
     });
 
+    const attemptedCount = (patchedQuestions.length || 0) - skippedCount;
+
     const payload = {
       uid: user.uid,
       email: user.email,
@@ -384,7 +435,8 @@ export default function Quiz({ user, profile }) {
 
       topics,
       score,
-      totalQuestions,
+      totalQuestions: patchedQuestions.length,
+      attemptedCount, // ✅ NEW
       correctCount,
       wrongCount,
       skippedCount,
@@ -444,22 +496,14 @@ export default function Quiz({ user, profile }) {
 
   const isLast = currentIndex === totalQuestions - 1;
 
-  // Requirement:
-  // - not correct yet => Skip enabled, Next disabled
-  // - correct => Skip disabled, Next enabled
-  // plus: if out of attempts, let Next be enabled (otherwise user can be trapped)
   const nextDisabled = !isMCQ ? (!liveIsCorrect && !isOutOfAttempts) : false;
-  const skipDisabled = !isMCQ
-    ? liveIsCorrect
-      ? true
-      : false
-    : currentIndex === totalQuestions - 1;
+  const skipDisabled = !isMCQ ? (liveIsCorrect ? true : false) : isLast;
 
   const submitDisabled = isSubmitting;
-  const containerWidth = isMCQ ? "max-w-4xl" : "max-w-8xl";
+  const containerWidth = isMCQ ? "max-w-4xl" : "max-w-6xl";
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-10 pb-2 px-4 flex justify-center">
+    <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-10 pb-6 px-4 flex justify-center">
       <div className={`w-full ${containerWidth} space-y-3`}>
         {/* TOP BAR */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -509,8 +553,7 @@ export default function Quiz({ user, profile }) {
         </div>
 
         {/* QUESTION */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-2 space-y-3">
-          {/* MCQ uses this top question header; LIVE shows prompt inside LiveCheckerQuestion */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 space-y-3">
           {isMCQ ? (
             <h2 className="text-sm md:text-base whitespace-pre-wrap">
               {currentQuestion.question}
@@ -553,7 +596,7 @@ export default function Quiz({ user, profile }) {
               status={liveStatusObj}
               onRun={() => runLive(currentQuestion)}
               attemptsLeft={attemptsLeft}
-              // ✅ IMPORTANT: store prompt into questions state so Results/Admin show it later
+              attemptsLimit={attemptsLimit}
               onPromptLoaded={(prompt) => {
                 const p = String(prompt || "").trim();
                 if (!p) return;
@@ -570,7 +613,7 @@ export default function Quiz({ user, profile }) {
           )}
         </div>
 
-        {/* NAV + STATUS */}
+        {/* NAV */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex gap-2">
             <button
@@ -608,123 +651,9 @@ export default function Quiz({ user, profile }) {
             )}
           </div>
 
-          {/* Right-side status pill */}
-          <div className="min-w-[220px] h-[40px] flex items-center justify-end">
-            {!isMCQ && liveStatus === "running" ? (
-              <StatusPill variant="info" text="Running..." />
-            ) : !isMCQ && liveStatus === "correct" ? (
-              <StatusPill variant="success" text="Correct answer!" />
-            ) : !isMCQ && liveStatus === "incorrect" ? (
-              <StatusPill
-                variant="error"
-                text={`Incorrect${
-                  liveStatusObj?.message ? `: ${liveStatusObj.message}` : ""
-                }`}
-              />
-            ) : !isMCQ && liveStatus === "error" ? (
-              <StatusPill
-                variant="warning"
-                text={`Error${
-                  liveStatusObj?.message ? `: ${liveStatusObj.message}` : ""
-                }`}
-              />
-            ) : (
-              <span className="text-xs text-gray-500"> </span>
-            )}
-          </div>
+          <span className="text-xs text-gray-500" />
         </div>
       </div>
-    </div>
-  );
-}
-
-function StatusPill({ variant = "info", text }) {
-  const styles = {
-    success: "bg-emerald-950/40 border-emerald-900/50 text-emerald-200",
-    error: "bg-rose-950/40 border-rose-900/50 text-rose-200",
-    warning: "bg-amber-950/40 border-amber-900/50 text-amber-200",
-    info: "bg-blue-950/40 border-blue-900/50 text-blue-200",
-  };
-
-  const Icon = () => {
-    if (variant === "success") {
-      return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M20 6L9 17l-5-5"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      );
-    }
-    if (variant === "error") {
-      return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M18 6L6 18M6 6l12 12"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      );
-    }
-    if (variant === "warning") {
-      return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M12 9v5"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-          />
-          <path
-            d="M12 17h.01"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-          <path
-            d="M10.3 4.3h3.4L22 20H2L10.3 4.3z"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinejoin="round"
-          />
-        </svg>
-      );
-    }
-    // info
-    return (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-        <path
-          d="M12 8h.01M11 12h1v5h1"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-        <path
-          d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10z"
-          stroke="currentColor"
-          strokeWidth="2"
-        />
-      </svg>
-    );
-  };
-
-  return (
-    <div
-      className={[
-        "flex items-center gap-2 px-3 py-2 rounded-md border",
-        "text-xs font-mono",
-        styles[variant] || styles.info,
-      ].join(" ")}
-    >
-      <Icon />
-      <span className="whitespace-nowrap">{text}</span>
     </div>
   );
 }

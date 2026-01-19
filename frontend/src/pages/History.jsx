@@ -13,11 +13,9 @@ function formatDuration(seconds) {
 }
 
 function toMillis(ts) {
-  // Firestore Timestamp has .seconds/.nanoseconds or .toDate()
   if (!ts) return null;
   if (ts.toDate) return ts.toDate().getTime();
   if (typeof ts.seconds === "number") return ts.seconds * 1000;
-  // if you ever stored Date objects directly
   if (ts instanceof Date) return ts.getTime();
   return null;
 }
@@ -78,6 +76,18 @@ export default function History({ user }) {
 
               const startedAtMs = toMillis(a.startedAt);
 
+              // ✅ attemptedCount exists on new results; fallback for older ones
+              const attempted =
+                Number.isFinite(Number(a.attemptedCount))
+                  ? Number(a.attemptedCount)
+                  : Math.max(
+                      0,
+                      Number(a.totalQuestions ?? 0) - Number(a.skippedCount ?? 0)
+                    );
+
+              // ✅ score is now "correct"; fallback to correctCount if needed
+              const correct = Number(a.correctCount ?? a.score ?? 0);
+
               return (
                 <div
                   key={a.id}
@@ -88,9 +98,7 @@ export default function History({ user }) {
                       Attempt #{attempts.length - i}
                     </p>
 
-                    <p className="text-xs text-blue-300">
-                      Topics: {topicNames}
-                    </p>
+                    <p className="text-xs text-blue-300">Topics: {topicNames}</p>
 
                     <p className="text-xs text-gray-400">
                       {startedAtMs
@@ -103,7 +111,14 @@ export default function History({ user }) {
                     <p>
                       Score:{" "}
                       <span className="font-semibold text-white">
-                        {a.score}
+                        {correct}
+                      </span>{" "}
+                      /{" "}
+                      <span className="font-semibold text-white">
+                        {attempted}
+                      </span>{" "}
+                      <span className="text-[11px] text-gray-400">
+                        (attempted)
                       </span>
                     </p>
 
@@ -115,9 +130,7 @@ export default function History({ user }) {
                       <span className="text-red-400">{a.wrongCount}</span>
                       {" · "}
                       Skipped:{" "}
-                      <span className="text-yellow-300">
-                        {a.skippedCount}
-                      </span>
+                      <span className="text-yellow-300">{a.skippedCount}</span>
                     </p>
 
                     {a.durationSeconds != null && (

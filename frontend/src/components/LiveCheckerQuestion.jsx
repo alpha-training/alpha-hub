@@ -9,7 +9,7 @@ export default function LiveCheckerQuestion({
   status,
   onRun,
   attemptsLeft, // passed from Quiz
-  onPromptLoaded, // ✅ NEW: tells Quiz the real prompt so it can be saved to Firestore
+  onPromptLoaded, // tells Quiz the real prompt so it can be saved to Firestore
 }) {
   const [formatData, setFormatData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -28,9 +28,7 @@ export default function LiveCheckerQuestion({
       .then(async (res) => {
         if (!res.ok) {
           const t = await res.text().catch(() => "");
-          throw new Error(
-            `Failed to load format (${res.status}) ${t.slice(0, 120)}`
-          );
+          throw new Error(`Failed to load format (${res.status}) ${t.slice(0, 120)}`);
         }
         return res.json();
       })
@@ -39,7 +37,7 @@ export default function LiveCheckerQuestion({
 
         setFormatData(data);
 
-        // ✅ emit prompt up to Quiz so it gets stored in questions state & Firestore
+        // emit prompt up to Quiz so it gets stored in questions state & Firestore
         const r = data?.result && typeof data.result === "object" ? data.result : data;
         const prompt = r?.prompt ?? r?.question ?? r?.title ?? r?.name ?? "";
 
@@ -75,17 +73,13 @@ export default function LiveCheckerQuestion({
     }
   };
 
-  /**
-   * Backend returns: { result: {...} }
-   * unwrap to make access consistent.
-   */
+  // unwrap { result: {...} }
   const fd = useMemo(() => {
     const r = formatData?.result;
     if (r && typeof r === "object") return r;
     return formatData;
   }, [formatData]);
 
-  // ✅ show prompt (actual question text) inside live component
   const promptText = useMemo(() => {
     if (loading) return "";
     if (error) return "";
@@ -96,10 +90,8 @@ export default function LiveCheckerQuestion({
     if (loading) return "Loading...";
     if (error) return error;
 
-    // prefer new backend field
     if (fd?.setup != null) return toText(fd.setup);
 
-    // fallback to older labels/values
     if (Array.isArray(fd?.labels) && Array.isArray(fd?.values)) {
       const lines = [];
       for (let i = 0; i < fd.labels.length; i++) {
@@ -113,7 +105,6 @@ export default function LiveCheckerQuestion({
       return lines.join("\n").trim();
     }
 
-    // fallback
     if (fd?.tables != null) return toText(fd.tables);
     if (fd?.input != null) return toText(fd.input);
     return "";
@@ -127,14 +118,9 @@ export default function LiveCheckerQuestion({
     return "";
   }, [fd, loading, error]);
 
-  const safeAttemptsLeft = Number.isFinite(Number(attemptsLeft))
-    ? Number(attemptsLeft)
-    : null;
+  const safeAttemptsLeft = Number.isFinite(Number(attemptsLeft)) ? Number(attemptsLeft) : null;
+  const isOutOfAttempts = safeAttemptsLeft !== null ? safeAttemptsLeft <= 0 : false;
 
-  const isOutOfAttempts =
-    safeAttemptsLeft !== null ? safeAttemptsLeft <= 0 : false;
-
-  // disable Run when running OR out of attempts
   const runDisabled = status?.status === "running" || isOutOfAttempts;
 
   // Enter runs, Shift+Enter newline
@@ -150,9 +136,25 @@ export default function LiveCheckerQuestion({
       '"Courier New", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace',
   };
 
+  // status pill logic (centralised)
+  const pill = useMemo(() => {
+    const st = status?.status || "idle";
+    if (st === "running") return { variant: "info", text: "Running..." };
+    if (st === "correct") return { variant: "success", text: "Correct answer!" };
+    if (st === "incorrect") {
+      const msg = status?.message ? `: ${status.message}` : "";
+      return { variant: "error", text: `Incorrect${msg}` };
+    }
+    if (st === "error") {
+      const msg = status?.message ? `: ${status.message}` : "";
+      return { variant: "warning", text: `Error${msg}` };
+    }
+    return null;
+  }, [status]);
+
   return (
-    <div className="space-y-2">
-      {/* Prompt (actual question text) */}
+    <div className="space-y-3">
+      {/* Prompt */}
       {promptText ? (
         <div className="text-sm md:text-base text-gray-200 whitespace-pre-wrap">
           {promptText}
@@ -160,17 +162,21 @@ export default function LiveCheckerQuestion({
       ) : null}
 
       {/* Setup + Expected */}
-      <div className="w-full grid md:grid-cols-2 gap-3">
-        <Panel title="Setup" className="min-w-0" titleStyle={monoStyle}>
-          <PreBlock text={setupText} dim={!!error} monoStyle={monoStyle} />
-        </Panel>
+      <div className="w-full grid md:grid-cols-3 gap-3">
+      <Panel title="Setup" className="min-w-0 md:col-span-1" titleStyle={monoStyle}>
+        <PreBlock text={setupText} dim={!!error} monoStyle={monoStyle} />
+      </Panel>
 
-        <Panel title="Expected Result" className="min-w-0" titleStyle={monoStyle}>
-          <PreBlock text={expectedText} monoStyle={monoStyle} />
-        </Panel>
+      <Panel
+        title="Expected Result"
+        className="min-w-0 md:col-span-2"
+        titleStyle={monoStyle}
+      >
+        <PreBlock text={expectedText} monoStyle={monoStyle} />
+      </Panel>
       </div>
 
-      {/* Editor + Run */}
+      {/* Editor */}
       <div className="relative rounded-lg border border-gray-800 bg-gray-950/40 overflow-hidden">
         <div className="absolute left-0 top-0 bottom-0 w-10 bg-black/20 border-r border-gray-800 flex items-start justify-center pt-1.5">
           <span className="text-xs text-gray-500" style={monoStyle}>
@@ -185,27 +191,42 @@ export default function LiveCheckerQuestion({
           placeholder="Enter = Run, Shift+Enter = new line"
           spellCheck={false}
           disabled={isOutOfAttempts}
-          className="w-full pl-12 pr-3 py-1.5 bg-transparent text-xs md:text-sm text-gray-100 outline-none resize-none disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full pl-12 pr-3 py-1.5 bg-transparent text-xs md:text-sm text-gray-100 outline-none resize-none h-10 md:h-11 overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed"
           style={monoStyle}
+          rows={6}
         />
 
-        <div className="flex justify-end px-3 pb-2">
-          <button
-            type="button"
-            onClick={() => {
-              if (!runDisabled) onRun?.();
-            }}
-            disabled={runDisabled}
-            title={isOutOfAttempts ? "No attempts left" : ""}
-            className={[
-              "px-4 py-1.5 rounded-md text-xs font-medium transition",
-              runDisabled
-                ? "bg-gray-800 text-gray-300 cursor-not-allowed opacity-60"
-                : "bg-blue-600 hover:bg-blue-700 text-white",
-            ].join(" ")}
-          >
-            Run
-          </button>
+        {/* Centralised controls */}
+        <div className="flex flex-col items-center justify-center gap-2 px-3 pb-3">
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <button
+              type="button"
+              onClick={() => {
+                if (!runDisabled) onRun?.();
+              }}
+              disabled={runDisabled}
+              title={isOutOfAttempts ? "No attempts left" : ""}
+              className={[
+                "px-5 py-2 rounded-md text-xs font-medium transition",
+                runDisabled
+                  ? "bg-gray-800 text-gray-300 cursor-not-allowed opacity-60"
+                  : "bg-blue-600 hover:bg-blue-700 text-white",
+              ].join(" ")}
+            >
+              Run
+            </button>
+
+            {safeAttemptsLeft !== null ? (
+              <div className="text-xs font-mono text-gray-400">
+                Attempts left:{" "}
+                <span className={`font-semibold ${isOutOfAttempts ? "text-rose-300" : "text-gray-200"}`}>
+                  {safeAttemptsLeft}
+                </span>
+              </div>
+            ) : null}
+          </div>
+
+          {pill ? <StatusPill variant={pill.variant} text={pill.text} /> : null}
         </div>
       </div>
     </div>
@@ -227,13 +248,59 @@ function PreBlock({ text, dim, monoStyle }) {
 
 function Panel({ title, className = "", children, titleStyle }) {
   return (
-    <div
-      className={`rounded-xl border border-gray-800 bg-gray-950/30 p-3 ${className}`}
-    >
+    <div className={`rounded-xl border border-gray-800 bg-gray-950/30 p-3 ${className}`}>
       <div className="text-sm text-gray-200 mb-2" style={titleStyle}>
         {title}
       </div>
       {children}
+    </div>
+  );
+}
+
+function StatusPill({ variant = "info", text }) {
+  const styles = {
+    success: "bg-emerald-950/40 border-emerald-900/50 text-emerald-200",
+    error: "bg-rose-950/40 border-rose-900/50 text-rose-200",
+    warning: "bg-amber-950/40 border-amber-900/50 text-amber-200",
+    info: "bg-blue-950/40 border-blue-900/50 text-blue-200",
+  };
+
+  const Icon = () => {
+    if (variant === "success") {
+      return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    }
+    if (variant === "error") {
+      return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    }
+    if (variant === "warning") {
+      return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M12 9v5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M12 17h.01" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          <path d="M10.3 4.3h3.4L22 20H2L10.3 4.3z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+        </svg>
+      );
+    }
+    return (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M12 8h.01M11 12h1v5h1" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10z" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    );
+  };
+
+  return (
+    <div className={["flex items-center gap-2 px-3 py-2 rounded-md border", "text-xs font-mono", styles[variant] || styles.info].join(" ")}>
+      <Icon />
+      <span className="whitespace-pre-wrap text-center">{text}</span>
     </div>
   );
 }
