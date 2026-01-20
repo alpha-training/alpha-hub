@@ -260,4 +260,3 @@ export default function Home({ user, profile }) {
     </div>
   );
 }
-finsihed
