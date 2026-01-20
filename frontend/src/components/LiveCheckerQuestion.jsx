@@ -1,5 +1,5 @@
 // src/components/LiveCheckerQuestion.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { LIVE_CHECKER_API } from "../config";
 
 export default function LiveCheckerQuestion({
@@ -8,12 +8,31 @@ export default function LiveCheckerQuestion({
   onAttemptChange,
   status,
   onRun,
-  attemptsLeft, // passed from Quiz
+  attemptsLeft, // passed from Quiz (we won't display it here anymore)
   onPromptLoaded, // tells Quiz the real prompt so it can be saved to Firestore
 }) {
   const [formatData, setFormatData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // --- Run button center + pill offset (prevents jump) ---
+  const runRef = useRef(null);
+  const [pillOffsetPx, setPillOffsetPx] = useState(0);
+
+  useEffect(() => {
+    const el = runRef.current;
+    if (!el) return;
+
+    const update = () => {
+      const w = el.getBoundingClientRect().width || 0;
+      // pill starts just to the right of the button (half width + gap)
+      setPillOffsetPx(w / 2 + 12); // 12px gap; use 6 for tighter
+    };
+
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
 
   // ---------------- load format (POST) ----------------
   useEffect(() => {
@@ -28,7 +47,9 @@ export default function LiveCheckerQuestion({
       .then(async (res) => {
         if (!res.ok) {
           const t = await res.text().catch(() => "");
-          throw new Error(`Failed to load format (${res.status}) ${t.slice(0, 120)}`);
+          throw new Error(
+            `Failed to load format (${res.status}) ${t.slice(0, 120)}`
+          );
         }
         return res.json();
       })
@@ -38,7 +59,8 @@ export default function LiveCheckerQuestion({
         setFormatData(data);
 
         // emit prompt up to Quiz so it gets stored in questions state & Firestore
-        const r = data?.result && typeof data.result === "object" ? data.result : data;
+        const r =
+          data?.result && typeof data.result === "object" ? data.result : data;
         const prompt = r?.prompt ?? r?.question ?? r?.title ?? r?.name ?? "";
 
         if (prompt && typeof onPromptLoaded === "function") {
@@ -118,8 +140,12 @@ export default function LiveCheckerQuestion({
     return "";
   }, [fd, loading, error]);
 
-  const safeAttemptsLeft = Number.isFinite(Number(attemptsLeft)) ? Number(attemptsLeft) : null;
-  const isOutOfAttempts = safeAttemptsLeft !== null ? safeAttemptsLeft <= 0 : false;
+  const safeAttemptsLeft = Number.isFinite(Number(attemptsLeft))
+    ? Number(attemptsLeft)
+    : null;
+
+  const isOutOfAttempts =
+    safeAttemptsLeft !== null ? safeAttemptsLeft <= 0 : false;
 
   const runDisabled = status?.status === "running" || isOutOfAttempts;
 
@@ -163,17 +189,21 @@ export default function LiveCheckerQuestion({
 
       {/* Setup + Expected */}
       <div className="w-full grid md:grid-cols-3 gap-3">
-      <Panel title="Setup" className="min-w-0 md:col-span-1" titleStyle={monoStyle}>
-        <PreBlock text={setupText} dim={!!error} monoStyle={monoStyle} />
-      </Panel>
+        <Panel
+          title="Setup"
+          className="min-w-0 md:col-span-1"
+          titleStyle={monoStyle}
+        >
+          <PreBlock text={setupText} dim={!!error} monoStyle={monoStyle} />
+        </Panel>
 
-      <Panel
-        title="Expected Result"
-        className="min-w-0 md:col-span-2"
-        titleStyle={monoStyle}
-      >
-        <PreBlock text={expectedText} monoStyle={monoStyle} />
-      </Panel>
+        <Panel
+          title="Expected Result"
+          className="min-w-0 md:col-span-2"
+          titleStyle={monoStyle}
+        >
+          <PreBlock text={expectedText} monoStyle={monoStyle} />
+        </Panel>
       </div>
 
       {/* Editor */}
@@ -193,40 +223,45 @@ export default function LiveCheckerQuestion({
           disabled={isOutOfAttempts}
           className="w-full pl-12 pr-3 py-1.5 bg-transparent text-xs md:text-sm text-gray-100 outline-none resize-none h-10 md:h-11 overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed"
           style={monoStyle}
-          rows={6}
+          rows={1}
         />
 
-        {/* Centralised controls */}
-        <div className="flex flex-col items-center justify-center gap-2 px-3 pb-3">
-          <div className="flex items-center justify-center gap-3 flex-wrap">
-            <button
-              type="button"
-              onClick={() => {
-                if (!runDisabled) onRun?.();
-              }}
-              disabled={runDisabled}
-              title={isOutOfAttempts ? "No attempts left" : ""}
-              className={[
-                "px-5 py-2 rounded-md text-xs font-medium transition",
-                runDisabled
-                  ? "bg-gray-800 text-gray-300 cursor-not-allowed opacity-60"
-                  : "bg-blue-600 hover:bg-blue-700 text-white",
-              ].join(" ")}
+        {/* Controls: Run fixed at true center, pill appears to the right without moving Run */}
+        <div className="px-3 pb-3 pt-2">
+          <div className="min-h-[36px] relative flex items-center justify-center">
+            <div className="absolute left-1/2 -translate-x-1/2">
+              <button
+                ref={runRef}
+                type="button"
+                onClick={() => {
+                  if (!runDisabled) onRun?.();
+                }}
+                disabled={runDisabled}
+                title={isOutOfAttempts ? "No attempts left" : ""}
+                className={[
+                  "px-5 py-2 rounded-md text-xs font-medium transition",
+                  runDisabled
+                    ? "bg-gray-800 text-gray-300 cursor-not-allowed opacity-60"
+                    : "bg-blue-600 hover:bg-blue-700 text-white",
+                ].join(" ")}
+              >
+                Run
+              </button>
+            </div>
+
+            <div
+              className="absolute left-1/2"
+              style={{ transform: `translateX(${pillOffsetPx}px)` }}
             >
-              Run
-            </button>
-
-            {safeAttemptsLeft !== null ? (
-              <div className="text-xs font-mono text-gray-400">
-                Attempts left:{" "}
-                <span className={`font-semibold ${isOutOfAttempts ? "text-rose-300" : "text-gray-200"}`}>
-                  {safeAttemptsLeft}
-                </span>
-              </div>
-            ) : null}
+              {pill ? (
+                <StatusPill variant={pill.variant} text={pill.text} />
+              ) : (
+                <div className="opacity-0 pointer-events-none">
+                  <StatusPill variant="info" text="placeholder" />
+                </div>
+              )}
+            </div>
           </div>
-
-          {pill ? <StatusPill variant={pill.variant} text={pill.text} /> : null}
         </div>
       </div>
     </div>
@@ -248,7 +283,9 @@ function PreBlock({ text, dim, monoStyle }) {
 
 function Panel({ title, className = "", children, titleStyle }) {
   return (
-    <div className={`rounded-xl border border-gray-800 bg-gray-950/30 p-3 ${className}`}>
+    <div
+      className={`rounded-xl border border-gray-800 bg-gray-950/30 p-3 ${className}`}
+    >
       <div className="text-sm text-gray-200 mb-2" style={titleStyle}>
         {title}
       </div>
@@ -269,36 +306,78 @@ function StatusPill({ variant = "info", text }) {
     if (variant === "success") {
       return (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M20 6L9 17l-5-5"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       );
     }
     if (variant === "error") {
       return (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M18 6L6 18M6 6l12 12"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       );
     }
     if (variant === "warning") {
       return (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path d="M12 9v5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-          <path d="M12 17h.01" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-          <path d="M10.3 4.3h3.4L22 20H2L10.3 4.3z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+          <path
+            d="M12 9v5"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          />
+          <path
+            d="M12 17h.01"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <path
+            d="M10.3 4.3h3.4L22 20H2L10.3 4.3z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
         </svg>
       );
     }
     return (
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-        <path d="M12 8h.01M11 12h1v5h1" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-        <path d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10z" stroke="currentColor" strokeWidth="2" />
+        <path
+          d="M12 8h.01M11 12h1v5h1"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        />
+        <path
+          d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10z"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
       </svg>
     );
   };
 
   return (
-    <div className={["flex items-center gap-2 px-3 py-2 rounded-md border", "text-xs font-mono", styles[variant] || styles.info].join(" ")}>
+    <div
+      className={[
+        "flex items-center gap-2 px-3 py-2 rounded-md border",
+        "text-xs font-mono",
+        styles[variant] || styles.info,
+      ].join(" ")}
+    >
       <Icon />
       <span className="whitespace-pre-wrap text-center">{text}</span>
     </div>
