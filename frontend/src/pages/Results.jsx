@@ -284,17 +284,27 @@ export default function Results() {
                   "bg-yellow-500/10 text-yellow-300 border border-yellow-500/40";
               }
             } else {
-              const picked = q.selectedOptionIds || [];
+              const picked = Array.isArray(q.selectedOptionIds)
+                ? q.selectedOptionIds
+                : null;
+            
               if (q.isCorrect) {
                 badgeText = "Correct";
                 badgeClass =
                   "bg-green-500/10 text-green-400 border border-green-500/40";
-              } else if (picked.length === 0) {
+              } else if (picked && picked.length === 0) {
+                // explicitly skipped (new attempts)
                 badgeText = "Skipped";
                 badgeClass =
                   "bg-yellow-500/10 text-yellow-300 border border-yellow-500/40";
+              } else {
+                // attempted but wrong OR legacy data
+                badgeText = "Wrong";
+                badgeClass =
+                  "bg-red-500/10 text-red-400 border border-red-500/40";
               }
             }
+            
           
             return (
               <div
@@ -343,7 +353,11 @@ export default function Results() {
 /* =================== MCQ REVIEW =================== */
 
 function MCQReview({ question }) {
-  const selected = new Set(question.selectedOptionIds || []);
+  const selected = new Set(
+    Array.isArray(question.selectedOptionIds)
+      ? question.selectedOptionIds
+      : []
+  );
   const correct = new Set(question.correctOptionIds || []);
 
   return (
