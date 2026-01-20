@@ -304,14 +304,41 @@ export default function Quiz({ user, profile }) {
       });
 
       // live from backend
-      if (topics.includes("live")) {
-        try {
-          const liveQs = await fetchLiveQuestions();
-          pool.push(...liveQs);
-        } catch (e) {
-          console.error("Failed to load live questions:", e);
-        }
+if (topics.includes("live")) {
+  try {
+    const liveQs = await fetchLiveQuestions();
+
+    // ✅ SPECIAL RULE: live-only quiz
+    if (isLiveOnly) {
+      const TOTAL = QUIZ_CONFIG.questionsPerAttempt; // 30
+      const LAST_N = 15;
+
+      if (liveQs.length <= TOTAL) {
+        // not enough questions → keep existing behavior
+        pool.push(...liveQs);
+      } else {
+        // 1️⃣ last 15 questions (file order, NOT random)
+        const last15 = liveQs.slice(-LAST_N);
+
+        // 2️⃣ remaining pool (exclude last 15)
+        const remaining = liveQs.slice(0, liveQs.length - LAST_N);
+
+        // 3️⃣ pick 15 random from remaining
+        const random15 = [...remaining]
+          .sort(() => Math.random() - 0.5)
+          .slice(0, LAST_N);
+
+        pool.push(...last15, ...random15);
       }
+    } else {
+      // existing behavior for mixed quizzes
+      pool.push(...liveQs);
+    }
+  } catch (e) {
+    console.error("Failed to load live questions:", e);
+  }
+}
+
 
       // dedupe
       const map = new Map();
