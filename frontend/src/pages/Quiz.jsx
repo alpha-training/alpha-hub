@@ -151,19 +151,30 @@ export default function Quiz({ user, profile }) {
       );
       setGlobalTimeLeft(total);
 
-      // ✅ background preload prompts for ALL live questions (fixes "id in Results/Admin" for skipped/unvisited)
-      const liveOnes = normalized.filter((q) => q.type === "live" && q.apiId);
-      liveOnes.forEach(async (q) => {
+  // ✅ background preload prompts for ALL live questions (single batch update)
+    const liveOnes = normalized.filter((q) => q.type === "live" && q.apiId);
+
+    Promise.all(
+      liveOnes.map(async (q) => {
         const prompt = await fetchLivePrompt(q.apiId);
-        if (!prompt || cancelled) return;
-        setQuestions((prev) =>
-          prev.map((x) =>
-            x.id === q.id && (!x.question || String(x.question).trim() === String(x.apiId).trim())
-              ? { ...x, question: prompt }
-              : x
-          )
-        );
-      });
+        return { id: q.id, apiId: q.apiId, prompt };
+      })
+    ).then((arr) => {
+      if (cancelled) return;
+
+      setQuestions((prev) =>
+        prev.map((x) => {
+          const hit = arr.find((a) => a.id === x.id);
+          if (!hit?.prompt) return x;
+
+          const existing = String(x.question || "").trim();
+          const apiId = String(x.apiId || "").trim();
+          const shouldPatch = !existing || (apiId && existing === apiId);
+
+          return shouldPatch ? { ...x, question: hit.prompt } : x;
+        })
+      );
+    });
 
       setEnteredAtMs(Date.now());
     };
