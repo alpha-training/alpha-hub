@@ -98,9 +98,32 @@ export default function Quiz({ user, profile }) {
     });
     if (!res.ok) return "";
     const data = await res.json().catch(() => null);
-    const r = data?.result && typeof data.result === "object" ? data.result : data;
+    const r =
+      data?.result && typeof data.result === "object" ? data.result : data;
     const prompt = r?.prompt ?? r?.question ?? r?.title ?? r?.name ?? "";
     return prompt ? String(prompt) : "";
+  }, []);
+
+  // ✅ Firestore cannot store undefined anywhere (deep). Replace with null.
+  const sanitizeForFirestore = useCallback((value) => {
+    if (value === undefined) return null;
+    if (value === null) return null;
+
+    if (Array.isArray(value)) {
+      return value.map((v) => sanitizeForFirestore(v));
+    }
+
+    if (value instanceof Date) return value;
+
+    if (typeof value === "object") {
+      const out = {};
+      for (const [k, v] of Object.entries(value)) {
+        out[k] = sanitizeForFirestore(v);
+      }
+      return out;
+    }
+
+    return value;
   }, []);
 
   // ---------------- SUBMIT ----------------
@@ -185,9 +208,13 @@ export default function Quiz({ user, profile }) {
         const picked = selectedById[q.id] || [];
         const pickedSet = new Set(picked);
 
-        let isCorrect = false;
+        // ✅ treat "has any selection" as answered (important for last question submit)
+        const wasAnswered =
+          answeredById[q.id] !== undefined
+            ? Boolean(answeredById[q.id])
+            : picked.length > 0;
 
-        const wasAnswered = Boolean(answeredById[q.id]);
+        let isCorrect = false;
 
         if (!wasAnswered) {
           skippedCount++;
@@ -196,7 +223,7 @@ export default function Quiz({ user, profile }) {
           const exactMatch =
             picked.length === correctIds.length &&
             correctIds.every((id) => pickedSet.has(id));
-        
+
           if (exactMatch) {
             isCorrect = true;
             correctCount++;
@@ -206,7 +233,7 @@ export default function Quiz({ user, profile }) {
             score += QUIZ_CONFIG.scoring.wrong;
           }
         }
-        
+
         return {
           questionId: q.id,
           questionText:
@@ -215,16 +242,15 @@ export default function Quiz({ user, profile }) {
           options: q.options,
           correctOptionIds: correctIds,
           selectedOptionIds: picked,
-          wasAnswered,         
+          wasAnswered,
           isCorrect,
           seconds: getQuestionSeconds(q),
         };
-        
       });
 
       const attemptedCount = (patchedQuestions.length || 0) - skippedCount;
 
-      const payload = {
+      const payload = sanitizeForFirestore({
         uid: user.uid,
         email: user.email,
         userFirstName: profile?.firstName || null,
@@ -246,7 +272,7 @@ export default function Quiz({ user, profile }) {
         liveAttempts: attemptById,
         liveStatuses: liveStatusById,
         liveAttemptsUsed: liveAttemptsUsedById,
-      };
+      });
 
       await addDoc(collection(db, "quizResults"), payload);
 
@@ -272,6 +298,11 @@ export default function Quiz({ user, profile }) {
       profile?.lastName,
       topics,
       navigate,
+
+      // ✅ IMPORTANT: without these, submit uses stale {} and everything looks skipped
+      selectedById,
+      answeredById,
+      sanitizeForFirestore,
     ]
   );
 
@@ -310,41 +341,40 @@ export default function Quiz({ user, profile }) {
       });
 
       // live from backend
-if (topics.includes("live")) {
-  try {
-    const liveQs = await fetchLiveQuestions();
+      if (topics.includes("live")) {
+        try {
+          const liveQs = await fetchLiveQuestions();
 
-    // ✅ SPECIAL RULE: live-only quiz
-    if (isLiveOnly) {
-      const TOTAL = QUIZ_CONFIG.questionsPerAttempt; // 30
-      const LAST_N = 15;
+          // ✅ SPECIAL RULE: live-only quiz
+          if (isLiveOnly) {
+            const TOTAL = QUIZ_CONFIG.questionsPerAttempt; // 30
+            const LAST_N = 15;
 
-      if (liveQs.length <= TOTAL) {
-        // not enough questions → keep existing behavior
-        pool.push(...liveQs);
-      } else {
-        // 1️⃣ last 15 questions (file order, NOT random)
-        const last15 = liveQs.slice(-LAST_N);
+            if (liveQs.length <= TOTAL) {
+              // not enough questions → keep existing behavior
+              pool.push(...liveQs);
+            } else {
+              // 1️⃣ last 15 questions (file order, NOT random)
+              const last15 = liveQs.slice(-LAST_N);
 
-        // 2️⃣ remaining pool (exclude last 15)
-        const remaining = liveQs.slice(0, liveQs.length - LAST_N);
+              // 2️⃣ remaining pool (exclude last 15)
+              const remaining = liveQs.slice(0, liveQs.length - LAST_N);
 
-        // 3️⃣ pick 15 random from remaining
-        const random15 = [...remaining]
-          .sort(() => Math.random() - 0.5)
-          .slice(0, LAST_N);
+              // 3️⃣ pick 15 random from remaining
+              const random15 = [...remaining]
+                .sort(() => Math.random() - 0.5)
+                .slice(0, LAST_N);
 
-        pool.push(...last15, ...random15);
+              pool.push(...last15, ...random15);
+            }
+          } else {
+            // existing behavior for mixed quizzes
+            pool.push(...liveQs);
+          }
+        } catch (e) {
+          console.error("Failed to load live questions:", e);
+        }
       }
-    } else {
-      // existing behavior for mixed quizzes
-      pool.push(...liveQs);
-    }
-  } catch (e) {
-    console.error("Failed to load live questions:", e);
-  }
-}
-
 
       // dedupe
       const map = new Map();
@@ -359,7 +389,10 @@ if (topics.includes("live")) {
       const uniqueQuestions = Array.from(map.values());
       const shuffled = [...uniqueQuestions].sort(() => Math.random() - 0.5);
 
-      const sliceCount = Math.min(QUIZ_CONFIG.questionsPerAttempt, shuffled.length);
+      const sliceCount = Math.min(
+        QUIZ_CONFIG.questionsPerAttempt,
+        shuffled.length
+      );
 
       const normalized = shuffled.slice(0, sliceCount).map((q, qi) => {
         const qid = q.id || `q_${qi}`;
@@ -372,7 +405,7 @@ if (topics.includes("live")) {
         const shuffledOptions = [...(q.options || [])]
           .map((opt, oi) => ({
             id: opt.id || `${qid}_opt_${oi}`,
-            text: opt.text,
+            text: opt.text ?? "", // ✅ avoid undefined in Firestore
             isCorrect: !!opt.isCorrect,
           }))
           .sort(() => Math.random() - 0.5);
@@ -386,6 +419,7 @@ if (topics.includes("live")) {
       setCurrentIndex(0);
 
       setSelectedById({});
+      setAnsweredById({}); // ✅ reset
       setAttemptById({});
       setLiveStatusById({});
       setLiveAttemptsUsedById({});
@@ -628,11 +662,9 @@ if (topics.includes("live")) {
         [currentQuestion.id]: true,
       }));
     }
-  
-    currentIndex < totalQuestions - 1 &&
-      setCurrentIndex((i) => i + 1);
+
+    currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
   };
-  
 
   const goBack = () => currentIndex > 0 && setCurrentIndex((i) => i - 1);
 
@@ -641,24 +673,24 @@ if (topics.includes("live")) {
   const skipQuestion = () => {
     if (currentIndex >= totalQuestions - 1) return;
     if (!currentQuestion) return;
-  
+
     if (currentQuestion.type === "mcq") {
       setAnsweredById((p) => ({
         ...p,
         [currentQuestion.id]: false,
       }));
     }
-  
+
     if (!isLiveOnly) {
       const qSec = getQuestionSeconds(currentQuestion);
       const elapsed = (Date.now() - enteredAtMs) / 1000;
       const remainingForThisQ = Math.max(0, Math.ceil(qSec - elapsed));
       setGlobalTimeLeft((t) => Math.max(0, (t ?? 0) - remainingForThisQ));
     }
-  
+
     setCurrentIndex((i) => i + 1);
   };
-  
+
   // ---------------- RENDER ----------------
   if (!user) return null;
 
@@ -692,17 +724,20 @@ if (topics.includes("live")) {
 
   const isLast = currentIndex === totalQuestions - 1;
 
-  // ✅ timed-out questions should allow Next/Back (don’t trap user)
+  // ✅ MCQ Next disabled until at least one option selected
   const hasMCQSelection =
     isMCQ && (selectedById[currentQuestion.id]?.length ?? 0) > 0;
 
+  // ✅ timed-out questions should allow Next/Back (don’t trap user)
   const nextDisabled = !isMCQ
     ? ((!liveIsCorrect && !isOutOfAttempts && !liveIsTimedOut) || transitionLock)
     : transitionLock || !hasMCQSelection;
 
+    const skipDisabled = transitionLock;
 
-  const skipDisabled = transitionLock || (isLast && isMCQ);
-  const submitDisabled = isSubmitting || transitionLock;
+  // ✅ also disable Submit on last MCQ until selection exists
+  const submitDisabled =
+    isSubmitting || transitionLock;
 
   const containerWidth = isMCQ ? "max-w-4xl" : "max-w-6xl";
 
@@ -825,7 +860,7 @@ if (topics.includes("live")) {
             <button
               onClick={goBack}
               disabled={currentIndex === 0 || isSubmitting || transitionLock}
-              className="px-5 py-2 rounded-md bg-gray-700 disabled:opacity-40"
+              className="px-5 py-2 rounded-md cursor-pointer bg-gray-700 disabled:opacity-40"
             >
               Back
             </button>
@@ -833,7 +868,7 @@ if (topics.includes("live")) {
             <button
               onClick={skipQuestion}
               disabled={skipDisabled || isSubmitting}
-              className="px-5 py-2 rounded-md bg-gray-700 disabled:opacity-40"
+              className="px-5 py-2 rounded-md bg-gray-700 cursor-pointer disabled:opacity-40"
             >
               Skip
             </button>
@@ -842,14 +877,14 @@ if (topics.includes("live")) {
               <button
                 onClick={goNext}
                 disabled={nextDisabled || isSubmitting}
-                className="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 transition disabled:opacity-40 disabled:hover:bg-blue-600"
+                className="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 transition cursor-pointer disabled:opacity-40 disabled:hover:bg-blue-600"
               >
                 Next
               </button>
             ) : (
               <button
                 onClick={() => handleSubmit("manual")}
-                className="px-5 py-2 rounded-md bg-green-600 hover:bg-green-700 transition disabled:opacity-40 disabled:hover:bg-green-600"
+                className="px-5 py-2 rounded-md bg-green-600 hover:bg-green-700 cursor-pointer transition disabled:opacity-40 disabled:hover:bg-green-600"
                 disabled={submitDisabled}
               >
                 {isSubmitting ? "Submitting..." : "Submit Quiz"}

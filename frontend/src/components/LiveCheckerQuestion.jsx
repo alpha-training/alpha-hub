@@ -297,7 +297,7 @@ export default function LiveCheckerQuestion({
                 disabled={runDisabled}
                 title={isOutOfAttempts ? "No attempts left" : ""}
                 className={[
-                  "px-5 py-2 rounded-md text-xs font-medium transition",
+                  "px-5 py-2 rounded-md text-xs cursor-pointer font-medium transition",
                   runDisabled
                     ? "bg-gray-800 text-gray-300 cursor-not-allowed opacity-60"
                     : "bg-blue-600 hover:bg-blue-700 text-white",
