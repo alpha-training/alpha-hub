@@ -1,5 +1,5 @@
 // src/components/LiveCheckerQuestion.jsx
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { LIVE_CHECKER_API } from "../config";
 
 export default function LiveCheckerQuestion({
@@ -8,31 +8,24 @@ export default function LiveCheckerQuestion({
   onAttemptChange,
   status,
   onRun,
-  attemptsLeft, // passed from Quiz (we won't display it here anymore)
-  onPromptLoaded, // tells Quiz the real prompt so it can be saved to Firestore
+
+  // attempts text (we'll show it in the same row as question timer)
+  attemptsLeft,
+  attemptsLimit,
+
+  // per-question timer (driven by Quiz)
+  questionTimeLeft,
+  questionTimeTotal,
+
+  // when Quiz is about to auto-advance (disable UI briefly)
+  locked = false,
+
+  // tells Quiz the real prompt so it can be saved to Firestore
+  onPromptLoaded,
 }) {
   const [formatData, setFormatData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  // --- Run button center + pill offset (prevents jump) ---
-  const runRef = useRef(null);
-  const [pillOffsetPx, setPillOffsetPx] = useState(0);
-
-  useEffect(() => {
-    const el = runRef.current;
-    if (!el) return;
-
-    const update = () => {
-      const w = el.getBoundingClientRect().width || 0;
-      // pill starts just to the right of the button (half width + gap)
-      setPillOffsetPx(w / 2 + 12); // 12px gap; use 6 for tighter
-    };
-
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
 
   // ---------------- load format (POST) ----------------
   useEffect(() => {
@@ -144,10 +137,15 @@ export default function LiveCheckerQuestion({
     ? Number(attemptsLeft)
     : null;
 
+  const safeAttemptsLimit = Number.isFinite(Number(attemptsLimit))
+    ? Number(attemptsLimit)
+    : null;
+
   const isOutOfAttempts =
     safeAttemptsLeft !== null ? safeAttemptsLeft <= 0 : false;
 
-  const runDisabled = status?.status === "running" || isOutOfAttempts;
+  const runDisabled =
+    locked || status?.status === "running" || isOutOfAttempts;
 
   // Enter runs, Shift+Enter newline
   const onEditorKeyDown = (e) => {
@@ -162,21 +160,37 @@ export default function LiveCheckerQuestion({
       '"Courier New", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace',
   };
 
-  // status pill logic (centralised)
+  const formatMmSs = (sec) => {
+    const s = Math.max(0, Number(sec || 0));
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    return `${m}:${String(r).padStart(2, "0")}`;
+  };
+
+  // status pill logic
   const pill = useMemo(() => {
     const st = status?.status || "idle";
+
     if (st === "running") return { variant: "info", text: "Running..." };
-    if (st === "correct") return { variant: "success", text: "Correct answer!" };
+    if (st === "correct") return { variant: "success", text: "Correct!" };
+    if (st === "timeout") return { variant: "warning", text: "Timed out" };
+
     if (st === "incorrect") {
       const msg = status?.message ? `: ${status.message}` : "";
       return { variant: "error", text: `Incorrect${msg}` };
     }
+
     if (st === "error") {
       const msg = status?.message ? `: ${status.message}` : "";
       return { variant: "warning", text: `Error${msg}` };
     }
+
     return null;
   }, [status]);
+
+  const showQuestionTimer = Number.isFinite(Number(questionTimeLeft));
+  const showAttempts =
+    safeAttemptsLeft !== null && safeAttemptsLimit !== null;
 
   return (
     <div className="space-y-3">
@@ -206,6 +220,45 @@ export default function LiveCheckerQuestion({
         </Panel>
       </div>
 
+      {/* Meta row: timer centered, attempts on the right */}
+      {(showQuestionTimer || showAttempts) ? (
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center">
+          <div />
+          <div className="justify-self-center text-xs font-mono text-gray-400">
+            {showQuestionTimer ? (
+              <>
+                Time left:{" "}
+                <span className="text-gray-200 font-semibold">
+                  {formatMmSs(questionTimeLeft)}
+                </span>
+                {/* {Number.isFinite(Number(questionTimeTotal)) ? (
+                  <span className="text-gray-500">
+                    {" "}
+                    / {formatMmSs(questionTimeTotal)}
+                  </span>
+                ) : null} */}
+              </>
+            ) : null}
+          </div>
+
+          <div className="justify-self-end md:text-xs font-mono text-gray-500">
+            {showAttempts ? (
+              <>
+                Attempts left:{" "}
+                <span
+                  className={
+                    safeAttemptsLeft <= 0 ? "text-rose-300" : "text-gray-200"
+                  }
+                >
+                  {safeAttemptsLeft}
+                </span>{" "}
+                / {safeAttemptsLimit}
+              </>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
       {/* Editor */}
       <div className="relative rounded-lg border border-gray-800 bg-gray-950/40 overflow-hidden">
         <div className="absolute left-0 top-0 bottom-0 w-10 bg-black/20 border-r border-gray-800 flex items-start justify-center pt-1.5">
@@ -220,18 +273,19 @@ export default function LiveCheckerQuestion({
           onKeyDown={onEditorKeyDown}
           placeholder="Enter = Run, Shift+Enter = new line"
           spellCheck={false}
-          disabled={isOutOfAttempts}
+          disabled={locked || isOutOfAttempts}
           className="w-full pl-12 pr-3 py-1.5 bg-transparent text-xs md:text-sm text-gray-100 outline-none resize-none h-10 md:h-11 overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed"
           style={monoStyle}
           rows={1}
         />
 
-        {/* Controls: Run fixed at true center, pill appears to the right without moving Run */}
+        {/* Controls row: Run always centered, pill appears close to it without moving it */}
         <div className="px-3 pb-3 pt-2">
-          <div className="min-h-[36px] relative flex items-center justify-center">
-            <div className="absolute left-1/2 -translate-x-1/2">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center">
+            <div />
+
+            <div className="justify-self-center">
               <button
-                ref={runRef}
                 type="button"
                 onClick={() => {
                   if (!runDisabled) onRun?.();
@@ -249,16 +303,11 @@ export default function LiveCheckerQuestion({
               </button>
             </div>
 
-            <div
-              className="absolute left-1/2"
-              style={{ transform: `translateX(${pillOffsetPx}px)` }}
-            >
+            <div className="justify-self-start ml-6 min-h-[36px] flex items-center">
               {pill ? (
                 <StatusPill variant={pill.variant} text={pill.text} />
               ) : (
-                <div className="opacity-0 pointer-events-none">
-                  <StatusPill variant="info" text="placeholder" />
-                </div>
+                <div className="h-[36px]" />
               )}
             </div>
           </div>

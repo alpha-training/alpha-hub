@@ -15,10 +15,13 @@ function looksLikeId(text) {
 async function fetchLivePrompt(apiId) {
   if (!apiId) return "";
   try {
-    const res = await fetch(`${LIVE_CHECKER_API}/format/${apiId}`, { method: "POST" });
+    const res = await fetch(`${LIVE_CHECKER_API}/format/${apiId}`, {
+      method: "POST",
+    });
     if (!res.ok) return "";
     const data = await res.json().catch(() => null);
-    const r = data?.result && typeof data.result === "object" ? data.result : data;
+    const r =
+      data?.result && typeof data.result === "object" ? data.result : data;
     const prompt = r?.prompt ?? r?.question ?? r?.title ?? r?.name ?? "";
     return prompt ? String(prompt) : "";
   } catch {
@@ -70,6 +73,15 @@ export default function Results() {
       0
     );
   }, [correctCountRaw, resultsRaw]);
+
+  // ✅ Timed out count (live questions)
+  const timedOutCount = useMemo(() => {
+    const arr = Array.isArray(resultsRaw) ? resultsRaw : [];
+    return arr.reduce((acc, q) => {
+      const st = q?.type === "live" ? q?.liveStatus?.status : null;
+      return acc + (st === "timeout" ? 1 : 0);
+    }, 0);
+  }, [resultsRaw]);
 
   const attemptedCount = useMemo(() => {
     const n = Number(attemptedCountRaw);
@@ -163,11 +175,15 @@ export default function Results() {
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold mb-2">Quiz Results</h1>
-            <p className="text-base md:text-lg text-white my-2">{performanceMsg}</p>
+            <p className="text-base md:text-lg text-white my-2">
+              {performanceMsg}
+            </p>
 
             <p className="text-sm text-gray-300">
               Score:{" "}
-              <span className="font-semibold text-white">{derivedCorrectCount}</span>
+              <span className="font-semibold text-white">
+                {derivedCorrectCount}
+              </span>
               {" / "}
               <span className="font-semibold text-white">{attemptedCount}</span>{" "}
               <span className="text-xs text-gray-400">(attempted)</span>
@@ -176,25 +192,40 @@ export default function Results() {
             {/* points are still useful to show */}
             <p className="text-xs text-gray-400 mt-1">
               Points:{" "}
-              <span className="font-semibold text-gray-200">{points}</span>{" "}
-              / {maxPointsForAttempted}
+              <span className="font-semibold text-gray-200">{points}</span> /{" "}
+              {maxPointsForAttempted}
             </p>
 
             <p className="text-xs text-gray-400 mt-1">
-              Topics: <span className="font-semibold text-blue-300">{topicNames}</span>
+              Topics:{" "}
+              <span className="font-semibold text-blue-300">{topicNames}</span>
             </p>
 
             <p className="text-xs text-gray-400 mt-1">
-              Correct: <span className="text-green-400">{derivedCorrectCount}</span> · Wrong:{" "}
-              <span className="text-red-400">{wrongCount}</span> · Skipped:{" "}
-              <span className="text-yellow-300">{skippedCount}</span>
+              Correct:{" "}
+              <span className="text-green-400">{derivedCorrectCount}</span> ·
+              Wrong: <span className="text-red-400">{wrongCount}</span> ·
+              Skipped: <span className="text-yellow-300">{skippedCount}</span>
+              {timedOutCount > 0 ? (
+                <>
+                  {" "}
+                  · Timed out:{" "}
+                  <span className="text-amber-300">{timedOutCount}</span>
+                </>
+              ) : null}
             </p>
           </div>
 
           <div className="text-xs text-gray-400 space-y-1 md:text-right">
-            {startedAtLocal && <p>Started: {new Date(startedAtLocal).toLocaleString()}</p>}
-            {finishedAtLocal && <p>Finished: {new Date(finishedAtLocal).toLocaleString()}</p>}
-            {durationSeconds != null && <p>Duration: {formatDuration(durationSeconds)}</p>}
+            {startedAtLocal && (
+              <p>Started: {new Date(startedAtLocal).toLocaleString()}</p>
+            )}
+            {finishedAtLocal && (
+              <p>Finished: {new Date(finishedAtLocal).toLocaleString()}</p>
+            )}
+            {durationSeconds != null && (
+              <p>Duration: {formatDuration(durationSeconds)}</p>
+            )}
           </div>
         </div>
 
@@ -203,7 +234,8 @@ export default function Results() {
           <h2 className="text-lg font-semibold">Review your answers</h2>
 
           <p className="text-xs text-gray-400 mb-2">
-            Green = correct answer. Red = wrong. Yellow = skipped.
+            Green = correct answer. Red = wrong. Yellow = skipped. Amber = timed
+            out.
           </p>
 
           <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
@@ -211,7 +243,26 @@ export default function Results() {
               const type = q.type || "mcq";
 
               if (type === "live") {
-                const isSkipped = !q.attempt || !q.attempt.trim();
+                const liveSt = q?.liveStatus?.status || "idle";
+                const isTimedOut = liveSt === "timeout";
+                const isSkipped = !isTimedOut && !(q.attempt || "").trim();
+
+                const badgeClass = q.isCorrect
+                  ? "bg-green-500/10 text-green-400 border border-green-500/40"
+                  : isTimedOut
+                  ? "bg-amber-500/10 text-amber-300 border border-amber-500/40"
+                  : isSkipped
+                  ? "bg-yellow-500/10 text-yellow-300 border border-yellow-500/40"
+                  : "bg-red-500/10 text-red-400 border border-red-500/40";
+
+                const badgeText = q.isCorrect
+                  ? "Correct"
+                  : isTimedOut
+                  ? "Timed out"
+                  : isSkipped
+                  ? "Skipped"
+                  : "Wrong";
+
                 return (
                   <div
                     key={q.questionId || idx}
@@ -223,22 +274,18 @@ export default function Results() {
                       </p>
 
                       <span
-                        className={`text-[11px] px-2 py-0.5 rounded-full ${
-                          q.isCorrect
-                            ? "bg-green-500/10 text-green-400 border border-green-500/40"
-                            : isSkipped
-                            ? "bg-yellow-500/10 text-yellow-300 border border-yellow-500/40"
-                            : "bg-red-500/10 text-red-400 border border-red-500/40"
-                        }`}
+                        className={`text-[11px] px-2 py-0.5 rounded-full ${badgeClass}`}
                       >
-                        {q.isCorrect ? "Correct" : isSkipped ? "Skipped" : "Wrong"}
+                        {badgeText}
                       </span>
                     </div>
 
                     <div className="space-y-2">
                       <div className="text-xs text-gray-400">Your answer:</div>
                       <div className="rounded-md border border-gray-800 bg-black/20 p-3 text-xs font-mono whitespace-pre-wrap">
-                        {q.attempt && q.attempt.trim() ? q.attempt : "(no answer)"}
+                        {q.attempt && q.attempt.trim()
+                          ? q.attempt
+                          : "(no answer)"}
                       </div>
                     </div>
                   </div>
@@ -268,7 +315,11 @@ export default function Results() {
                           : "bg-red-500/10 text-red-400 border border-red-500/40"
                       }`}
                     >
-                      {q.isCorrect ? "Correct" : selectedSet.size === 0 ? "Skipped" : "Wrong"}
+                      {q.isCorrect
+                        ? "Correct"
+                        : selectedSet.size === 0
+                        ? "Skipped"
+                        : "Wrong"}
                     </span>
                   </div>
 
@@ -280,7 +331,8 @@ export default function Results() {
                       let css =
                         "rounded-md px-3 py-1.5 border text-xs flex items-center gap-2";
                       if (isCorrect)
-                        css += " border-green-500/60 bg-green-500/10 text-green-200";
+                        css +=
+                          " border-green-500/60 bg-green-500/10 text-green-200";
                       else if (isSelected)
                         css += " border-red-500/60 bg-red-500/10 text-red-200";
                       else css += " border-gray-700 bg-gray-900 text-gray-200";

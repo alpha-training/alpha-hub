@@ -1,4 +1,3 @@
-// src/pages/Home.jsx
 import { useEffect, useState, useMemo } from "react";
 import { db } from "../firebase";
 import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
@@ -74,7 +73,7 @@ export default function Home({ user, profile }) {
   const perTypeSeconds = QUIZ_CONFIG.timePerQuestionSecondsByType || { mcq: 15, live: 20 };
   const defaultPerQuestionSeconds = Number(perTypeSeconds.mcq ?? 15) || 15;
 
-  // Home screen estimate
+  // Home screen estimate (overall timer estimate)
   const totalSeconds = (Number(QUIZ_CONFIG.questionsPerAttempt) || 0) * defaultPerQuestionSeconds;
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
@@ -105,6 +104,19 @@ export default function Home({ user, profile }) {
       ? Number(lastResult.correctCount)
       : 0;
 
+  const lastWrong = Number(lastResult?.wrongCount ?? 0) || 0;
+
+  // ✅ Timed out count (new logic). Uses saved timedOutCount if present; otherwise derives from results.
+  const lastTimedOut =
+    Number.isFinite(Number(lastResult?.timedOutCount))
+      ? Number(lastResult.timedOutCount)
+      : Array.isArray(lastResult?.results)
+      ? lastResult.results.reduce(
+          (acc, q) => acc + (q?.type === "live" && q?.liveStatus?.status === "timeout" ? 1 : 0),
+          0
+        )
+      : 0;
+
   const lastPoints = Number.isFinite(Number(lastResult?.pointsScore))
     ? Number(lastResult.pointsScore)
     : Number.isFinite(Number(lastResult?.score))
@@ -128,6 +140,9 @@ export default function Home({ user, profile }) {
             You will have ~ <span className="font-bold">{formattedTotalTime}</span> total time to
             complete the quiz. You may take longer on some questions and less on others — the timer
             counts down overall, not per question.
+            <br />
+            Live Checker questions also have their own per-question timer (and if Live Checker is the
+            only topic selected, the overall timer may be disabled).
             <br />
             Scoring:
             <br />• <span className="text-green-400 font-semibold">+1 point</span> for each correct answer
@@ -162,7 +177,8 @@ export default function Home({ user, profile }) {
               <p>
                 Correct:{" "}
                 <span className="text-green-400 font-semibold">{lastCorrect}</span> · Wrong:{" "}
-                <span className="text-red-400 font-semibold">{lastResult.wrongCount}</span> · Skipped:{" "}
+                <span className="text-red-400 font-semibold">{lastWrong}</span> · Timed out:{" "}
+                <span className="text-blue-300 font-semibold">{lastTimedOut}</span> · Skipped:{" "}
                 <span className="text-yellow-300 font-semibold">{lastResult.skippedCount}</span>
               </p>
 
@@ -244,3 +260,4 @@ export default function Home({ user, profile }) {
     </div>
   );
 }
+finsihed
