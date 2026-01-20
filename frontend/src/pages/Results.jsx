@@ -1,13 +1,14 @@
-// src/pages/Results.jsx
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { QUIZ_CONFIG, TOPICS, LIVE_CHECKER_API } from "../config";
+import LiveCheckerQuestion from "../components/LiveCheckerQuestion";
+
+/* ---------------- helpers ---------------- */
 
 function looksLikeId(text) {
   const t = String(text || "").trim();
   if (!t) return true;
-  if (t.length <= 5) return true; // q11, k7, etc
-  // common patterns like q11, k7, p3, etc.
+  if (t.length <= 5) return true;
   if (/^[a-z]\d+$/i.test(t)) return true;
   return false;
 }
@@ -29,11 +30,14 @@ async function fetchLivePrompt(apiId) {
   }
 }
 
+/* =================== RESULTS =================== */
+
 export default function Results() {
   const navigate = useNavigate();
   const { state } = useLocation();
 
   const [hydratedResults, setHydratedResults] = useState(null);
+  const [reviewIndex, setReviewIndex] = useState(null); // 🔍 review mode
 
   if (!state) {
     return (
@@ -50,10 +54,9 @@ export default function Results() {
   }
 
   const {
-    score: rawScore, // points in Firestore payload (most recent)
-    pointsScore: rawPointsScore, // legacy (if you used it at some point)
+    score: rawScore,
+    pointsScore: rawPointsScore,
     attemptedCount: attemptedCountRaw,
-
     totalQuestions,
     correctCount: correctCountRaw,
     wrongCount,
@@ -65,33 +68,33 @@ export default function Results() {
     topics = [],
   } = state;
 
-  // Prefer correctCount from payload; fallback derive from results
+  /* ---------- derived counts ---------- */
+
   const derivedCorrectCount = useMemo(() => {
     if (Number.isFinite(Number(correctCountRaw))) return Number(correctCountRaw);
-    return (Array.isArray(resultsRaw) ? resultsRaw : []).reduce(
-      (acc, q) => acc + (q?.isCorrect ? 1 : 0),
-      0
-    );
+    return resultsRaw.reduce((a, q) => a + (q?.isCorrect ? 1 : 0), 0);
   }, [correctCountRaw, resultsRaw]);
 
-  // ✅ Timed out count (live questions)
-  const timedOutCount = useMemo(() => {
-    const arr = Array.isArray(resultsRaw) ? resultsRaw : [];
-    return arr.reduce((acc, q) => {
-      const st = q?.type === "live" ? q?.liveStatus?.status : null;
-      return acc + (st === "timeout" ? 1 : 0);
-    }, 0);
-  }, [resultsRaw]);
+  const timedOutCount = useMemo(
+    () =>
+      resultsRaw.reduce(
+        (a, q) =>
+          a + (q?.type === "live" && q?.liveStatus?.status === "timeout" ? 1 : 0),
+        0
+      ),
+    [resultsRaw]
+  );
 
   const attemptedCount = useMemo(() => {
     const n = Number(attemptedCountRaw);
     if (Number.isFinite(n)) return n;
-    const tq = Number(totalQuestions ?? (resultsRaw?.length ?? 0)) || 0;
-    const sk = Number(skippedCount ?? 0) || 0;
-    return Math.max(0, tq - sk);
+    return Math.max(
+      0,
+      Number(totalQuestions ?? resultsRaw.length) -
+        Number(skippedCount ?? 0)
+    );
   }, [attemptedCountRaw, totalQuestions, skippedCount, resultsRaw]);
 
-  // points: prefer pointsScore if present else score
   const points = useMemo(() => {
     const p = Number(rawPointsScore);
     if (Number.isFinite(p)) return p;
@@ -99,59 +102,54 @@ export default function Results() {
     return Number.isFinite(s) ? s : 0;
   }, [rawPointsScore, rawScore]);
 
-  // Performance based on attempted (ignores skipped)
-  const pct = attemptedCount ? (derivedCorrectCount / attemptedCount) * 100 : 0;
+  const pct = attemptedCount
+    ? (derivedCorrectCount / attemptedCount) * 100
+    : 0;
 
-  let performanceMsg = "";
-  if (pct >= 80) performanceMsg = "🔥 Amazing job! You're mastering this.";
-  else if (pct >= 60) performanceMsg = "💪 Great work — keep pushing!";
-  else if (pct >= 40) performanceMsg = "👍 Not bad — steady progress.";
-  else performanceMsg = "📘 Keep practicing — you'll get there!";
-
-  const formatDuration = (seconds) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, "0")}`;
-  };
+  const performanceMsg =
+    pct >= 80
+      ? "🔥 Amazing job! You're mastering this."
+      : pct >= 60
+      ? "💪 Great work — keep pushing!"
+      : pct >= 40
+      ? "👍 Not bad — steady progress."
+      : "📘 Keep practicing — you'll get there!";
 
   const topicNames = topics
     .map((t) => TOPICS.find((x) => x.id === t)?.label || t)
     .join(", ");
 
-  // ✅ Hydrate live question prompts if any look like ids
+  /* ---------- hydrate live prompts ---------- */
+
   useEffect(() => {
     let cancelled = false;
 
     const run = async () => {
-      if (!Array.isArray(resultsRaw) || resultsRaw.length === 0) {
+      if (!resultsRaw.length) {
         setHydratedResults(resultsRaw);
         return;
       }
 
-      const liveNeeding = resultsRaw
-        .map((q, idx) => ({ q, idx }))
-        .filter(({ q }) => q?.type === "live")
-        .filter(({ q }) => {
-          const qt = String(q?.questionText || "").trim();
-          const apiId = String(q?.apiId || "").trim();
-          if (!qt) return !!apiId;
-          if (apiId && qt === apiId) return true;
-          return looksLikeId(qt) && !!apiId;
-        });
+      const needs = resultsRaw
+        .map((q, i) => ({ q, i }))
+        .filter(
+          ({ q }) =>
+            q?.type === "live" &&
+            q?.apiId &&
+            looksLikeId(q?.questionText)
+        );
 
-      if (liveNeeding.length === 0) {
+      if (!needs.length) {
         setHydratedResults(resultsRaw);
         return;
       }
 
       const updated = [...resultsRaw];
 
-      for (const { q, idx } of liveNeeding) {
+      for (const { q, i } of needs) {
         const prompt = await fetchLivePrompt(q.apiId);
         if (cancelled) return;
-        if (prompt) {
-          updated[idx] = { ...updated[idx], questionText: prompt };
-        }
+        if (prompt) updated[i] = { ...q, questionText: prompt };
       }
 
       setHydratedResults(updated);
@@ -165,6 +163,50 @@ export default function Results() {
 
   const displayResults = hydratedResults ?? resultsRaw;
 
+  /* =================== REVIEW MODE =================== */
+
+  if (reviewIndex != null && displayResults[reviewIndex]) {
+    const q = displayResults[reviewIndex];
+
+    return (
+      <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-14 pb-10 px-4 flex justify-center">
+        <div className="w-full max-w-6xl space-y-4">
+          <button
+            onClick={() => setReviewIndex(null)}
+            className="px-4 py-2 rounded-md bg-gray-700 text-sm cursor-pointer"
+          >
+            ← Back to review
+          </button>
+
+          <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-4">
+            {q.type === "live" ? (
+              <LiveCheckerQuestion
+                question={{ ...q, question: q.questionText }}
+                attempt={q.attempt || ""}
+                onAttemptChange={() => {}}
+                status={q.liveStatus}
+                onRun={() => {}}
+                attemptsLeft={0}
+                attemptsLimit={q.attemptsLimit ?? 0}
+                questionTimeLeft={null}
+                questionTimeTotal={null}
+                locked={true}
+                onPromptLoaded={() => {}}
+              />
+            ) : (
+              <MCQReview question={q} />
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* =================== MAIN RESULTS =================== */
+
+  const formatDuration = (s) =>
+    `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
   const maxPointsForAttempted =
     attemptedCount * (QUIZ_CONFIG?.scoring?.correct ?? 1);
 
@@ -172,182 +214,109 @@ export default function Results() {
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-14 md:pt-24 pb-10 px-4 flex justify-center">
       <div className="w-full max-w-4xl space-y-6">
         {/* SUMMARY */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">Quiz Results</h1>
-            <p className="text-base md:text-lg text-white my-2">
-              {performanceMsg}
-            </p>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <h1 className="text-2xl font-bold mb-2">Quiz Results</h1>
+          <p className="text-base mb-2">{performanceMsg}</p>
 
-            <p className="text-sm text-gray-300">
-              Score:{" "}
-              <span className="font-semibold text-white">
-                {derivedCorrectCount}
-              </span>
-              {" / "}
-              <span className="font-semibold text-white">{attemptedCount}</span>{" "}
-              <span className="text-xs text-gray-400">(attempted)</span>
-            </p>
-
-            {/* points are still useful to show */}
-            <p className="text-xs text-gray-400 mt-1">
-              Points:{" "}
-              <span className="font-semibold text-gray-200">{points}</span> /{" "}
-              {maxPointsForAttempted}
-            </p>
-
-            <p className="text-xs text-gray-400 mt-1">
-              Topics:{" "}
-              <span className="font-semibold text-blue-300">{topicNames}</span>
-            </p>
-
-            <p className="text-xs text-gray-400 mt-1">
-              Correct:{" "}
-              <span className="text-green-400">{derivedCorrectCount}</span> ·
-              Wrong: <span className="text-red-400">{wrongCount}</span> ·
-              Skipped: <span className="text-yellow-300">{skippedCount}</span>
-              {timedOutCount > 0 ? (
-                <>
-                  {" "}
-                  · Timed out:{" "}
-                  <span className="text-amber-300">{timedOutCount}</span>
-                </>
-              ) : null}
-            </p>
-          </div>
-
-          <div className="text-xs text-gray-400 space-y-1 md:text-right">
-            {startedAtLocal && (
-              <p>Started: {new Date(startedAtLocal).toLocaleString()}</p>
-            )}
-            {finishedAtLocal && (
-              <p>Finished: {new Date(finishedAtLocal).toLocaleString()}</p>
-            )}
-            {durationSeconds != null && (
-              <p>Duration: {formatDuration(durationSeconds)}</p>
-            )}
-          </div>
-        </div>
-
-        {/* REVIEW */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl px-2 py-4 md:px-5 md:py-5 space-y-4">
-          <h2 className="text-lg font-semibold">Review your answers</h2>
-
-          <p className="text-xs text-gray-400 mb-2">
-            Green = correct answer. Red = wrong. Yellow = skipped. Amber = timed
-            out.
+          <p className="text-sm text-gray-300">
+            Score:{" "}
+            <span className="font-semibold">{derivedCorrectCount}</span> /{" "}
+            <span className="font-semibold">{attemptedCount}</span>
           </p>
 
-          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
-            {displayResults.map((q, idx) => {
-              const type = q.type || "mcq";
+          <p className="text-xs text-gray-400">
+            Points: {points} / {maxPointsForAttempted}
+          </p>
 
-              if (type === "live") {
-                const liveSt = q?.liveStatus?.status || "idle";
-                const isTimedOut = liveSt === "timeout";
-                const isSkipped = !isTimedOut && !(q.attempt || "").trim();
+          <p className="text-xs text-gray-400">
+            Topics: <span className="text-blue-300">{topicNames}</span>
+          </p>
 
-                const badgeClass = q.isCorrect
-                  ? "bg-green-500/10 text-green-400 border border-green-500/40"
-                  : isTimedOut
-                  ? "bg-amber-500/10 text-amber-300 border border-amber-500/40"
-                  : isSkipped
-                  ? "bg-yellow-500/10 text-yellow-300 border border-yellow-500/40"
-                  : "bg-red-500/10 text-red-400 border border-red-500/40";
+          <p className="text-xs text-gray-400">
+            Correct: <span className="text-green-400">{derivedCorrectCount}</span>{" "}
+            · Wrong: <span className="text-red-400">{wrongCount}</span> · Skipped:{" "}
+            <span className="text-yellow-300">{skippedCount}</span>
+            {timedOutCount > 0 && (
+              <>
+                {" "}
+                · Timed out:{" "}
+                <span className="text-amber-300">{timedOutCount}</span>
+              </>
+            )}
+          </p>
 
-                const badgeText = q.isCorrect
-                  ? "Correct"
-                  : isTimedOut
-                  ? "Timed out"
-                  : isSkipped
-                  ? "Skipped"
-                  : "Wrong";
+          <p className="text-xs text-gray-400 mt-2">
+            Duration: {formatDuration(durationSeconds)}
+          </p>
+        </div>
 
-                return (
-                  <div
-                    key={q.questionId || idx}
-                    className="border border-gray-800 rounded-lg px-2 py-3 md:px-3 md:py-3 text-sm bg-gray-950/60"
-                  >
-                    <div className="flex items-center justify-between mb-2 gap-2">
-                      <p className="font-medium">
-                        {idx + 1}. {q.questionText}
-                      </p>
+        {/* REVIEW LIST */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-4 space-y-4">
+          <h2 className="text-lg font-semibold">Review your answers</h2>
+          <p className="text-xs text-gray-500">
+            Click any question to review the full prompt and your answer.
+          </p>
 
-                      <span
-                        className={`text-[11px] px-2 py-0.5 rounded-full ${badgeClass}`}
-                      >
-                        {badgeText}
-                      </span>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="text-xs text-gray-400">Your answer:</div>
-                      <div className="rounded-md border border-gray-800 bg-black/20 p-3 text-xs font-mono whitespace-pre-wrap">
-                        {q.attempt && q.attempt.trim()
-                          ? q.attempt
-                          : "(no answer)"}
-                      </div>
-                    </div>
-                  </div>
-                );
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+          {displayResults.map((q, idx) => {
+            const type = q.type || "mcq";
+          
+            let badgeText = "Wrong";
+            let badgeClass =
+              "bg-red-500/10 text-red-400 border border-red-500/40";
+          
+            if (type === "live") {
+              const st = q?.liveStatus?.status || "idle";
+              const isTimedOut = st === "timeout";
+              const isSkipped = !isTimedOut && !(q.attempt || "").trim();
+          
+              if (q.isCorrect) {
+                badgeText = "Correct";
+                badgeClass =
+                  "bg-green-500/10 text-green-400 border border-green-500/40";
+              } else if (isTimedOut) {
+                badgeText = "Timed out";
+                badgeClass =
+                  "bg-amber-500/10 text-amber-300 border border-amber-500/40";
+              } else if (isSkipped) {
+                badgeText = "Skipped";
+                badgeClass =
+                  "bg-yellow-500/10 text-yellow-300 border border-yellow-500/40";
               }
-
-              const selectedSet = new Set(q.selectedOptionIds || []);
-              const correctSet = new Set(q.correctOptionIds || []);
-              const options = q.options || [];
-
-              return (
-                <div
-                  key={q.questionId || idx}
-                  className="border border-gray-800 rounded-lg px-2 py-3 md:px-3 md:py-3 text-sm bg-gray-950/60"
-                >
-                  <div className="flex items-center justify-between mb-2 gap-2">
-                    <p className="font-medium">
-                      {idx + 1}. {q.questionText}
-                    </p>
-
-                    <span
-                      className={`text-[11px] px-2 py-0.5 rounded-full ${
-                        q.isCorrect
-                          ? "bg-green-500/10 text-green-400 border border-green-500/40"
-                          : selectedSet.size === 0
-                          ? "bg-yellow-500/10 text-yellow-300 border border-yellow-500/40"
-                          : "bg-red-500/10 text-red-400 border border-red-500/40"
-                      }`}
-                    >
-                      {q.isCorrect
-                        ? "Correct"
-                        : selectedSet.size === 0
-                        ? "Skipped"
-                        : "Wrong"}
-                    </span>
-                  </div>
-
-                  <div className="space-y-1">
-                    {options.map((opt) => {
-                      const isSelected = selectedSet.has(opt.id);
-                      const isCorrect = correctSet.has(opt.id);
-
-                      let css =
-                        "rounded-md px-3 py-1.5 border text-xs flex items-center gap-2";
-                      if (isCorrect)
-                        css +=
-                          " border-green-500/60 bg-green-500/10 text-green-200";
-                      else if (isSelected)
-                        css += " border-red-500/60 bg-red-500/10 text-red-200";
-                      else css += " border-gray-700 bg-gray-900 text-gray-200";
-
-                      return (
-                        <div key={opt.id} className={css}>
-                          <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                          <span>{opt.text}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
+            } else {
+              const picked = q.selectedOptionIds || [];
+              if (q.isCorrect) {
+                badgeText = "Correct";
+                badgeClass =
+                  "bg-green-500/10 text-green-400 border border-green-500/40";
+              } else if (picked.length === 0) {
+                badgeText = "Skipped";
+                badgeClass =
+                  "bg-yellow-500/10 text-yellow-300 border border-yellow-500/40";
+              }
+            }
+          
+            return (
+              <div
+                key={q.questionId || idx}
+                onClick={() => setReviewIndex(idx)}
+                className="cursor-pointer hover:border-gray-600 transition border border-gray-800 rounded-lg px-3 py-3 bg-gray-950/60"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-medium truncate">
+                    {idx + 1}. {q.questionText}
+                  </p>
+          
+                  <span
+                    className={`text-[11px] px-2 py-0.5 rounded-full whitespace-nowrap ${badgeClass}`}
+                  >
+                    {badgeText}
+                  </span>
                 </div>
-              );
-            })}
+              </div>
+            );
+          })}
+          
           </div>
         </div>
 
@@ -355,17 +324,52 @@ export default function Results() {
         <div className="flex justify-end gap-2">
           <button
             onClick={() => navigate("/quiz", { state: { topics } })}
-            className="px-2 md:px-4 py-2 rounded-md bg-blue-600 text-white text-sm"
+            className="px-4 py-2 rounded-md bg-blue-600 text-sm"
           >
             Retake with same topics
           </button>
           <button
             onClick={() => navigate("/home")}
-            className="px-2 md:px-4 py-2 rounded-md bg-white text-black text-sm"
+            className="px-4 py-2 rounded-md bg-white text-black text-sm"
           >
             Back to home
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* =================== MCQ REVIEW =================== */
+
+function MCQReview({ question }) {
+  const selected = new Set(question.selectedOptionIds || []);
+  const correct = new Set(question.correctOptionIds || []);
+
+  return (
+    <div className="space-y-3">
+      <h2 className="text-sm md:text-base whitespace-pre-wrap">
+        {question.questionText}
+      </h2>
+
+      <div className="space-y-2">
+        {(question.options || []).map((opt) => {
+          const isCorrect = correct.has(opt.id);
+          const isSelected = selected.has(opt.id);
+
+          let css = "rounded-md px-3 py-2 border text-xs";
+          if (isCorrect)
+            css += " border-green-500/60 bg-green-500/10 text-green-200";
+          else if (isSelected)
+            css += " border-red-500/60 bg-red-500/10 text-red-200";
+          else css += " border-gray-700 bg-gray-900 text-gray-300";
+
+          return (
+            <div key={opt.id} className={css}>
+              {opt.text}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

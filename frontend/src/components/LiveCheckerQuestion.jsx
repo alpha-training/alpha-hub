@@ -144,8 +144,12 @@ export default function LiveCheckerQuestion({
   const isOutOfAttempts =
     safeAttemptsLeft !== null ? safeAttemptsLeft <= 0 : false;
 
-  const runDisabled =
-    locked || status?.status === "running" || isOutOfAttempts;
+    const runDisabled =
+    locked ||
+    status?.status === "running" ||
+    isOutOfAttempts ||
+    typeof onRun !== "function";
+  
 
   // Enter runs, Shift+Enter newline
   const onEditorKeyDown = (e) => {
