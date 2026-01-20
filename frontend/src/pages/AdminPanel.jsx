@@ -501,7 +501,7 @@ export default function AdminPanel({ user }) {
                 onClick={() =>
                   setExpandedId((prev) => (prev === r.id ? null : r.id))
                 }
-                className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-800/70 transition"
+                className="w-full cursor-pointer flex items-center justify-between px-4 py-3 text-left hover:bg-gray-800/70 transition"
               >
                 <div className="flex items-center">
                   <div>
