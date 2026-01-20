@@ -86,10 +86,13 @@ function looksLikeId(text) {
 async function fetchLivePrompt(apiId) {
   if (!apiId) return "";
   try {
-    const res = await fetch(`${LIVE_CHECKER_API}/format/${apiId}`, { method: "POST" });
+    const res = await fetch(`${LIVE_CHECKER_API}/format/${apiId}`, {
+      method: "POST",
+    });
     if (!res.ok) return "";
     const data = await res.json().catch(() => null);
-    const r = data?.result && typeof data.result === "object" ? data.result : data;
+    const r =
+      data?.result && typeof data.result === "object" ? data.result : data;
     const prompt = r?.prompt ?? r?.question ?? r?.title ?? r?.name ?? "";
     return prompt ? String(prompt) : "";
   } catch {
@@ -182,11 +185,16 @@ export default function AdminPanel({ user }) {
         const prompt = await fetchLivePrompt(q.apiId);
         if (cancelled) return;
         if (prompt) {
-          updatedRow.results[idx] = { ...updatedRow.results[idx], questionText: prompt };
+          updatedRow.results[idx] = {
+            ...updatedRow.results[idx],
+            questionText: prompt,
+          };
         }
       }
 
-      setResults((prev) => prev.map((x) => (x.id === expandedId ? updatedRow : x)));
+      setResults((prev) =>
+        prev.map((x) => (x.id === expandedId ? updatedRow : x))
+      );
     };
 
     run();
@@ -227,8 +235,14 @@ export default function AdminPanel({ user }) {
       let valA, valB;
 
       if (sortField === "score") {
-        const attA = Number(a.attemptedCount ?? Math.max(0, (a.totalQuestions ?? 0) - (a.skippedCount ?? 0)));
-        const attB = Number(b.attemptedCount ?? Math.max(0, (b.totalQuestions ?? 0) - (b.skippedCount ?? 0)));
+        const attA = Number(
+          a.attemptedCount ??
+            Math.max(0, (a.totalQuestions ?? 0) - (a.skippedCount ?? 0))
+        );
+        const attB = Number(
+          b.attemptedCount ??
+            Math.max(0, (b.totalQuestions ?? 0) - (b.skippedCount ?? 0))
+        );
         const corrA = Number(a.correctCount ?? 0);
         const corrB = Number(b.correctCount ?? 0);
         valA = attA > 0 ? corrA / attA : 0;
@@ -251,7 +265,15 @@ export default function AdminPanel({ user }) {
     });
 
     return sorted;
-  }, [results, profilesByUid, selectedUser, selectedTopic, dateFilter, sortField, sortDir]);
+  }, [
+    results,
+    profilesByUid,
+    selectedUser,
+    selectedTopic,
+    dateFilter,
+    sortField,
+    sortDir,
+  ]);
 
   const toggleSort = (field) => {
     setSortField((prevField) => {
@@ -265,7 +287,11 @@ export default function AdminPanel({ user }) {
   };
 
   if (loading) {
-    return <div className="pt-20 text-center text-gray-400">Loading admin data…</div>;
+    return (
+      <div className="pt-20 text-center text-gray-400">
+        Loading admin data…
+      </div>
+    );
   }
 
   if (!user || !isAdmin(user)) {
@@ -275,7 +301,9 @@ export default function AdminPanel({ user }) {
   return (
     <div className="max-w-4xl mx-auto pt-16 md:pt-24 pb-10 px-4 space-y-6">
       <h1 className="text-2xl md:text-3xl font-bold">Admin Panel</h1>
-      <p className="text-gray-400 text-sm">View and inspect all trainees&apos; quiz results.</p>
+      <p className="text-gray-400 text-sm">
+        View and inspect all trainees&apos; quiz results.
+      </p>
 
       {error && (
         <div className="text-sm text-red-400 bg-red-950/40 border border-red-800 rounded-md px-3 py-2">
@@ -287,7 +315,9 @@ export default function AdminPanel({ user }) {
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-4">
         {/* User */}
         <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-300">Filter by user</label>
+          <label className="block text-xs md:text-sm font-medium text-gray-300">
+            Filter by user
+          </label>
           <div className="mt-2 grid grid-cols-1">
             <select
               className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white/5 py-1.5 pr-8 pl-3 text-base text-white outline-1 -outline-offset-1 outline-white/10 *:bg-gray-800 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-500 sm:text-sm"
@@ -297,11 +327,19 @@ export default function AdminPanel({ user }) {
               <option value="all">All users</option>
               {users.map((uid) => (
                 <option key={uid} value={uid}>
-                  {getProfileDisplayName(uid, profilesByUid, sampleResultByUid.get(uid))}
+                  {getProfileDisplayName(
+                    uid,
+                    profilesByUid,
+                    sampleResultByUid.get(uid)
+                  )}
                 </option>
               ))}
             </select>
-            <svg viewBox="0 0 16 16" aria-hidden="true" className="pointer-events-none col-start-1 row-start-1 mr-2 h-4 w-4 self-center justify-self-end text-gray-400">
+            <svg
+              viewBox="0 0 16 16"
+              aria-hidden="true"
+              className="pointer-events-none col-start-1 row-start-1 mr-2 h-4 w-4 self-center justify-self-end text-gray-400"
+            >
               <path d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" />
             </svg>
           </div>
@@ -309,7 +347,9 @@ export default function AdminPanel({ user }) {
 
         {/* Topic */}
         <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-300 pt-2">Filter by topic</label>
+          <label className="block text-xs md:text-sm font-medium text-gray-300 pt-2">
+            Filter by topic
+          </label>
           <div className="mt-2 flex flex-wrap gap-2">
             {[
               { label: "All", value: "all" },
@@ -339,7 +379,9 @@ export default function AdminPanel({ user }) {
 
         {/* Date */}
         <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-300 pt-2">Filter by date</label>
+          <label className="block text-xs md:text-sm font-medium text-gray-300 pt-2">
+            Filter by date
+          </label>
           <div className="mt-2 flex flex-wrap gap-2">
             {[
               { label: "All time", value: "all" },
@@ -365,7 +407,9 @@ export default function AdminPanel({ user }) {
 
         {/* Sort */}
         <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-800 mt-2">
-          <span className="text-xs text-gray-300 mr-2 self-center">Sort by:</span>
+          <span className="text-xs text-gray-300 mr-2 self-center">
+            Sort by:
+          </span>
           {[
             { field: "date", label: "Date" },
             { field: "score", label: "Score" },
@@ -382,7 +426,12 @@ export default function AdminPanel({ user }) {
                   : "border-gray-700 text-gray-300 hover:border-gray-500"
               }`}
             >
-              {btn.label} {sortField === btn.field ? (sortDir === "asc" ? "↑" : "↓") : ""}
+              {btn.label}{" "}
+              {sortField === btn.field
+                ? sortDir === "asc"
+                  ? "↑"
+                  : "↓"
+                : ""}
             </button>
           ))}
         </div>
@@ -390,7 +439,9 @@ export default function AdminPanel({ user }) {
 
       {/* RESULTS LIST */}
       <div className="space-y-3">
-        {filteredResults.length === 0 && <div className="text-gray-400 text-sm">No results found.</div>}
+        {filteredResults.length === 0 && (
+          <div className="text-gray-400 text-sm">No results found.</div>
+        )}
 
         {filteredResults.map((r) => {
           const finishedAt = toJsDate(r.finishedAt);
@@ -399,7 +450,13 @@ export default function AdminPanel({ user }) {
           const isExpanded = expandedId === r.id;
 
           const attempted =
-            Number(r.attemptedCount ?? Math.max(0, (r.totalQuestions ?? 0) - (r.skippedCount ?? 0))) || 0;
+            Number(
+              r.attemptedCount ??
+                Math.max(
+                  0,
+                  (r.totalQuestions ?? 0) - (r.skippedCount ?? 0)
+                )
+            ) || 0;
 
           const correct = Number(r.correctCount ?? 0) || 0;
 
@@ -421,18 +478,40 @@ export default function AdminPanel({ user }) {
 
           const maxPoints = attempted * (QUIZ_CONFIG?.scoring?.correct ?? 1);
 
+          // ✅ timed out count for this attempt
+          const timedOutCount = Array.isArray(r.results)
+            ? r.results.reduce(
+                (acc, q) =>
+                  acc +
+                  (q?.type === "live" &&
+                  q?.liveStatus?.status === "timeout"
+                    ? 1
+                    : 0),
+                0
+              )
+            : 0;
+
           return (
-            <div key={r.id} className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
+            <div
+              key={r.id}
+              className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden"
+            >
               <button
                 type="button"
-                onClick={() => setExpandedId((prev) => (prev === r.id ? null : r.id))}
+                onClick={() =>
+                  setExpandedId((prev) => (prev === r.id ? null : r.id))
+                }
                 className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-800/70 transition"
               >
                 <div className="flex items-center">
                   <div>
-                    <div className="font-semibold text-sm md:text-base">{displayName}</div>
+                    <div className="font-semibold text-sm md:text-base">
+                      {displayName}
+                    </div>
                     <div className="text-xs text-gray-400">
-                      {finishedAt ? finishedAt.toLocaleString() : "Date unavailable"}
+                      {finishedAt
+                        ? finishedAt.toLocaleString()
+                        : "Date unavailable"}
                     </div>
                   </div>
 
@@ -444,13 +523,21 @@ export default function AdminPanel({ user }) {
                 <div className="text-right text-xs md:text-sm">
                   <div className={`font-bold ${scoreColor}`}>
                     {correct} / {attempted}{" "}
-                    <span className="text-[11px] text-gray-400 font-normal">(attempted)</span>
+                    <span className="text-[11px] text-gray-400 font-normal">
+                      (attempted)
+                    </span>
                   </div>
-                  <div className="text-gray-400 text-xs">{formatDuration(r.durationSeconds)}</div>
+                  <div className="text-gray-400 text-xs">
+                    {formatDuration(r.durationSeconds)}
+                  </div>
                 </div>
               </button>
 
-              <div className={`overflow-hidden transition-all duration-300 ease-out ${isExpanded ? "max-h-[700px] opacity-100" : "max-h-0 opacity-0"}`}>
+              <div
+                className={`overflow-hidden transition-all duration-300 ease-out ${
+                  isExpanded ? "max-h-[700px] opacity-100" : "max-h-0 opacity-0"
+                }`}
+              >
                 <div className="border-t border-gray-800 px-4 py-3 space-y-3 text-xs md:text-sm bg-gray-950/40">
                   <div className="flex flex-wrap gap-4">
                     <div>
@@ -459,58 +546,107 @@ export default function AdminPanel({ user }) {
                     </div>
                     <div>
                       <span className="text-gray-400">Started: </span>
-                      <span className="text-gray-200">{startedAt ? startedAt.toLocaleString() : "—"}</span>
+                      <span className="text-gray-200">
+                        {startedAt ? startedAt.toLocaleString() : "—"}
+                      </span>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-4">
                     <div>
                       <span className="text-gray-400">Correct: </span>
-                      <span className="text-green-400 font-semibold">{r.correctCount}</span>
+                      <span className="text-green-400 font-semibold">
+                        {r.correctCount}
+                      </span>
                     </div>
                     <div>
                       <span className="text-gray-400">Wrong: </span>
-                      <span className="text-red-400 font-semibold">{r.wrongCount}</span>
+                      <span className="text-red-400 font-semibold">
+                        {r.wrongCount}
+                      </span>
                     </div>
                     <div>
                       <span className="text-gray-400">Skipped: </span>
-                      <span className="text-yellow-300 font-semibold">{r.skippedCount}</span>
+                      <span className="text-yellow-300 font-semibold">
+                        {r.skippedCount}
+                      </span>
                     </div>
                     <div>
                       <span className="text-gray-400">Attempted: </span>
-                      <span className="text-gray-200 font-semibold">{attempted}</span>
+                      <span className="text-gray-200 font-semibold">
+                        {attempted}
+                      </span>
                     </div>
+                    {timedOutCount > 0 ? (
+                      <div>
+                        <span className="text-gray-400">Timed out: </span>
+                        <span className="text-amber-300 font-semibold">
+                          {timedOutCount}
+                        </span>
+                      </div>
+                    ) : null}
                   </div>
 
                   <div className="text-xs text-gray-400">
-                    Points: <span className="text-gray-200 font-semibold">{points}</span> / {maxPoints}
+                    Points:{" "}
+                    <span className="text-gray-200 font-semibold">
+                      {points}
+                    </span>{" "}
+                    / {maxPoints}
                   </div>
 
                   {Array.isArray(r.results) && r.results.length > 0 && (
                     <div className="mt-2">
-                      <div className="text-gray-400 text-xs mb-1">Question breakdown:</div>
+                      <div className="text-gray-400 text-xs mb-1">
+                        Question breakdown:
+                      </div>
                       <div className="max-h-60 overflow-y-auto space-y-1 pr-1">
                         {r.results.map((qRes, idx2) => {
                           const type = qRes.type || "mcq";
-                          const isSkipped =
-                            type === "live"
-                              ? !(qRes.attempt || "").trim()
-                              : (qRes.selectedOptionIds || []).length === 0;
+                          const liveTimedOut =
+                            type === "live" &&
+                            qRes?.liveStatus?.status === "timeout";
 
-                          const status = qRes.isCorrect ? "Correct" : isSkipped ? "Skipped" : "Wrong";
+                          const isSkipped =
+                            !liveTimedOut &&
+                            (type === "live"
+                              ? !(qRes.attempt || "").trim()
+                              : (qRes.selectedOptionIds || []).length === 0);
+
+                          const status = qRes.isCorrect
+                            ? "Correct"
+                            : liveTimedOut
+                            ? "Timed out"
+                            : isSkipped
+                            ? "Skipped"
+                            : "Wrong";
+
                           const statusColor = qRes.isCorrect
                             ? "text-green-400"
+                            : liveTimedOut
+                            ? "text-amber-300"
                             : isSkipped
                             ? "text-yellow-300"
                             : "text-red-400";
 
                           return (
-                            <div key={qRes.questionId || idx2} className="border border-gray-800 rounded-md px-2 py-1">
+                            <div
+                              key={qRes.questionId || idx2}
+                              className="border border-gray-800 rounded-md px-2 py-1"
+                            >
                               <div className="flex justify-between gap-3">
                                 <div className="text-[11px] md:text-xs text-gray-200 whitespace-pre-wrap">
-                                  {idx2 + 1}. {qRes.questionText || qRes.apiId || qRes.questionId || "(missing question)"}
+                                  {idx2 + 1}.{" "}
+                                  {qRes.questionText ||
+                                    qRes.apiId ||
+                                    qRes.questionId ||
+                                    "(missing question)"}
                                 </div>
-                                <div className={`text-[11px] md:text-xs font-semibold ${statusColor}`}>{status}</div>
+                                <div
+                                  className={`text-[11px] md:text-xs font-semibold ${statusColor}`}
+                                >
+                                  {status}
+                                </div>
                               </div>
                             </div>
                           );

@@ -1,5 +1,5 @@
 // src/pages/Quiz.jsx
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { db } from "../firebase";
 import { addDoc, collection } from "firebase/firestore";
@@ -16,6 +16,12 @@ export default function Quiz({ user, profile }) {
     [location.state?.topics]
   );
   const topicsKey = useMemo(() => topics.join("|"), [topics]);
+
+  // ✅ If quiz is ONLY live-checker -> hide/disable global timer
+  const isLiveOnly = useMemo(() => {
+    const t = (topics || []).map(String);
+    return t.length === 1 && t[0] === "live";
+  }, [topics]);
 
   useEffect(() => {
     if (!user) navigate("/", { replace: true });
@@ -35,6 +41,22 @@ export default function Quiz({ user, profile }) {
 
   // track when user entered current question (for skip-time deduction)
   const [enteredAtMs, setEnteredAtMs] = useState(Date.now());
+
+  // ✅ per-live-question timer state (by questionId)
+  const [questionTimeLeftById, setQuestionTimeLeftById] = useState({});
+
+  // ✅ lock used only for brief auto-advance transitions (prevents “stuck”)
+  const [transitionLock, setTransitionLock] = useState(false);
+
+  // refs to avoid stale closures in timeouts
+  const currentIndexRef = useRef(currentIndex);
+  const questionsRef = useRef(questions);
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+  useEffect(() => {
+    questionsRef.current = questions;
+  }, [questions]);
 
   const perTypeSeconds = QUIZ_CONFIG.timePerQuestionSecondsByType || {
     mcq: 15,
@@ -59,6 +81,13 @@ export default function Quiz({ user, profile }) {
     return Number(perTypeSeconds[t] ?? 15) || 15;
   };
 
+  const formatTime = (sec) => {
+    const safe = Number.isFinite(sec) ? sec : 0;
+    const m = Math.floor(safe / 60);
+    const s = safe % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
   // --- helper: fetch prompt for apiId ---
   const fetchLivePrompt = useCallback(async (apiId) => {
     if (!apiId) return "";
@@ -71,6 +100,196 @@ export default function Quiz({ user, profile }) {
     const prompt = r?.prompt ?? r?.question ?? r?.title ?? r?.name ?? "";
     return prompt ? String(prompt) : "";
   }, []);
+
+  // ---------------- SUBMIT ----------------
+  const handleSubmit = useCallback(
+    async (reason = "manual") => {
+      if (isSubmitting || !questions.length || !user || !startedAt) return;
+
+      setIsSubmitting(true);
+
+      // ✅ final safety net: fetch missing prompts for live questions before saving
+      const patchedQuestions = await Promise.all(
+        questions.map(async (q) => {
+          if (q.type !== "live") return q;
+          const text = (q.question || "").trim();
+          const looksMissing = !text || text === String(q.apiId || "").trim();
+          if (!looksMissing || !q.apiId) return q;
+          const prompt = await fetchLivePrompt(q.apiId);
+          return prompt ? { ...q, question: prompt } : q;
+        })
+      );
+
+      const totalTimeAllowedInSeconds = patchedQuestions.reduce(
+        (acc, q) => acc + getQuestionSeconds(q),
+        0
+      );
+
+      const finishedAt =
+        reason === "timeout"
+          ? new Date(startedAt.getTime() + totalTimeAllowedInSeconds * 1000)
+          : new Date();
+
+      let durationSeconds = Math.round((finishedAt - startedAt) / 1000);
+      durationSeconds = Math.min(durationSeconds, totalTimeAllowedInSeconds);
+
+      let score = 0,
+        correctCount = 0,
+        wrongCount = 0,
+        skippedCount = 0;
+
+      const perQuestionResults = patchedQuestions.map((q) => {
+        const type = q.type || "mcq";
+
+        if (type === "live") {
+          const statusObj = liveStatusById[q.id] || { status: "idle" };
+          const attempt = attemptById[q.id] || "";
+
+          let isCorrect = false;
+
+          if (!attempt.trim()) {
+            skippedCount++;
+            score += QUIZ_CONFIG.scoring.skipped;
+          } else if (statusObj.status === "correct") {
+            isCorrect = true;
+            correctCount++;
+            score += QUIZ_CONFIG.scoring.correct;
+          } else {
+            wrongCount++;
+            score += QUIZ_CONFIG.scoring.wrong;
+          }
+
+          return {
+            questionId: q.id,
+            questionText:
+              q.question && String(q.question).trim()
+                ? q.question
+                : q.apiId || q.id,
+            type: "live",
+            apiId: q.apiId || null,
+            attempt,
+            liveStatus: statusObj,
+            attemptsUsed: Number(liveAttemptsUsedById[q.id] ?? 0),
+            attemptsLimit: getAttemptsLimit(q),
+            seconds: getQuestionSeconds(q),
+            isCorrect,
+          };
+        }
+
+        const correctIds = (q.options || [])
+          .filter((o) => o.isCorrect)
+          .map((o) => o.id);
+
+        const picked = selectedById[q.id] || [];
+        const pickedSet = new Set(picked);
+
+        let isCorrect = false;
+
+        if (picked.length === 0) {
+          skippedCount++;
+          score += QUIZ_CONFIG.scoring.skipped;
+        } else {
+          const exactMatch =
+            picked.length === correctIds.length &&
+            correctIds.every((id) => pickedSet.has(id));
+
+          if (exactMatch) {
+            isCorrect = true;
+            correctCount++;
+            score += QUIZ_CONFIG.scoring.correct;
+          } else {
+            wrongCount++;
+            score += QUIZ_CONFIG.scoring.wrong;
+          }
+        }
+
+        return {
+          questionId: q.id,
+          questionText:
+            q.question && String(q.question).trim() ? q.question : q.id,
+          type: "mcq",
+          options: q.options,
+          correctOptionIds: correctIds,
+          selectedOptionIds: picked,
+          isCorrect,
+          seconds: getQuestionSeconds(q),
+        };
+      });
+
+      const attemptedCount = (patchedQuestions.length || 0) - skippedCount;
+
+      const payload = {
+        uid: user.uid,
+        email: user.email,
+        userFirstName: profile?.firstName || null,
+        userLastName: profile?.lastName || null,
+
+        topics,
+        score,
+        totalQuestions: patchedQuestions.length,
+        attemptedCount,
+        correctCount,
+        wrongCount,
+        skippedCount,
+        startedAt,
+        finishedAt,
+        durationSeconds,
+        reason,
+
+        results: perQuestionResults,
+        liveAttempts: attemptById,
+        liveStatuses: liveStatusById,
+        liveAttemptsUsed: liveAttemptsUsedById,
+      };
+
+      await addDoc(collection(db, "quizResults"), payload);
+
+      navigate("/results", {
+        replace: true,
+        state: {
+          ...payload,
+          startedAtLocal: startedAt.toISOString(),
+          finishedAtLocal: finishedAt.toISOString(),
+        },
+      });
+    },
+    [
+      isSubmitting,
+      questions,
+      user,
+      startedAt,
+      fetchLivePrompt,
+      liveStatusById,
+      attemptById,
+      liveAttemptsUsedById,
+      profile?.firstName,
+      profile?.lastName,
+      topics,
+      navigate,
+    ]
+  );
+
+  // ✅ helper: brief status then auto-advance (never leaves UI locked)
+  const scheduleAutoAdvance = useCallback(
+    (delayMs = 900) => {
+      setTransitionLock(true);
+
+      window.setTimeout(() => {
+        const idx = currentIndexRef.current;
+        const qs = questionsRef.current;
+        const isLast = idx >= qs.length - 1;
+
+        setTransitionLock(false);
+
+        if (isLast) {
+          handleSubmit("auto-advance");
+        } else {
+          setCurrentIndex((i) => Math.min(i + 1, qs.length - 1));
+        }
+      }, delayMs);
+    },
+    [handleSubmit]
+  );
 
   // ---------------- PREPARE QUESTIONS ----------------
   useEffect(() => {
@@ -107,10 +326,7 @@ export default function Quiz({ user, profile }) {
       const uniqueQuestions = Array.from(map.values());
       const shuffled = [...uniqueQuestions].sort(() => Math.random() - 0.5);
 
-      const sliceCount = Math.min(
-        QUIZ_CONFIG.questionsPerAttempt,
-        shuffled.length
-      );
+      const sliceCount = Math.min(QUIZ_CONFIG.questionsPerAttempt, shuffled.length);
 
       const normalized = shuffled.slice(0, sliceCount).map((q, qi) => {
         const qid = q.id || `q_${qi}`;
@@ -140,41 +356,42 @@ export default function Quiz({ user, profile }) {
       setAttemptById({});
       setLiveStatusById({});
       setLiveAttemptsUsedById({});
+      setQuestionTimeLeftById({});
+      setTransitionLock(false);
       setIsSubmitting(false);
 
       const now = new Date();
       setStartedAt(now);
 
-      const total = normalized.reduce(
-        (acc, q) => acc + getQuestionSeconds(q),
-        0
-      );
-      setGlobalTimeLeft(total);
+      const total = normalized.reduce((acc, q) => acc + getQuestionSeconds(q), 0);
 
-  // ✅ background preload prompts for ALL live questions (single batch update)
-    const liveOnes = normalized.filter((q) => q.type === "live" && q.apiId);
+      // ✅ live-only: disable global timer
+      setGlobalTimeLeft(isLiveOnly ? null : total);
 
-    Promise.all(
-      liveOnes.map(async (q) => {
-        const prompt = await fetchLivePrompt(q.apiId);
-        return { id: q.id, apiId: q.apiId, prompt };
-      })
-    ).then((arr) => {
-      if (cancelled) return;
+      // ✅ preload prompts for ALL live questions
+      const liveOnes = normalized.filter((q) => q.type === "live" && q.apiId);
 
-      setQuestions((prev) =>
-        prev.map((x) => {
-          const hit = arr.find((a) => a.id === x.id);
-          if (!hit?.prompt) return x;
-
-          const existing = String(x.question || "").trim();
-          const apiId = String(x.apiId || "").trim();
-          const shouldPatch = !existing || (apiId && existing === apiId);
-
-          return shouldPatch ? { ...x, question: hit.prompt } : x;
+      Promise.all(
+        liveOnes.map(async (q) => {
+          const prompt = await fetchLivePrompt(q.apiId);
+          return { id: q.id, apiId: q.apiId, prompt };
         })
-      );
-    });
+      ).then((arr) => {
+        if (cancelled) return;
+
+        setQuestions((prev) =>
+          prev.map((x) => {
+            const hit = arr.find((a) => a.id === x.id);
+            if (!hit?.prompt) return x;
+
+            const existing = String(x.question || "").trim();
+            const apiId = String(x.apiId || "").trim();
+            const shouldPatch = !existing || (apiId && existing === apiId);
+
+            return shouldPatch ? { ...x, question: hit.prompt } : x;
+          })
+        );
+      });
 
       setEnteredAtMs(Date.now());
     };
@@ -185,7 +402,7 @@ export default function Quiz({ user, profile }) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [topicsKey, fetchLivePrompt]);
+  }, [topicsKey, fetchLivePrompt, isLiveOnly]);
 
   const totalQuestions = questions.length;
   const currentQuestion = questions[currentIndex];
@@ -193,10 +410,20 @@ export default function Quiz({ user, profile }) {
   // reset entered time when question changes
   useEffect(() => {
     setEnteredAtMs(Date.now());
-  }, [currentIndex]);
 
-  // ---------------- GLOBAL TIMER ----------------
+    // ✅ init per-question timer only once per questionId (prevents reset on Back)
+    if (currentQuestion?.type === "live") {
+      const qid = currentQuestion.id;
+      setQuestionTimeLeftById((prev) => {
+        if (prev[qid] != null) return prev;
+        return { ...prev, [qid]: getQuestionSeconds(currentQuestion) };
+      });
+    }
+  }, [currentIndex, currentQuestion]);
+
+  // ---------------- GLOBAL TIMER (disabled for live-only) ----------------
   useEffect(() => {
+    if (isLiveOnly) return;
     if (globalTimeLeft === null) return;
     if (globalTimeLeft <= 0) return;
 
@@ -205,12 +432,64 @@ export default function Quiz({ user, profile }) {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [globalTimeLeft]);
+  }, [globalTimeLeft, isLiveOnly]);
 
   useEffect(() => {
+    if (isLiveOnly) return;
     if (globalTimeLeft === 0) handleSubmit("timeout");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [globalTimeLeft]);
+  }, [globalTimeLeft, isLiveOnly]);
+
+  // ---------------- LIVE per-question timer ticking (only when on that live question) ----------------
+  useEffect(() => {
+    if (!currentQuestion) return;
+    if (currentQuestion.type !== "live") return;
+
+    const qid = currentQuestion.id;
+
+    const status = liveStatusById[qid]?.status || "idle";
+    const alreadyDone = status === "correct" || status === "timeout";
+    if (alreadyDone) return;
+
+    const left = Number(questionTimeLeftById[qid]);
+    if (!Number.isFinite(left)) return;
+    if (left <= 0) return;
+
+    if (transitionLock) return;
+
+    const interval = setInterval(() => {
+      setQuestionTimeLeftById((prev) => {
+        const cur = Number(prev[qid]);
+        if (!Number.isFinite(cur)) return prev;
+        const next = Math.max(0, cur - 1);
+        return { ...prev, [qid]: next };
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [currentQuestion, questionTimeLeftById, liveStatusById, transitionLock]);
+
+  // ✅ timeout trigger when current live question reaches 0
+  useEffect(() => {
+    if (!currentQuestion) return;
+    if (currentQuestion.type !== "live") return;
+
+    const qid = currentQuestion.id;
+    const left = Number(questionTimeLeftById[qid]);
+    if (!Number.isFinite(left)) return;
+
+    const status = liveStatusById[qid]?.status || "idle";
+    if (status === "correct" || status === "timeout") return;
+
+    if (left === 0) {
+      setLiveStatusById((p) => ({
+        ...p,
+        [qid]: { status: "timeout", message: "Timed out" },
+      }));
+
+      scheduleAutoAdvance(900);
+    }
+  }, [currentQuestion, questionTimeLeftById, liveStatusById, scheduleAutoAdvance]);
 
   // ---------------- MCQ select ----------------
   const toggleOption = (questionId, optionId) => {
@@ -230,13 +509,14 @@ export default function Quiz({ user, profile }) {
     const used = Number(liveAttemptsUsedById[qid] ?? 0);
 
     const currentStatus = liveStatusById[qid]?.status || "idle";
-    if (currentStatus === "correct") return;
+    if (currentStatus === "correct" || currentStatus === "timeout") return;
 
     if (used >= limit) {
       setLiveStatusById((p) => ({
         ...p,
         [qid]: { status: "error", message: "No attempts left." },
       }));
+      scheduleAutoAdvance(900);
       return;
     }
 
@@ -272,25 +552,31 @@ export default function Quiz({ user, profile }) {
       }
 
       const data = await res.json();
-      setLiveAttemptsUsedById((p) => ({ ...p, [qid]: used + 1 }));
+
+      const nextUsed = used + 1;
+      setLiveAttemptsUsedById((p) => ({ ...p, [qid]: nextUsed }));
 
       const result = data?.result;
 
       if (result === "Success") {
         setLiveStatusById((p) => ({ ...p, [qid]: { status: "correct" } }));
+        scheduleAutoAdvance(900);
       } else {
+        const noAttemptsLeftAfter = nextUsed >= limit;
+
         setLiveStatusById((p) => ({
           ...p,
           [qid]: { status: "incorrect", message: result || "Incorrect" },
         }));
+
+        if (noAttemptsLeftAfter) scheduleAutoAdvance(900);
       }
     } catch (e) {
       setLiveStatusById((p) => ({
         ...p,
         [qid]: {
           status: "error",
-          message:
-            e?.message || "API error. Is the live-checker backend running?",
+          message: e?.message || "API error. Is the live-checker backend running?",
         },
       }));
     }
@@ -302,176 +588,25 @@ export default function Quiz({ user, profile }) {
     return Math.round(((currentIndex + 1) / totalQuestions) * 100);
   }, [currentIndex, totalQuestions]);
 
-  const formatTime = (sec) => {
-    const safe = Number.isFinite(sec) ? sec : 0;
-    const m = Math.floor(safe / 60);
-    const s = safe % 60;
-    return `${m}:${s.toString().padStart(2, "0")}`;
-  };
-
   const goNext = () =>
     currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
+
   const goBack = () => currentIndex > 0 && setCurrentIndex((i) => i - 1);
 
-  // ✅ Skip deducts remaining seconds allocated to THIS question from global remaining
+  // ✅ Skip deducts remaining seconds for THIS question from global remaining
+  // If global timer is disabled (live-only), skip just advances.
   const skipQuestion = () => {
     if (currentIndex >= totalQuestions - 1) return;
     if (!currentQuestion) return;
 
-    const qSec = getQuestionSeconds(currentQuestion);
-    const elapsed = (Date.now() - enteredAtMs) / 1000;
-    const remainingForThisQ = Math.max(0, Math.ceil(qSec - elapsed));
+    if (!isLiveOnly) {
+      const qSec = getQuestionSeconds(currentQuestion);
+      const elapsed = (Date.now() - enteredAtMs) / 1000;
+      const remainingForThisQ = Math.max(0, Math.ceil(qSec - elapsed));
+      setGlobalTimeLeft((t) => Math.max(0, (t ?? 0) - remainingForThisQ));
+    }
 
-    setGlobalTimeLeft((t) => Math.max(0, (t ?? 0) - remainingForThisQ));
     setCurrentIndex((i) => i + 1);
-  };
-
-  // ---------------- SUBMIT ----------------
-  const handleSubmit = async (reason = "manual") => {
-    if (isSubmitting || !questions.length || !user || !startedAt) return;
-
-    setIsSubmitting(true);
-
-    // ✅ final safety net: fetch missing prompts for live questions before saving
-    const patchedQuestions = await Promise.all(
-      questions.map(async (q) => {
-        if (q.type !== "live") return q;
-        const text = (q.question || "").trim();
-        const looksMissing = !text || text === String(q.apiId || "").trim();
-        if (!looksMissing || !q.apiId) return q;
-        const prompt = await fetchLivePrompt(q.apiId);
-        return prompt ? { ...q, question: prompt } : q;
-      })
-    );
-
-    const totalTimeAllowedInSeconds = patchedQuestions.reduce(
-      (acc, q) => acc + getQuestionSeconds(q),
-      0
-    );
-
-    const finishedAt =
-      reason === "timeout"
-        ? new Date(startedAt.getTime() + totalTimeAllowedInSeconds * 1000)
-        : new Date();
-
-    let durationSeconds = Math.round((finishedAt - startedAt) / 1000);
-    durationSeconds = Math.min(durationSeconds, totalTimeAllowedInSeconds);
-
-    let score = 0,
-      correctCount = 0,
-      wrongCount = 0,
-      skippedCount = 0;
-
-    const perQuestionResults = patchedQuestions.map((q) => {
-      const type = q.type || "mcq";
-
-      if (type === "live") {
-        const statusObj = liveStatusById[q.id] || { status: "idle" };
-        const attempt = attemptById[q.id] || "";
-
-        let isCorrect = false;
-
-        if (!attempt.trim()) {
-          skippedCount++;
-          score += QUIZ_CONFIG.scoring.skipped;
-        } else if (statusObj.status === "correct") {
-          isCorrect = true;
-          correctCount++;
-          score += QUIZ_CONFIG.scoring.correct;
-        } else {
-          wrongCount++;
-          score += QUIZ_CONFIG.scoring.wrong;
-        }
-
-        return {
-          questionId: q.id,
-          questionText: q.question && String(q.question).trim() ? q.question : q.apiId || q.id,
-          type: "live",
-          apiId: q.apiId || null,
-          attempt,
-          liveStatus: statusObj,
-          attemptsUsed: Number(liveAttemptsUsedById[q.id] ?? 0),
-          attemptsLimit: getAttemptsLimit(q),
-          seconds: getQuestionSeconds(q),
-          isCorrect,
-        };
-      }
-
-      const correctIds = (q.options || [])
-        .filter((o) => o.isCorrect)
-        .map((o) => o.id);
-
-      const picked = selectedById[q.id] || [];
-      const pickedSet = new Set(picked);
-
-      let isCorrect = false;
-
-      if (picked.length === 0) {
-        skippedCount++;
-        score += QUIZ_CONFIG.scoring.skipped;
-      } else {
-        const exactMatch =
-          picked.length === correctIds.length &&
-          correctIds.every((id) => pickedSet.has(id));
-
-        if (exactMatch) {
-          isCorrect = true;
-          correctCount++;
-          score += QUIZ_CONFIG.scoring.correct;
-        } else {
-          wrongCount++;
-          score += QUIZ_CONFIG.scoring.wrong;
-        }
-      }
-
-      return {
-        questionId: q.id,
-        questionText: q.question && String(q.question).trim() ? q.question : q.id,
-        type: "mcq",
-        options: q.options,
-        correctOptionIds: correctIds,
-        selectedOptionIds: picked,
-        isCorrect,
-        seconds: getQuestionSeconds(q),
-      };
-    });
-
-    const attemptedCount = (patchedQuestions.length || 0) - skippedCount;
-
-    const payload = {
-      uid: user.uid,
-      email: user.email,
-      userFirstName: profile?.firstName || null,
-      userLastName: profile?.lastName || null,
-
-      topics,
-      score,
-      totalQuestions: patchedQuestions.length,
-      attemptedCount, // ✅ NEW
-      correctCount,
-      wrongCount,
-      skippedCount,
-      startedAt,
-      finishedAt,
-      durationSeconds,
-      reason,
-
-      results: perQuestionResults,
-      liveAttempts: attemptById,
-      liveStatuses: liveStatusById,
-      liveAttemptsUsed: liveAttemptsUsedById,
-    };
-
-    await addDoc(collection(db, "quizResults"), payload);
-
-    navigate("/results", {
-      replace: true,
-      state: {
-        ...payload,
-        startedAtLocal: startedAt.toISOString(),
-        finishedAtLocal: finishedAt.toISOString(),
-      },
-    });
   };
 
   // ---------------- RENDER ----------------
@@ -500,18 +635,33 @@ export default function Quiz({ user, profile }) {
   const attemptsLeft = Math.max(0, attemptsLimit - attemptsUsed);
   const isOutOfAttempts = attemptsLeft === 0;
 
-  const liveStatusObj =
-    liveStatusById[currentQuestion.id] || { status: "idle" };
+  const liveStatusObj = liveStatusById[currentQuestion.id] || { status: "idle" };
   const liveStatus = liveStatusObj.status || "idle";
   const liveIsCorrect = !isMCQ && liveStatus === "correct";
+  const liveIsTimedOut = !isMCQ && liveStatus === "timeout";
 
   const isLast = currentIndex === totalQuestions - 1;
 
-  const nextDisabled = !isMCQ ? (!liveIsCorrect && !isOutOfAttempts) : false;
-  const skipDisabled = !isMCQ ? (liveIsCorrect ? true : false) : isLast;
+  // ✅ timed-out questions should allow Next/Back (don’t trap user)
+  const nextDisabled = !isMCQ
+    ? ((!liveIsCorrect && !isOutOfAttempts && !liveIsTimedOut) || transitionLock)
+    : transitionLock;
 
-  const submitDisabled = isSubmitting;
+  const skipDisabled = transitionLock || (isLast && isMCQ);
+  const submitDisabled = isSubmitting || transitionLock;
+
   const containerWidth = isMCQ ? "max-w-4xl" : "max-w-6xl";
+
+  const qTimeLeft =
+    currentQuestion.type === "live"
+      ? questionTimeLeftById[currentQuestion.id]
+      : null;
+
+  const qTimeTotal =
+    currentQuestion.type === "live" ? getQuestionSeconds(currentQuestion) : null;
+
+  // lock editor/run briefly during transitions, OR forever if timed out (nav still works)
+  const liveLocked = transitionLock || liveIsTimedOut;
 
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-10 pb-6 px-4 flex justify-center">
@@ -536,29 +686,17 @@ export default function Quiz({ user, profile }) {
           <div className="w-full md:w-auto">
             <div className="grid grid-cols-3 items-center w-full md:min-w-[520px]">
               <div className="justify-self-start" />
-
               <div className="justify-self-center text-sm font-mono text-gray-200">
-                Time left:{" "}
-                <span className="font-semibold text-blue-400">
-                  {formatTime(globalTimeLeft ?? 0)}
-                </span>
-              </div>
-
-              <div className="justify-self-end text-xs font-mono text-gray-400 mr-2 shrink-0">
-                {!isMCQ ? (
+                {!isLiveOnly ? (
                   <>
-                    Attempts left:{" "}
-                    <span
-                      className={`font-semibold ${
-                        isOutOfAttempts ? "text-rose-300" : "text-gray-200"
-                      }`}
-                    >
-                      {attemptsLeft}
-                    </span>{" "}
-                    / {attemptsLimit}
+                    Time left:{" "}
+                    <span className="font-semibold text-blue-400">
+                      {formatTime(globalTimeLeft ?? 0)}
+                    </span>
                   </>
                 ) : null}
               </div>
+              <div className="justify-self-end" />
             </div>
           </div>
         </div>
@@ -608,6 +746,9 @@ export default function Quiz({ user, profile }) {
               onRun={() => runLive(currentQuestion)}
               attemptsLeft={attemptsLeft}
               attemptsLimit={attemptsLimit}
+              questionTimeLeft={qTimeLeft}
+              questionTimeTotal={qTimeTotal}
+              locked={liveLocked}
               onPromptLoaded={(prompt) => {
                 const p = String(prompt || "").trim();
                 if (!p) return;
@@ -629,7 +770,7 @@ export default function Quiz({ user, profile }) {
           <div className="flex gap-2">
             <button
               onClick={goBack}
-              disabled={currentIndex === 0 || isSubmitting}
+              disabled={currentIndex === 0 || isSubmitting || transitionLock}
               className="px-5 py-2 rounded-md bg-gray-700 disabled:opacity-40"
             >
               Back

@@ -1,4 +1,3 @@
-// src/pages/History.jsx
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
@@ -88,6 +87,21 @@ export default function History({ user }) {
               // ✅ score is now "correct"; fallback to correctCount if needed
               const correct = Number(a.correctCount ?? a.score ?? 0);
 
+              const wrong = Number(a.wrongCount ?? 0) || 0;
+              const skipped = Number(a.skippedCount ?? 0) || 0;
+
+              // ✅ timedOutCount: prefer saved field; fallback derive from results
+              const timedOut =
+                Number.isFinite(Number(a.timedOutCount))
+                  ? Number(a.timedOutCount)
+                  : Array.isArray(a.results)
+                  ? a.results.reduce(
+                      (acc, q) =>
+                        acc + (q?.type === "live" && q?.liveStatus?.status === "timeout" ? 1 : 0),
+                      0
+                    )
+                  : 0;
+
               return (
                 <div
                   key={a.id}
@@ -105,6 +119,14 @@ export default function History({ user }) {
                         ? new Date(startedAtMs).toLocaleString()
                         : "Unknown date"}
                     </p>
+
+                    {/* ✅ overall timer timeout message 
+                    {a.reason === "timeout" ? (
+                      <p className="text-xs text-rose-300">
+                        Finished due to overall timer timeout.
+                      </p>
+                    ) : null}
+                    */}
                   </div>
 
                   <div className="text-xs md:text-sm text-gray-300 md:text-right space-y-1">
@@ -124,13 +146,16 @@ export default function History({ user }) {
 
                     <p>
                       Correct:{" "}
-                      <span className="text-green-400">{a.correctCount}</span>
+                      <span className="text-green-400">{correct}</span>
                       {" · "}
                       Wrong:{" "}
-                      <span className="text-red-400">{a.wrongCount}</span>
+                      <span className="text-red-400">{wrong}</span>
+                      {" · "}
+                      Timed out:{" "}
+                      <span className="text-blue-300">{timedOut}</span>
                       {" · "}
                       Skipped:{" "}
-                      <span className="text-yellow-300">{a.skippedCount}</span>
+                      <span className="text-yellow-300">{skipped}</span>
                     </p>
 
                     {a.durationSeconds != null && (
