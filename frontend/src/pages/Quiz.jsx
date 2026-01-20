@@ -31,6 +31,8 @@ export default function Quiz({ user, profile }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const [selectedById, setSelectedById] = useState({});
+  const [answeredById, setAnsweredById] = useState({});
+
   const [attemptById, setAttemptById] = useState({});
   const [liveStatusById, setLiveStatusById] = useState({});
   const [liveAttemptsUsedById, setLiveAttemptsUsedById] = useState({});
@@ -185,14 +187,16 @@ export default function Quiz({ user, profile }) {
 
         let isCorrect = false;
 
-        if (picked.length === 0) {
+        const wasAnswered = Boolean(answeredById[q.id]);
+
+        if (!wasAnswered) {
           skippedCount++;
           score += QUIZ_CONFIG.scoring.skipped;
         } else {
           const exactMatch =
             picked.length === correctIds.length &&
             correctIds.every((id) => pickedSet.has(id));
-
+        
           if (exactMatch) {
             isCorrect = true;
             correctCount++;
@@ -202,7 +206,7 @@ export default function Quiz({ user, profile }) {
             score += QUIZ_CONFIG.scoring.wrong;
           }
         }
-
+        
         return {
           questionId: q.id,
           questionText:
@@ -211,9 +215,11 @@ export default function Quiz({ user, profile }) {
           options: q.options,
           correctOptionIds: correctIds,
           selectedOptionIds: picked,
+          wasAnswered,         
           isCorrect,
           seconds: getQuestionSeconds(q),
         };
+        
       });
 
       const attemptedCount = (patchedQuestions.length || 0) - skippedCount;
@@ -615,8 +621,18 @@ if (topics.includes("live")) {
     return Math.round(((currentIndex + 1) / totalQuestions) * 100);
   }, [currentIndex, totalQuestions]);
 
-  const goNext = () =>
-    currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
+  const goNext = () => {
+    if (currentQuestion?.type === "mcq") {
+      setAnsweredById((p) => ({
+        ...p,
+        [currentQuestion.id]: true,
+      }));
+    }
+  
+    currentIndex < totalQuestions - 1 &&
+      setCurrentIndex((i) => i + 1);
+  };
+  
 
   const goBack = () => currentIndex > 0 && setCurrentIndex((i) => i - 1);
 
@@ -625,17 +641,24 @@ if (topics.includes("live")) {
   const skipQuestion = () => {
     if (currentIndex >= totalQuestions - 1) return;
     if (!currentQuestion) return;
-
+  
+    if (currentQuestion.type === "mcq") {
+      setAnsweredById((p) => ({
+        ...p,
+        [currentQuestion.id]: false,
+      }));
+    }
+  
     if (!isLiveOnly) {
       const qSec = getQuestionSeconds(currentQuestion);
       const elapsed = (Date.now() - enteredAtMs) / 1000;
       const remainingForThisQ = Math.max(0, Math.ceil(qSec - elapsed));
       setGlobalTimeLeft((t) => Math.max(0, (t ?? 0) - remainingForThisQ));
     }
-
+  
     setCurrentIndex((i) => i + 1);
   };
-
+  
   // ---------------- RENDER ----------------
   if (!user) return null;
 
@@ -670,9 +693,13 @@ if (topics.includes("live")) {
   const isLast = currentIndex === totalQuestions - 1;
 
   // ✅ timed-out questions should allow Next/Back (don’t trap user)
+  const hasMCQSelection =
+    isMCQ && (selectedById[currentQuestion.id]?.length ?? 0) > 0;
+
   const nextDisabled = !isMCQ
     ? ((!liveIsCorrect && !isOutOfAttempts && !liveIsTimedOut) || transitionLock)
-    : transitionLock;
+    : transitionLock || !hasMCQSelection;
+
 
   const skipDisabled = transitionLock || (isLast && isMCQ);
   const submitDisabled = isSubmitting || transitionLock;

@@ -129,7 +129,7 @@ export default function History({ user }) {
                     */}
                   </div>
 
-                  <div className="text-xs md:text-sm text-gray-300 md:text-right space-y-1">
+                  <div className="text-xs md:text-sm text-gray-300 t space-y-1">
                     <p>
                       Score:{" "}
                       <span className="font-semibold text-white">
