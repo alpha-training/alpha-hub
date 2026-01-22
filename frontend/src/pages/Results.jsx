@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { QUIZ_CONFIG, TOPICS, LIVE_CHECKER_API } from "../config";
 import LiveCheckerQuestion from "../components/LiveCheckerQuestion";
+import InlinePrompt from "../components/InlinePrompt";
 
 /* ---------------- helpers ---------------- */
 
@@ -281,9 +282,10 @@ export default function Results() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2 gap-2">
-                    <p className="font-medium">
-                      {idx + 1}. {q.questionText}
-                    </p>
+                  <p className="font-medium text-gray-200">
+                  {idx + 1}. <InlinePrompt value={q.questionText} />
+                </p>
+                
 
                     <span
                       className={`text-[11px] px-2 py-0.5 rounded-full ${badgeClass}`}
@@ -381,7 +383,7 @@ function MCQReview({ question }) {
 
         return (
           <div key={opt.id} className={css}>
-            {opt.text}
+            <InlinePrompt value={opt.text} />
           </div>
         );
       })}

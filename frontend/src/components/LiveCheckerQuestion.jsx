@@ -1,6 +1,7 @@
 // src/components/LiveCheckerQuestion.jsx
 import { useEffect, useMemo, useState } from "react";
 import { LIVE_CHECKER_API } from "../config";
+import InlinePrompt from "./InlinePrompt";
 
 export default function LiveCheckerQuestion({
   question,
@@ -54,11 +55,16 @@ export default function LiveCheckerQuestion({
         // emit prompt up to Quiz so it gets stored in questions state & Firestore
         const r =
           data?.result && typeof data.result === "object" ? data.result : data;
-        const prompt = r?.prompt ?? r?.question ?? r?.title ?? r?.name ?? "";
-
-        if (prompt && typeof onPromptLoaded === "function") {
-          onPromptLoaded(String(prompt));
-        }
+          const prompt = r?.prompt ?? r?.question ?? r?.title ?? r?.name ?? "";
+          if (prompt && typeof onPromptLoaded === "function") {
+            // Store a readable string for Firestore (for now)
+            if (Array.isArray(prompt)) {
+              onPromptLoaded(prompt.map((p) => p?.value ?? "").join(""));
+            } else {
+              onPromptLoaded(String(prompt));
+            }
+          }
+          
       })
       .catch((e) => {
         if (!cancelled) setError(e?.message || "Failed to load format");
@@ -199,11 +205,12 @@ export default function LiveCheckerQuestion({
   return (
     <div className="space-y-3">
       {/* Prompt */}
-      {promptText ? (
-        <div className="text-sm md:text-base text-gray-200 whitespace-pre-wrap">
-          {promptText}
+      {fd?.prompt || promptText ? (
+        <div className="text-sm md:text-base text-gray-200">
+          <InlinePrompt value={fd?.prompt ?? promptText} />
         </div>
       ) : null}
+      
 
       {/* Setup + Expected */}
       <div className="w-full grid md:grid-cols-3 gap-3">
