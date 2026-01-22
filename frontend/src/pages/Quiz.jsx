@@ -6,6 +6,7 @@ import { addDoc, collection } from "firebase/firestore";
 import { QUIZ_CONFIG, QUESTION_POOLS, LIVE_CHECKER_API } from "../config";
 import LiveCheckerQuestion from "../components/LiveCheckerQuestion";
 import { fetchLiveQuestions } from "../api/liveQuestions";
+import InlinePrompt from "../components/InlinePrompt";
 
 export default function Quiz({ user, profile }) {
   const navigate = useNavigate();
@@ -793,9 +794,10 @@ export default function Quiz({ user, profile }) {
         {/* QUESTION */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 space-y-3">
           {isMCQ ? (
-            <h2 className="text-sm md:text-base whitespace-pre-wrap">
-              {currentQuestion.question}
+            <h2 className="text-sm md:text-base text-gray-200">
+              <InlinePrompt value={currentQuestion.question} />
             </h2>
+
           ) : null}
 
           {isMCQ ? (
