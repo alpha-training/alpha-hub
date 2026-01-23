@@ -1,8 +1,21 @@
+// src/pages/Home.jsx
 import { useEffect, useState, useMemo } from "react";
 import { db } from "../firebase";
-import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  limit,
+  getDocs,
+} from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
 import { QUIZ_CONFIG, TOPICS } from "../config";
+import {
+  getPoints,
+  getMaxPointsForAttempt,
+  getDisplayBreakdown,
+} from "../utils/scoring";
 
 function toMillis(ts) {
   if (!ts) return null;
@@ -70,11 +83,15 @@ export default function Home({ user, profile }) {
 
   if (!user) return null;
 
-  const perTypeSeconds = QUIZ_CONFIG.timePerQuestionSecondsByType || { mcq: 15, live: 20 };
+  const perTypeSeconds = QUIZ_CONFIG.timePerQuestionSecondsByType || {
+    mcq: 15,
+    live: 20,
+  };
   const defaultPerQuestionSeconds = Number(perTypeSeconds.mcq ?? 15) || 15;
 
   // Home screen estimate (overall timer estimate)
-  const totalSeconds = (Number(QUIZ_CONFIG.questionsPerAttempt) || 0) * defaultPerQuestionSeconds;
+  const totalSeconds =
+    (Number(QUIZ_CONFIG.questionsPerAttempt) || 0) * defaultPerQuestionSeconds;
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
   const formattedTotalTime = `${m}:${s.toString().padStart(2, "0")}`;
@@ -91,63 +108,47 @@ export default function Home({ user, profile }) {
   const noTopicsSelected = selectedTopics.length === 0;
   const lastAttemptMs = toMillis(lastResult?.startedAt);
 
-  // last attempt metrics (attempted logic)
-  const lastTotal = Number(lastResult?.totalQuestions ?? 0) || 0;
-  const lastSkipped = Number(lastResult?.skippedCount ?? 0) || 0;
-  const lastAttempted =
-    Number.isFinite(Number(lastResult?.attemptedCount))
-      ? Number(lastResult.attemptedCount)
-      : Math.max(0, lastTotal - lastSkipped);
+  // ✅ NEW: consistent score display (points-first) using utils/scoring
+  const lastBreakdown = useMemo(() => {
+    return lastResult ? getDisplayBreakdown(lastResult) : null;
+  }, [lastResult]);
 
-  const lastCorrect =
-    Number.isFinite(Number(lastResult?.correctCount))
-      ? Number(lastResult.correctCount)
-      : 0;
+  const lastPoints = useMemo(() => {
+    return lastResult ? getPoints(lastResult, QUIZ_CONFIG) : 0;
+  }, [lastResult]);
 
-  const lastWrong = Number(lastResult?.wrongCount ?? 0) || 0;
+  const lastMaxPoints = useMemo(() => {
+    return lastResult ? getMaxPointsForAttempt(lastResult, QUIZ_CONFIG) : 0;
+  }, [lastResult]);
 
-  // ✅ Timed out count (new logic). Uses saved timedOutCount if present; otherwise derives from results.
-  const lastTimedOut =
-    Number.isFinite(Number(lastResult?.timedOutCount))
-      ? Number(lastResult.timedOutCount)
-      : Array.isArray(lastResult?.results)
-      ? lastResult.results.reduce(
-          (acc, q) => acc + (q?.type === "live" && q?.liveStatus?.status === "timeout" ? 1 : 0),
-          0
-        )
-      : 0;
-
-  const lastPoints = Number.isFinite(Number(lastResult?.pointsScore))
-    ? Number(lastResult.pointsScore)
-    : Number.isFinite(Number(lastResult?.score))
-    ? Number(lastResult.score)
-    : 0;
-
-  const maxPointsForAttempted = lastAttempted * (QUIZ_CONFIG?.scoring?.correct ?? 1);
+  // For “/ max” labels (points can be negative if wrong=-1; keep max >= 0)
+  const safeMaxPoints = Math.max(0, Number(lastMaxPoints || 0));
 
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white flex flex-col items-center justify-start px-4 pt-14 pb-16">
       <div className="max-w-3xl w-full flex flex-col items-center text-center gap-6">
         {/* WELCOME */}
         <div>
-          <h1 className="text-3xl md:text-5xl font-bold mb-3">Welcome, {displayName}!</h1>
-
+          <h1 className="text-3xl md:text-5xl font-bold mb-3">
+            Welcome, {displayName}!
+          </h1>
           <p className="text-sm md:text-base text-gray-300 max-w-3xl mx-auto mt-3">
-            You will receive a random selection of{" "}
-            <span className="font-bold">{QUIZ_CONFIG.questionsPerAttempt} questions</span>{" "}
-            from the topics you choose below.
-            <br />
-            You will have ~ <span className="font-bold">{formattedTotalTime}</span> total time to
-            complete the quiz. You may take longer on some questions and less on others — the timer
-            counts down overall, not per question.
-            <br />
-            Live Checker questions also have their own per-question timer (and if Live Checker is the
-            only topic selected, the overall timer may be disabled).
-            <br />
             Scoring:
-            <br />• <span className="text-green-400 font-semibold">+1 point</span> for each correct answer
-            <br />• <span className="text-red-400 font-semibold">-1 point</span> for a wrong answer
-            <br />• <span className="text-yellow-300 font-semibold">0 points</span> for skipping
+            <br />•{" "}
+            <span className="text-green-400 font-semibold">
+              +{QUIZ_CONFIG?.scoring?.correct ?? 1} point
+            </span>{" "}
+            for each correct answer
+            <br />•{" "}
+            <span className="text-red-400 font-semibold">
+              {QUIZ_CONFIG?.scoring?.wrong ?? -1} point
+            </span>{" "}
+            for a wrong answer
+            <br />•{" "}
+            <span className="text-yellow-300 font-semibold">
+              {QUIZ_CONFIG?.scoring?.skipped ?? 0} points
+            </span>{" "}
+            for skipping
           </p>
         </div>
 
@@ -158,32 +159,51 @@ export default function Home({ user, profile }) {
           {loadingResult ? (
             <p className="text-xs text-gray-400 m-2">Loading...</p>
           ) : !lastResult ? (
-            <p className="text-xs text-gray-400 m-2">You haven&apos;t taken the quiz yet.</p>
+            <p className="text-xs text-gray-400 m-2">
+              You haven&apos;t taken the quiz yet.
+            </p>
           ) : (
             <div className="text-xs text-gray-300 space-y-1 m-2">
-              <p>
-                Score:{" "}
-                <span className="font-semibold text-white">{lastCorrect}</span>{" "}
-                / {lastAttempted}{" "}
-                <span className="text-[11px] text-gray-400">(attempted)</span>
+              {/* ✅ Points first */}
+              <p className="text-gray-200">
+                Points:{" "}
+                <span className="font-semibold text-white">{lastPoints}</span>{" "}
+                / {safeMaxPoints}
               </p>
 
+              {/* ✅ Accuracy (still useful), but not presented as “Score” */}
               <p className="text-gray-400">
-                Points:{" "}
-                <span className="font-semibold text-gray-200">{lastPoints}</span>{" "}
-                / {maxPointsForAttempted}
+                Accuracy:{" "}
+                <span className="font-semibold text-gray-200">
+                  {lastBreakdown?.attempted
+                    ? `${lastBreakdown.correct} / ${lastBreakdown.attempted}`
+                    : "—"}
+                </span>{" "}
+                <span className="text-[11px] text-gray-500">(correct / attempted)</span>
               </p>
 
               <p>
                 Correct:{" "}
-                <span className="text-green-400 font-semibold">{lastCorrect}</span> · Wrong:{" "}
-                <span className="text-red-400 font-semibold">{lastWrong}</span> · Timed out:{" "}
-                <span className="text-blue-300 font-semibold">{lastTimedOut}</span> · Skipped:{" "}
-                <span className="text-yellow-300 font-semibold">{lastResult.skippedCount}</span>
+                <span className="text-green-400 font-semibold">
+                  {lastBreakdown?.correct ?? 0}
+                </span>{" "}
+                · Wrong:{" "}
+                <span className="text-red-400 font-semibold">
+                  {lastBreakdown?.wrong ?? 0}
+                </span>{" "}
+                · Timed out:{" "}
+                <span className="text-amber-300 font-semibold">
+                  {lastBreakdown?.timedOut ?? 0}
+                </span>{" "}
+                · Skipped:{" "}
+                <span className="text-yellow-300 font-semibold">
+                  {lastBreakdown?.skipped ?? 0}
+                </span>
               </p>
 
               <p className="text-gray-400">
-                Taken at: {lastAttemptMs ? new Date(lastAttemptMs).toLocaleString() : "—"}
+                Taken at:{" "}
+                {lastAttemptMs ? new Date(lastAttemptMs).toLocaleString() : "—"}
               </p>
             </div>
           )}
@@ -191,7 +211,9 @@ export default function Home({ user, profile }) {
 
         {/* TOPIC SELECTION */}
         <div className="bg-gray-900 p-4 rounded-lg border border-gray-700 w-full max-w-xl text-left">
-          <h3 className="font-semibold mb-2 text-gray-200 text-center">Select topics</h3>
+          <h3 className="font-semibold mb-2 text-gray-200 text-center">
+            Select topics
+          </h3>
 
           <p className="text-xs text-gray-400 mb-3 text-center">
             You must select at least one topic before starting the quiz.
@@ -200,7 +222,10 @@ export default function Home({ user, profile }) {
           {/* 4 left / 3 right */}
           <div className="grid grid-rows-4 grid-flow-col gap-y-2 gap-x-8">
             {TOPICS.map((t) => (
-              <label key={t.id} className="flex items-center gap-2 cursor-pointer text-sm">
+              <label
+                key={t.id}
+                className="flex items-center gap-2 cursor-pointer text-sm"
+              >
                 <input
                   type="checkbox"
                   className="accent-blue-500"

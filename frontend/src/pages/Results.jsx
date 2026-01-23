@@ -4,6 +4,12 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { QUIZ_CONFIG, TOPICS, LIVE_CHECKER_API } from "../config";
 import LiveCheckerQuestion from "../components/LiveCheckerQuestion";
 import InlinePrompt from "../components/InlinePrompt";
+import {
+  getPoints,
+  getMaxPointsForAttempt,
+  getDisplayBreakdown,
+  formatPct,
+} from "../utils/scoring";
 
 /* ---------------- helpers ---------------- */
 
@@ -55,42 +61,13 @@ export default function Results() {
     );
   }
 
-  const {
-    score: rawScore,
-    attemptedCount: attemptedCountRaw,
-    totalQuestions,
-    correctCount: correctCountRaw,
-    wrongCount,
-    skippedCount,
-    results: resultsRaw = [],
-    durationSeconds,
-    topics = [],
-  } = state;
-
-  /* ---------- derived counts ---------- */
-
-  const derivedCorrectCount = useMemo(() => {
-    if (Number.isFinite(Number(correctCountRaw))) return Number(correctCountRaw);
-    return resultsRaw.reduce((a, q) => a + (q?.isCorrect ? 1 : 0), 0);
-  }, [correctCountRaw, resultsRaw]);
-
-  const attemptedCount = useMemo(() => {
-    const n = Number(attemptedCountRaw);
-    if (Number.isFinite(n)) return n;
-    return Math.max(
-      0,
-      Number(totalQuestions ?? resultsRaw.length) - Number(skippedCount ?? 0)
-    );
-  }, [attemptedCountRaw, totalQuestions, skippedCount, resultsRaw]);
-
-  const points = Number.isFinite(Number(rawScore)) ? Number(rawScore) : 0;
+  const { results: resultsRaw = [], durationSeconds, topics = [] } = state;
 
   const topicNames = topics
     .map((t) => TOPICS.find((x) => x.id === t)?.label || t)
     .join(", ");
 
-  /* ---------- hydrate live prompts ---------- */
-
+  // hydrate results array (prompts)
   useEffect(() => {
     let cancelled = false;
 
@@ -98,7 +75,8 @@ export default function Results() {
       const needs = resultsRaw
         .map((q, i) => ({ q, i }))
         .filter(
-          ({ q }) => q?.type === "live" && q?.apiId && looksLikeId(q?.questionText)
+          ({ q }) =>
+            q?.type === "live" && q?.apiId && looksLikeId(q?.questionText)
         );
 
       if (!needs.length) {
@@ -124,6 +102,23 @@ export default function Results() {
   }, [resultsRaw]);
 
   const displayResults = hydratedResults ?? resultsRaw;
+
+  // ✅ compute breakdown + points consistently
+  const breakdown = useMemo(() => {
+    // state includes all summary fields, but we want consistency:
+    // use results when present to avoid “timeout counted as skipped” etc.
+    return getDisplayBreakdown({ ...state, results: resultsRaw });
+  }, [state, resultsRaw]);
+
+  const points = useMemo(() => getPoints(state, QUIZ_CONFIG), [state]);
+  const maxPoints = useMemo(
+    () => getMaxPointsForAttempt(state, QUIZ_CONFIG),
+    [state]
+  );
+
+  const accuracy = useMemo(() => {
+    return breakdown.attempted > 0 ? breakdown.correct / breakdown.attempted : 0;
+  }, [breakdown]);
 
   /* =================== LIVE REVIEW MODE =================== */
 
@@ -172,20 +167,30 @@ export default function Results() {
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           <h1 className="text-2xl font-bold mb-2">Quiz Results</h1>
 
+          {/* ✅ PRIMARY */}
           <p className="text-sm text-gray-300">
-            Score: <b>{derivedCorrectCount}</b> / <b>{attemptedCount}</b>
+            Score: <b>{points}</b> / <b>{maxPoints}</b>{" "}
+            <span className="text-gray-400 text-xs">pts</span>
           </p>
 
-          <p className="text-xs text-gray-400">Points: {points}</p>
+          {/* ✅ SECONDARY */}
+          <p className="text-xs text-gray-400 mt-1">
+            Accuracy:{" "}
+            <span className="text-gray-200 font-semibold">{formatPct(accuracy)}</span>{" "}
+            · Correct:{" "}
+            <span className="text-green-400">{breakdown.correct}</span> /{" "}
+            <span className="text-gray-200">{breakdown.attempted}</span>{" "}
+            <span className="text-[11px] text-gray-500">(attempted)</span>
+          </p>
 
           <p className="text-xs text-gray-400">
             Topics: <span className="text-blue-300">{topicNames}</span>
           </p>
 
           <p className="text-xs text-gray-400">
-            Correct: <span className="text-green-400">{derivedCorrectCount}</span>{" "}
-            · Wrong: <span className="text-red-400">{wrongCount}</span> · Skipped:{" "}
-            <span className="text-yellow-300">{skippedCount}</span>
+            Wrong: <span className="text-red-400">{breakdown.wrong}</span> · Timed out:{" "}
+            <span className="text-amber-300">{breakdown.timedOut}</span> · Skipped:{" "}
+            <span className="text-yellow-300">{breakdown.skipped}</span>
           </p>
 
           <p className="text-xs text-gray-400 mt-2">
@@ -197,26 +202,21 @@ export default function Results() {
         <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-4 space-y-4">
           <h2 className="text-lg font-semibold">Review your answers</h2>
 
-          {/* ✅ explanatory paragraph back (and accurate) */}
           <p className="text-xs text-gray-500">
-          MCQs show correct and incorrect options inline.
-          <br />
-          <span className="text-green-300">Green</span> = correct ·{" "}
-          <span className="text-red-300">Red</span> = you selected (wrong) ·{" "}
-         {/**  <span className="text-yellow-300">Yellow</span> = skipped ·{" "}*/}
-          <span className="text-amber-300">Amber</span> = correct option you missed
-          (partial).
-          <br />
-          Live Checker questions can be clicked to review the full prompt and your
-          submission.
-        </p>
-        
+            MCQs show correct and incorrect options inline.
+            <br />
+            <span className="text-green-300">Green</span> = correct ·{" "}
+            <span className="text-red-300">Red</span> = you selected (wrong) ·{" "}
+            <span className="text-amber-300">Amber</span> = correct option you missed
+            (partial).
+            <br />
+            Live Checker questions can be clicked to review the full prompt and your
+            submission.
+          </p>
 
           <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
             {displayResults.map((q, idx) => {
               const type = q.type || "mcq";
-
-              /* ---------- badge ---------- */
 
               let badgeText = "Wrong";
               let badgeClass =
@@ -241,7 +241,6 @@ export default function Results() {
                     "bg-yellow-500/10 text-yellow-300 border border-yellow-500/40";
                 }
               } else {
-                // ✅ MCQ: use wasAnswered when present (new data) so “Skipped” is accurate
                 const wasAnswered =
                   typeof q.wasAnswered === "boolean" ? q.wasAnswered : null;
 
@@ -262,7 +261,6 @@ export default function Results() {
                   badgeClass =
                     "bg-red-500/10 text-red-400 border border-red-500/40";
                 } else if (picked.length === 0) {
-                  // legacy fallback
                   badgeText = "Skipped";
                   badgeClass =
                     "bg-yellow-500/10 text-yellow-300 border border-yellow-500/40";
@@ -282,10 +280,9 @@ export default function Results() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2 gap-2">
-                  <p className="font-medium text-gray-200">
-                  {idx + 1}. <InlinePrompt value={q.questionText} />
-                </p>
-                
+                    <p className="font-medium text-gray-200">
+                      {idx + 1}. <InlinePrompt value={q.questionText} />
+                    </p>
 
                     <span
                       className={`text-[11px] px-2 py-0.5 rounded-full ${badgeClass}`}
@@ -294,10 +291,8 @@ export default function Results() {
                     </span>
                   </div>
 
-                  {/* MCQ INLINE REVIEW */}
                   {type === "mcq" && <MCQReview question={q} />}
 
-                  {/* LIVE SUMMARY */}
                   {type === "live" && (
                     <div className="text-xs text-gray-400">
                       Your answer:{" "}
@@ -338,17 +333,23 @@ function MCQReview({ question }) {
   const selectedIds = useMemo(
     () =>
       new Set(
-        Array.isArray(question.selectedOptionIds) ? question.selectedOptionIds : []
+        Array.isArray(question.selectedOptionIds)
+          ? question.selectedOptionIds
+          : []
       ),
     [question.selectedOptionIds]
   );
 
   const correctIds = useMemo(
-    () => new Set(Array.isArray(question.correctOptionIds) ? question.correctOptionIds : []),
+    () =>
+      new Set(
+        Array.isArray(question.correctOptionIds)
+          ? question.correctOptionIds
+          : []
+      ),
     [question.correctOptionIds]
   );
 
-  // ✅ detect “partially correct” multi-select: user picked some correct but missed others
   const partialCorrect = useMemo(() => {
     if (!correctIds.size) return false;
     let selectedCorrect = 0;
@@ -366,16 +367,13 @@ function MCQReview({ question }) {
         let css = "rounded-md px-3 py-2 border text-xs whitespace-pre-wrap";
 
         if (isCorrect) {
-          // ✅ green correct always
           css += " border-green-500/60 bg-green-500/10 text-green-200";
-          // ✅ highlight missed correct answers in amber when user was partially correct
           if (partialCorrect && !isSelected) {
             css =
               "rounded-md px-3 py-2 border text-xs whitespace-pre-wrap" +
               " border-amber-500/60 bg-amber-500/10 text-amber-200";
           }
         } else if (isSelected) {
-          // ✅ selected wrong option
           css += " border-red-500/60 bg-red-500/10 text-red-200";
         } else {
           css += " border-gray-700 bg-gray-900 text-gray-300";

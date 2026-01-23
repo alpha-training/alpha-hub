@@ -7,35 +7,42 @@ export default function buildPool(topic, files) {
 
     questions.forEach((q, qIndex) => {
       const questionId = `${topic}_${fIndex}_${qIndex}`;
-
       const type = q.type || "mcq";
 
-      // --- LIVE QUESTION (no MCQ options) ---
+      // --- LIVE QUESTION ---
       if (type === "live") {
         result.push({
-          id: questionId,        // internal quiz id (unique)
+          id: questionId,
           topic,
           type: "live",
 
-          // fields used by live-checker UI/API
-          apiId: q.apiId || q.id || "",      // backend id like "q3"
+          // backend id like "q3"
+          apiId: q.apiId || q.id || "",
           source: q.source || null,
           display: q.display || [],
 
-          // text shown to user
+          // allow explicit parts if provided (preferred)
+          // (frontend should render q.promptParts ?? q.questionParts ?? q.question)
+          promptParts: Array.isArray(q.promptParts)
+            ? q.promptParts
+            : Array.isArray(q.questionParts)
+            ? q.questionParts
+            : null,
+
+          // plain string fallback
           question: q.question || q.prompt || "",
 
-          // keep shape stable
           options: [],
         });
 
         return;
       }
 
-      // --- MCQ QUESTION (existing behavior) ---
+      // --- MCQ QUESTION ---
       const normalizedOptions = (q.options || []).map((opt, optIndex) => ({
         id: `${questionId}_opt_${optIndex}`,
         text: opt.text ?? opt.label ?? opt.value ?? "",
+        parts: Array.isArray(opt.parts) ? opt.parts : null,
         isCorrect: Boolean(opt.isCorrect),
       }));
 
@@ -43,7 +50,13 @@ export default function buildPool(topic, files) {
         id: questionId,
         topic,
         type: "mcq",
+
+        // allow explicit parts if provided (preferred)
+        questionParts: Array.isArray(q.questionParts) ? q.questionParts : null,
+
+        // plain string fallback
         question: q.question || "",
+
         options: normalizedOptions,
       });
     });

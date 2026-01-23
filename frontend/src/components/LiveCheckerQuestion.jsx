@@ -207,9 +207,11 @@ export default function LiveCheckerQuestion({
       {/* Prompt */}
       {fd?.prompt || promptText ? (
         <div className="text-sm md:text-base text-gray-200">
-          <InlinePrompt value={fd?.prompt ?? promptText} />
+          {/* LIVE: do NOT parse backticks in strings (q uses backticks in syntax) */}
+          <InlinePrompt value={fd?.promptParts ?? fd?.prompt ?? promptText} />
         </div>
       ) : null}
+
       
 
       {/* Setup + Expected */}

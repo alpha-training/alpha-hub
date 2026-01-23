@@ -4,6 +4,12 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import { isAdmin } from "../utils/admin";
 import { QUIZ_CONFIG, LIVE_CHECKER_API } from "../config";
+import {
+  getPoints,
+  getMaxPointsForAttempt,
+  getDisplayBreakdown,
+  formatPct,
+} from "../utils/scoring";
 
 // --- helpers ---
 function toJsDate(value) {
@@ -201,6 +207,7 @@ export default function AdminPanel({ user }) {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expandedId, results]);
 
   const filteredResults = useMemo(() => {
@@ -235,18 +242,17 @@ export default function AdminPanel({ user }) {
       let valA, valB;
 
       if (sortField === "score") {
-        const attA = Number(
-          a.attemptedCount ??
-            Math.max(0, (a.totalQuestions ?? 0) - (a.skippedCount ?? 0))
-        );
-        const attB = Number(
-          b.attemptedCount ??
-            Math.max(0, (b.totalQuestions ?? 0) - (b.skippedCount ?? 0))
-        );
-        const corrA = Number(a.correctCount ?? 0);
-        const corrB = Number(b.correctCount ?? 0);
-        valA = attA > 0 ? corrA / attA : 0;
-        valB = attB > 0 ? corrB / attB : 0;
+        // Sort by accuracy (correct / attempted)
+        const breakdownA = getDisplayBreakdown(a);
+        const breakdownB = getDisplayBreakdown(b);
+
+        const accA =
+          breakdownA.attempted > 0 ? breakdownA.correct / breakdownA.attempted : 0;
+        const accB =
+          breakdownB.attempted > 0 ? breakdownB.correct / breakdownB.attempted : 0;
+
+        valA = accA;
+        valB = accB;
       } else if (sortField === "user") {
         const nameA = getProfileDisplayName(a.uid, profilesByUid, a);
         const nameB = getProfileDisplayName(b.uid, profilesByUid, b);
@@ -288,9 +294,7 @@ export default function AdminPanel({ user }) {
 
   if (loading) {
     return (
-      <div className="pt-20 text-center text-gray-400">
-        Loading admin data…
-      </div>
+      <div className="pt-20 text-center text-gray-400">Loading admin data…</div>
     );
   }
 
@@ -412,7 +416,7 @@ export default function AdminPanel({ user }) {
           </span>
           {[
             { field: "date", label: "Date" },
-            { field: "score", label: "Score" },
+            { field: "score", label: "Accuracy" },
             { field: "duration", label: "Time" },
             { field: "user", label: "User" },
           ].map((btn) => (
@@ -427,11 +431,7 @@ export default function AdminPanel({ user }) {
               }`}
             >
               {btn.label}{" "}
-              {sortField === btn.field
-                ? sortDir === "asc"
-                  ? "↑"
-                  : "↓"
-                : ""}
+              {sortField === btn.field ? (sortDir === "asc" ? "↑" : "↓") : ""}
             </button>
           ))}
         </div>
@@ -449,47 +449,21 @@ export default function AdminPanel({ user }) {
           const topicsArr = Array.isArray(r.topics) ? r.topics : [];
           const isExpanded = expandedId === r.id;
 
-          const attempted =
-            Number(
-              r.attemptedCount ??
-                Math.max(
-                  0,
-                  (r.totalQuestions ?? 0) - (r.skippedCount ?? 0)
-                )
-            ) || 0;
-
-          const correct = Number(r.correctCount ?? 0) || 0;
-
-          const points = Number.isFinite(Number(r.pointsScore))
-            ? Number(r.pointsScore)
-            : Number.isFinite(Number(r.score))
-            ? Number(r.score)
-            : 0;
-
-          const pct = attempted > 0 ? correct / attempted : 0;
-          let scoreColor = "text-gray-200";
-          if (pct >= 0.9) scoreColor = "text-green-400";
-          else if (pct >= 0.7) scoreColor = "text-blue-400";
-          else if (pct >= 0.4) scoreColor = "text-yellow-300";
-          else scoreColor = "text-red-400";
-
-          const displayName = getProfileDisplayName(r.uid, profilesByUid, r);
           const topicLabel = formatTopics(topicsArr);
+          const displayName = getProfileDisplayName(r.uid, profilesByUid, r);
 
-          const maxPoints = attempted * (QUIZ_CONFIG?.scoring?.correct ?? 1);
+          const breakdown = getDisplayBreakdown(r);
+          const points = getPoints(r, QUIZ_CONFIG);
+          const maxPoints = getMaxPointsForAttempt(r, QUIZ_CONFIG);
 
-          // ✅ timed out count for this attempt
-          const timedOutCount = Array.isArray(r.results)
-            ? r.results.reduce(
-                (acc, q) =>
-                  acc +
-                  (q?.type === "live" &&
-                  q?.liveStatus?.status === "timeout"
-                    ? 1
-                    : 0),
-                0
-              )
-            : 0;
+          const accuracy =
+            breakdown.attempted > 0 ? breakdown.correct / breakdown.attempted : 0;
+
+          let scoreColor = "text-gray-200";
+          if (accuracy >= 0.9) scoreColor = "text-green-400";
+          else if (accuracy >= 0.7) scoreColor = "text-blue-400";
+          else if (accuracy >= 0.4) scoreColor = "text-yellow-300";
+          else scoreColor = "text-red-400";
 
           return (
             <div
@@ -509,9 +483,7 @@ export default function AdminPanel({ user }) {
                       {displayName}
                     </div>
                     <div className="text-xs text-gray-400">
-                      {finishedAt
-                        ? finishedAt.toLocaleString()
-                        : "Date unavailable"}
+                      {finishedAt ? finishedAt.toLocaleString() : "Date unavailable"}
                     </div>
                   </div>
 
@@ -520,13 +492,19 @@ export default function AdminPanel({ user }) {
                   </div>
                 </div>
 
+                {/* ✅ points-first header */}
                 <div className="text-right text-xs md:text-sm">
                   <div className={`font-bold ${scoreColor}`}>
-                    {correct} / {attempted}{" "}
+                    {points} / {maxPoints}{" "}
                     <span className="text-[11px] text-gray-400 font-normal">
-                      (attempted)
+                      pts
                     </span>
                   </div>
+                  {/* *
+                  <div className="text-gray-400 text-[11px]">
+                    {formatPct(accuracy)} · {breakdown.correct}/{breakdown.attempted}{" "}
+                    correct
+              </div>*/}
                   <div className="text-gray-400 text-xs">
                     {formatDuration(r.durationSeconds)}
                   </div>
@@ -552,39 +530,38 @@ export default function AdminPanel({ user }) {
                     </div>
                   </div>
 
+                  {/* ✅ consistent breakdown */}
                   <div className="flex flex-wrap gap-4">
                     <div>
                       <span className="text-gray-400">Correct: </span>
                       <span className="text-green-400 font-semibold">
-                        {r.correctCount}
+                        {breakdown.correct}
                       </span>
                     </div>
                     <div>
                       <span className="text-gray-400">Wrong: </span>
                       <span className="text-red-400 font-semibold">
-                        {r.wrongCount}
+                        {breakdown.wrong}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Timed out: </span>
+                      <span className="text-amber-300 font-semibold">
+                        {breakdown.timedOut}
                       </span>
                     </div>
                     <div>
                       <span className="text-gray-400">Skipped: </span>
                       <span className="text-yellow-300 font-semibold">
-                        {r.skippedCount}
+                        {breakdown.skipped}
                       </span>
                     </div>
                     <div>
                       <span className="text-gray-400">Attempted: </span>
                       <span className="text-gray-200 font-semibold">
-                        {attempted}
+                        {breakdown.attempted}
                       </span>
                     </div>
-                    {timedOutCount > 0 ? (
-                      <div>
-                        <span className="text-gray-400">Timed out: </span>
-                        <span className="text-amber-300 font-semibold">
-                          {timedOutCount}
-                        </span>
-                      </div>
-                    ) : null}
                   </div>
 
                   <div className="text-xs text-gray-400">
@@ -593,6 +570,12 @@ export default function AdminPanel({ user }) {
                       {points}
                     </span>{" "}
                     / {maxPoints}
+                    <span className="text-gray-500"> (pts)</span>
+                    {" · "}
+                    Accuracy:{" "}
+                    <span className="text-gray-200 font-semibold">
+                      {formatPct(accuracy)}
+                    </span>
                   </div>
 
                   {Array.isArray(r.results) && r.results.length > 0 && (
@@ -600,6 +583,7 @@ export default function AdminPanel({ user }) {
                       <div className="text-gray-400 text-xs mb-1">
                         Question breakdown:
                       </div>
+
                       <div className="max-h-60 overflow-y-auto space-y-1 pr-1">
                         {r.results.map((qRes, idx2) => {
                           const type = qRes.type || "mcq";
