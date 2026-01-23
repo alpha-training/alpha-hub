@@ -795,8 +795,9 @@ export default function Quiz({ user, profile }) {
         <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 space-y-3">
           {isMCQ ? (
             <h2 className="text-sm md:text-base text-gray-200">
-              <InlinePrompt value={currentQuestion.question} />
+            <InlinePrompt value={currentQuestion.questionParts ?? currentQuestion.question} />
             </h2>
+
 
           ) : null}
 

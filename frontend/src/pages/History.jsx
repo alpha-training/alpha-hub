@@ -1,8 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { db } from "../firebase";
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-import { TOPICS } from "../config";
+import { TOPICS, QUIZ_CONFIG } from "../config";
+import {
+  getPoints,
+  getMaxPointsForAttempt,
+  getDisplayBreakdown,
+  formatPct,
+} from "../utils/scoring";
 
 function formatDuration(seconds) {
   if (seconds == null) return "-";
@@ -75,37 +81,19 @@ export default function History({ user }) {
 
               const startedAtMs = toMillis(a.startedAt);
 
-              // ✅ attemptedCount exists on new results; fallback for older ones
-              const attempted =
-                Number.isFinite(Number(a.attemptedCount))
-                  ? Number(a.attemptedCount)
-                  : Math.max(
-                      0,
-                      Number(a.totalQuestions ?? 0) - Number(a.skippedCount ?? 0)
-                    );
+              const breakdown = getDisplayBreakdown(a);
+              const points = getPoints(a, QUIZ_CONFIG);
+              const maxPoints = getMaxPointsForAttempt(a, QUIZ_CONFIG);
 
-              // ✅ score is now "correct"; fallback to correctCount if needed
-              const correct = Number(a.correctCount ?? a.score ?? 0);
-
-              const wrong = Number(a.wrongCount ?? 0) || 0;
-              const skipped = Number(a.skippedCount ?? 0) || 0;
-
-              // ✅ timedOutCount: prefer saved field; fallback derive from results
-              const timedOut =
-                Number.isFinite(Number(a.timedOutCount))
-                  ? Number(a.timedOutCount)
-                  : Array.isArray(a.results)
-                  ? a.results.reduce(
-                      (acc, q) =>
-                        acc + (q?.type === "live" && q?.liveStatus?.status === "timeout" ? 1 : 0),
-                      0
-                    )
+              const accuracy =
+                breakdown.attempted > 0
+                  ? breakdown.correct / breakdown.attempted
                   : 0;
 
               return (
                 <div
                   key={a.id}
-                  className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-sm flex flex-col md:flex-row md:items-center md:justify-between gap-2"
+                  className="bg-gray-900 border border-gray-800 rounded-lg p-4 text-sm flex flex-col items-center text-center gap-2"
                 >
                   <div>
                     <p className="font-medium text-sm md:text-base mb-1">
@@ -119,43 +107,43 @@ export default function History({ user }) {
                         ? new Date(startedAtMs).toLocaleString()
                         : "Unknown date"}
                     </p>
-
-                    {/* ✅ overall timer timeout message 
-                    {a.reason === "timeout" ? (
-                      <p className="text-xs text-rose-300">
-                        Finished due to overall timer timeout.
-                      </p>
-                    ) : null}
-                    */}
                   </div>
 
-                  <div className="text-xs md:text-sm text-gray-300 t space-y-1">
+                  <div className="text-xs md:text-sm text-gray-300 space-y-1 w-full max-w-md">
+                    {/* ✅ PRIMARY: points */}
                     <p>
                       Score:{" "}
                       <span className="font-semibold text-white">
-                        {correct}
+                        {points}
                       </span>{" "}
                       /{" "}
                       <span className="font-semibold text-white">
-                        {attempted}
+                        {maxPoints}
                       </span>{" "}
-                      <span className="text-[11px] text-gray-400">
-                        (attempted)
-                      </span>
+                      <span className="text-[11px] text-gray-400">pts</span>
+                    </p>
+
+                    {/* ✅ SECONDARY: accuracy */}
+                    <p className="text-[12px] text-gray-400">
+                      Accuracy:{" "}
+                      <span className="text-gray-200 font-semibold">
+                        {formatPct(accuracy)}
+                      </span>{" "}
+                      · Correct:{" "}
+                      <span className="text-green-400">{breakdown.correct}</span>{" "}
+                      /{" "}
+                      <span className="text-gray-200">{breakdown.attempted}</span>{" "}
+                      <span className="text-[11px] text-gray-500">(attempted)</span>
                     </p>
 
                     <p>
-                      Correct:{" "}
-                      <span className="text-green-400">{correct}</span>
-                      {" · "}
-                      Wrong:{" "}
-                      <span className="text-red-400">{wrong}</span>
+                      Wrong: <span className="text-red-400">{breakdown.wrong}</span>
                       {" · "}
                       Timed out:{" "}
-                      <span className="text-blue-300">{timedOut}</span>
+                      <span className="text-amber-300">{breakdown.timedOut}</span>
                       {" · "}
                       Skipped:{" "}
-                      <span className="text-yellow-300">{skipped}</span>
+                      <span className="text-yellow-300">{breakdown.skipped}</span>
                     </p>
 
                     {a.durationSeconds != null && (
