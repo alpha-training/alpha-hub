@@ -459,7 +459,7 @@ export default function AdminPanel({ user }) {
           const accuracy =
             breakdown.attempted > 0 ? breakdown.correct / breakdown.attempted : 0;
 
-          let scoreColor = "text-gray-200";
+          let scoreColor = "text-gray-300";
           if (accuracy >= 0.9) scoreColor = "text-green-400";
           else if (accuracy >= 0.7) scoreColor = "text-blue-400";
           else if (accuracy >= 0.4) scoreColor = "text-yellow-300";
@@ -520,11 +520,11 @@ export default function AdminPanel({ user }) {
                   <div className="flex flex-wrap gap-4">
                     <div>
                       <span className="text-gray-400">Topics: </span>
-                      <span className="text-gray-200">{topicLabel}</span>
+                      <span className="text-gray-300">{topicLabel}</span>
                     </div>
                     <div>
                       <span className="text-gray-400">Started: </span>
-                      <span className="text-gray-200">
+                      <span className="text-gray-300">
                         {startedAt ? startedAt.toLocaleString() : "—"}
                       </span>
                     </div>
@@ -558,7 +558,7 @@ export default function AdminPanel({ user }) {
                     </div>
                     <div>
                       <span className="text-gray-400">Attempted: </span>
-                      <span className="text-gray-200 font-semibold">
+                      <span className="text-gray-300 font-semibold">
                         {breakdown.attempted}
                       </span>
                     </div>
@@ -566,14 +566,14 @@ export default function AdminPanel({ user }) {
 
                   <div className="text-xs text-gray-400">
                     Points:{" "}
-                    <span className="text-gray-200 font-semibold">
+                    <span className="text-gray-300 font-semibold">
                       {points}
                     </span>{" "}
                     / {maxPoints}
                     <span className="text-gray-500"> (pts)</span>
                     {" · "}
                     Accuracy:{" "}
-                    <span className="text-gray-200 font-semibold">
+                    <span className="text-gray-300 font-semibold">
                       {formatPct(accuracy)}
                     </span>
                   </div>
@@ -619,7 +619,7 @@ export default function AdminPanel({ user }) {
                               className="border border-gray-800 rounded-md px-2 py-1"
                             >
                               <div className="flex justify-between gap-3">
-                                <div className="text-[11px] md:text-xs text-gray-200 whitespace-pre-wrap">
+                                <div className="text-[11px] md:text-xs text-gray-300 whitespace-pre-wrap">
                                   {idx2 + 1}.{" "}
                                   {qRes.questionText ||
                                     qRes.apiId ||

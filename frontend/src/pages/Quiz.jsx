@@ -42,16 +42,10 @@ export default function Quiz({ user, profile }) {
   const [startedAt, setStartedAt] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // track when user entered current question (for skip-time deduction)
   const [enteredAtMs, setEnteredAtMs] = useState(Date.now());
-
-  // ✅ per-live-question timer state (by questionId)
   const [questionTimeLeftById, setQuestionTimeLeftById] = useState({});
-
-  // ✅ lock used only for brief auto-advance transitions (prevents “stuck”)
   const [transitionLock, setTransitionLock] = useState(false);
 
-  // refs to avoid stale closures in timeouts
   const currentIndexRef = useRef(currentIndex);
   const questionsRef = useRef(questions);
   useEffect(() => {
@@ -91,7 +85,6 @@ export default function Quiz({ user, profile }) {
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  // --- helper: fetch prompt for apiId ---
   const fetchLivePrompt = useCallback(async (apiId) => {
     if (!apiId) return "";
     const res = await fetch(`${LIVE_CHECKER_API}/format/${apiId}`, {
@@ -105,36 +98,27 @@ export default function Quiz({ user, profile }) {
     return prompt ? String(prompt) : "";
   }, []);
 
-  // ✅ Firestore cannot store undefined anywhere (deep). Replace with null.
   const sanitizeForFirestore = useCallback((value) => {
     if (value === undefined) return null;
     if (value === null) return null;
 
-    if (Array.isArray(value)) {
-      return value.map((v) => sanitizeForFirestore(v));
-    }
-
+    if (Array.isArray(value)) return value.map((v) => sanitizeForFirestore(v));
     if (value instanceof Date) return value;
 
     if (typeof value === "object") {
       const out = {};
-      for (const [k, v] of Object.entries(value)) {
-        out[k] = sanitizeForFirestore(v);
-      }
+      for (const [k, v] of Object.entries(value)) out[k] = sanitizeForFirestore(v);
       return out;
     }
-
     return value;
   }, []);
 
-  // ---------------- SUBMIT ----------------
   const handleSubmit = useCallback(
     async (reason = "manual") => {
       if (isSubmitting || !questions.length || !user || !startedAt) return;
 
       setIsSubmitting(true);
 
-      // ✅ final safety net: fetch missing prompts for live questions before saving
       const patchedQuestions = await Promise.all(
         questions.map(async (q) => {
           if (q.type !== "live") return q;
@@ -209,7 +193,6 @@ export default function Quiz({ user, profile }) {
         const picked = selectedById[q.id] || [];
         const pickedSet = new Set(picked);
 
-        // ✅ treat "has any selection" as answered (important for last question submit)
         const wasAnswered =
           answeredById[q.id] !== undefined
             ? Boolean(answeredById[q.id])
@@ -299,15 +282,12 @@ export default function Quiz({ user, profile }) {
       profile?.lastName,
       topics,
       navigate,
-
-      // ✅ IMPORTANT: without these, submit uses stale {} and everything looks skipped
       selectedById,
       answeredById,
       sanitizeForFirestore,
     ]
   );
 
-  // ✅ helper: brief status then auto-advance (never leaves UI locked)
   const scheduleAutoAdvance = useCallback(
     (delayMs = 900) => {
       setTransitionLock(true);
@@ -319,57 +299,39 @@ export default function Quiz({ user, profile }) {
 
         setTransitionLock(false);
 
-        if (isLast) {
-          handleSubmit("auto-advance");
-        } else {
-          setCurrentIndex((i) => Math.min(i + 1, qs.length - 1));
-        }
+        if (isLast) handleSubmit("auto-advance");
+        else setCurrentIndex((i) => Math.min(i + 1, qs.length - 1));
       }, delayMs);
     },
     [handleSubmit]
   );
 
-  // ---------------- PREPARE QUESTIONS ----------------
   useEffect(() => {
     let cancelled = false;
 
     const build = async () => {
       let pool = [];
 
-      // local pools (everything except live)
       topics.forEach((t) => {
         if (t !== "live" && QUESTION_POOLS[t]) pool.push(...QUESTION_POOLS[t]);
       });
 
-      // live from backend
       if (topics.includes("live")) {
         try {
           const liveQs = await fetchLiveQuestions();
 
-          // ✅ SPECIAL RULE: live-only quiz
           if (isLiveOnly) {
-            const TOTAL = QUIZ_CONFIG.questionsPerAttempt; // 30
+            const TOTAL = QUIZ_CONFIG.questionsPerAttempt;
             const LAST_N = 15;
 
-            if (liveQs.length <= TOTAL) {
-              // not enough questions → keep existing behavior
-              pool.push(...liveQs);
-            } else {
-              // 1️⃣ last 15 questions (file order, NOT random)
+            if (liveQs.length <= TOTAL) pool.push(...liveQs);
+            else {
               const last15 = liveQs.slice(-LAST_N);
-
-              // 2️⃣ remaining pool (exclude last 15)
               const remaining = liveQs.slice(0, liveQs.length - LAST_N);
-
-              // 3️⃣ pick 15 random from remaining
-              const random15 = [...remaining]
-                .sort(() => Math.random() - 0.5)
-                .slice(0, LAST_N);
-
+              const random15 = [...remaining].sort(() => Math.random() - 0.5).slice(0, LAST_N);
               pool.push(...last15, ...random15);
             }
           } else {
-            // existing behavior for mixed quizzes
             pool.push(...liveQs);
           }
         } catch (e) {
@@ -377,7 +339,6 @@ export default function Quiz({ user, profile }) {
         }
       }
 
-      // dedupe
       const map = new Map();
       pool.forEach((q) => {
         const key = (q.type === "live" ? q.apiId : q.id || q.question || "")
@@ -389,24 +350,18 @@ export default function Quiz({ user, profile }) {
 
       const uniqueQuestions = Array.from(map.values());
       const shuffled = [...uniqueQuestions].sort(() => Math.random() - 0.5);
-
-      const sliceCount = Math.min(
-        QUIZ_CONFIG.questionsPerAttempt,
-        shuffled.length
-      );
+      const sliceCount = Math.min(QUIZ_CONFIG.questionsPerAttempt, shuffled.length);
 
       const normalized = shuffled.slice(0, sliceCount).map((q, qi) => {
         const qid = q.id || `q_${qi}`;
         const type = q.type || "mcq";
 
-        if (type === "live") {
-          return { ...q, id: qid, type: "live", options: [] };
-        }
+        if (type === "live") return { ...q, id: qid, type: "live", options: [] };
 
         const shuffledOptions = [...(q.options || [])]
           .map((opt, oi) => ({
             id: opt.id || `${qid}_opt_${oi}`,
-            text: opt.text ?? "", // ✅ avoid undefined in Firestore
+            text: opt.text ?? "",
             isCorrect: !!opt.isCorrect,
           }))
           .sort(() => Math.random() - 0.5);
@@ -420,7 +375,7 @@ export default function Quiz({ user, profile }) {
       setCurrentIndex(0);
 
       setSelectedById({});
-      setAnsweredById({}); // ✅ reset
+      setAnsweredById({});
       setAttemptById({});
       setLiveStatusById({});
       setLiveAttemptsUsedById({});
@@ -432,13 +387,9 @@ export default function Quiz({ user, profile }) {
       setStartedAt(now);
 
       const total = normalized.reduce((acc, q) => acc + getQuestionSeconds(q), 0);
-
-      // ✅ live-only: disable global timer
       setGlobalTimeLeft(isLiveOnly ? null : total);
 
-      // ✅ preload prompts for ALL live questions
       const liveOnes = normalized.filter((q) => q.type === "live" && q.apiId);
-
       Promise.all(
         liveOnes.map(async (q) => {
           const prompt = await fetchLivePrompt(q.apiId);
@@ -475,11 +426,9 @@ export default function Quiz({ user, profile }) {
   const totalQuestions = questions.length;
   const currentQuestion = questions[currentIndex];
 
-  // reset entered time when question changes
   useEffect(() => {
     setEnteredAtMs(Date.now());
 
-    // ✅ init per-question timer only once per questionId (prevents reset on Back)
     if (currentQuestion?.type === "live") {
       const qid = currentQuestion.id;
       setQuestionTimeLeftById((prev) => {
@@ -489,7 +438,6 @@ export default function Quiz({ user, profile }) {
     }
   }, [currentIndex, currentQuestion]);
 
-  // ---------------- GLOBAL TIMER (disabled for live-only) ----------------
   useEffect(() => {
     if (isLiveOnly) return;
     if (globalTimeLeft === null) return;
@@ -508,7 +456,6 @@ export default function Quiz({ user, profile }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [globalTimeLeft, isLiveOnly]);
 
-  // ---------------- LIVE per-question timer ticking (only when on that live question) ----------------
   useEffect(() => {
     if (!currentQuestion) return;
     if (currentQuestion.type !== "live") return;
@@ -537,7 +484,6 @@ export default function Quiz({ user, profile }) {
     return () => clearInterval(interval);
   }, [currentQuestion, questionTimeLeftById, liveStatusById, transitionLock]);
 
-  // ✅ timeout trigger when current live question reaches 0
   useEffect(() => {
     if (!currentQuestion) return;
     if (currentQuestion.type !== "live") return;
@@ -554,12 +500,10 @@ export default function Quiz({ user, profile }) {
         ...p,
         [qid]: { status: "timeout", message: "Timed out" },
       }));
-
       scheduleAutoAdvance(900);
     }
   }, [currentQuestion, questionTimeLeftById, liveStatusById, scheduleAutoAdvance]);
 
-  // ---------------- MCQ select ----------------
   const toggleOption = (questionId, optionId) => {
     setSelectedById((prev) => {
       const existing = new Set(prev[questionId] || []);
@@ -568,7 +512,6 @@ export default function Quiz({ user, profile }) {
     });
   };
 
-  // ---------------- LIVE run ----------------
   const runLive = async (question) => {
     const qid = question.id;
     const apiId = question.apiId;
@@ -620,7 +563,6 @@ export default function Quiz({ user, profile }) {
       }
 
       const data = await res.json();
-
       const nextUsed = used + 1;
       setLiveAttemptsUsedById((p) => ({ ...p, [qid]: nextUsed }));
 
@@ -650,49 +592,6 @@ export default function Quiz({ user, profile }) {
     }
   };
 
-  // ---------------- UI helpers ----------------
-  const progressPercent = useMemo(() => {
-    if (!totalQuestions) return 0;
-    return Math.round(((currentIndex + 1) / totalQuestions) * 100);
-  }, [currentIndex, totalQuestions]);
-
-  const goNext = () => {
-    if (currentQuestion?.type === "mcq") {
-      setAnsweredById((p) => ({
-        ...p,
-        [currentQuestion.id]: true,
-      }));
-    }
-
-    currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
-  };
-
-  const goBack = () => currentIndex > 0 && setCurrentIndex((i) => i - 1);
-
-  // ✅ Skip deducts remaining seconds for THIS question from global remaining
-  // If global timer is disabled (live-only), skip just advances.
-  const skipQuestion = () => {
-    if (currentIndex >= totalQuestions - 1) return;
-    if (!currentQuestion) return;
-
-    if (currentQuestion.type === "mcq") {
-      setAnsweredById((p) => ({
-        ...p,
-        [currentQuestion.id]: false,
-      }));
-    }
-
-    if (!isLiveOnly) {
-      const qSec = getQuestionSeconds(currentQuestion);
-      const elapsed = (Date.now() - enteredAtMs) / 1000;
-      const remainingForThisQ = Math.max(0, Math.ceil(qSec - elapsed));
-      setGlobalTimeLeft((t) => Math.max(0, (t ?? 0) - remainingForThisQ));
-    }
-
-    setCurrentIndex((i) => i + 1);
-  };
-
-  // ---------------- RENDER ----------------
   if (!user) return null;
 
   if (!questions.length) {
@@ -725,22 +624,19 @@ export default function Quiz({ user, profile }) {
 
   const isLast = currentIndex === totalQuestions - 1;
 
-  // ✅ MCQ Next disabled until at least one option selected
   const hasMCQSelection =
     isMCQ && (selectedById[currentQuestion.id]?.length ?? 0) > 0;
 
-  // ✅ timed-out questions should allow Next/Back (don’t trap user)
   const nextDisabled = !isMCQ
     ? ((!liveIsCorrect && !isOutOfAttempts && !liveIsTimedOut) || transitionLock)
     : transitionLock || !hasMCQSelection;
 
-    const skipDisabled = transitionLock;
+  const skipDisabled = transitionLock;
+  const submitDisabled = isSubmitting || transitionLock;
 
-  // ✅ also disable Submit on last MCQ until selection exists
-  const submitDisabled =
-    isSubmitting || transitionLock;
-
-  const containerWidth = isMCQ ? "max-w-4xl" : "max-w-6xl";
+  // ✅ slightly narrower so there's room for the right rail
+  const containerWidth = isMCQ ? "max-w-4xl" : "max-w-7xl";
+  const railTopClass = isLiveOnly ? "top-39" : "top-44";
 
   const qTimeLeft =
     currentQuestion.type === "live"
@@ -750,153 +646,180 @@ export default function Quiz({ user, profile }) {
   const qTimeTotal =
     currentQuestion.type === "live" ? getQuestionSeconds(currentQuestion) : null;
 
-  // lock editor/run briefly during transitions, OR forever if timed out (nav still works)
   const liveLocked = transitionLock || liveIsTimedOut;
+
+  const goNext = () => {
+    if (currentQuestion?.type === "mcq") {
+      setAnsweredById((p) => ({ ...p, [currentQuestion.id]: true }));
+    }
+    currentIndex < totalQuestions - 1 && setCurrentIndex((i) => i + 1);
+  };
+
+  const goBack = () => currentIndex > 0 && setCurrentIndex((i) => i - 1);
+
+  const skipQuestion = () => {
+    if (currentIndex >= totalQuestions - 1) return;
+    if (!currentQuestion) return;
+
+    if (currentQuestion.type === "mcq") {
+      setAnsweredById((p) => ({ ...p, [currentQuestion.id]: false }));
+    }
+
+    if (!isLiveOnly) {
+      const qSec = getQuestionSeconds(currentQuestion);
+      const elapsed = (Date.now() - enteredAtMs) / 1000;
+      const remainingForThisQ = Math.max(0, Math.ceil(qSec - elapsed));
+      setGlobalTimeLeft((t) => Math.max(0, (t ?? 0) - remainingForThisQ));
+    }
+
+    setCurrentIndex((i) => i + 1);
+  };
 
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-10 pb-6 px-4 flex justify-center">
-      <div className={`w-full ${containerWidth} space-y-3`}>
-        {/* TOP BAR */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div className="flex-1">
-            <div className="flex justify-between text-sm md:text-base text-gray-400 mb-1">
-              <span>
-                Question {currentIndex + 1} / {totalQuestions}
-              </span>
-            </div>
-
-            <div className="h-2 rounded-full bg-gray-800 overflow-hidden">
-              <div
-                className="h-full bg-blue-500 transition-all"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="w-full md:w-auto">
-            <div className="grid grid-cols-3 items-center w-full md:min-w-[520px]">
-              <div className="justify-self-start" />
-              <div className="justify-self-center text-sm font-mono text-gray-200">
-                {!isLiveOnly ? (
-                  <>
-                    Time left:{" "}
-                    <span className="font-semibold text-blue-400">
-                      {formatTime(globalTimeLeft ?? 0)}
-                    </span>
-                  </>
-                ) : null}
+      {/* ✅ 2-column layout: content + right rail */}
+      <div className={`w-full ${containerWidth} grid grid-cols-[minmax(0,1fr)_140px] gap-6`}>
+        {/* LEFT: quiz content */}
+        <div className="space-y-3">
+          {/* TOP BAR */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="flex-1">
+              <div className="flex justify-between text-sm md:text-base text-gray-400 mb-1">
+                <span>
+                  Question {currentIndex + 1} / {totalQuestions}
+                </span>
               </div>
-              <div className="justify-self-end" />
+
+              <div className="h-2 rounded-full bg-gray-800 overflow-hidden">
+                <div
+                  className="h-full bg-blue-500 transition-all"
+                  style={{ width: `${Math.round(((currentIndex + 1) / totalQuestions) * 100)}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="w-full md:w-auto">
+              <div className="grid grid-cols-3 items-center w-full md:min-w-[520px]">
+                <div className="justify-self-start" />
+                <div className="justify-self-center text-sm font-mono text-gray-300">
+                  {!isLiveOnly ? (
+                    <>
+                      Time left:{" "}
+                      <span className="font-semibold text-blue-400">
+                        {formatTime(globalTimeLeft ?? 0)}
+                      </span>
+                    </>
+                  ) : null}
+                </div>
+                <div className="justify-self-end" />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* QUESTION */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 space-y-3">
-          {isMCQ ? (
-            <h2 className="text-sm md:text-base text-gray-200">
-            <InlinePrompt value={currentQuestion.questionParts ?? currentQuestion.question} />
-            </h2>
+          {/* QUESTION CARD */}
+          <div className="bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-3 space-y-3">
+            {isMCQ ? (
+              <h2 className="text-sm md:text-base text-gray-300">
+                <InlinePrompt value={currentQuestion.questionParts ?? currentQuestion.question} />
+              </h2>
+            ) : null}
 
+            {isMCQ ? (
+              <>
+                <p className="text-xs text-gray-400">
+                  Select all answers you believe are correct.
+                </p>
 
-          ) : null}
+                <div className="space-y-3 mt-1">
+                  {currentQuestion.options.map((opt) => {
+                    const picked = selectedById[currentQuestion.id] || [];
+                    return (
+                      <label
+                        key={opt.id}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-700 bg-gray-950/60 hover:bg-gray-800/70 cursor-pointer text-xs md:text-sm font-mono whitespace-pre-wrap"
+                      >
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 accent-blue-500"
+                          checked={picked.includes(opt.id)}
+                          onChange={() => toggleOption(currentQuestion.id, opt.id)}
+                        />
+                        <span>{opt.text}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              <LiveCheckerQuestion
+                question={currentQuestion}
+                attempt={attemptById[currentQuestion.id] || ""}
+                onAttemptChange={(val) =>
+                  setAttemptById((p) => ({ ...p, [currentQuestion.id]: val }))
+                }
+                status={liveStatusObj}
+                onRun={() => runLive(currentQuestion)}
+                attemptsLeft={attemptsLeft}
+                attemptsLimit={attemptsLimit}
+                questionTimeLeft={qTimeLeft}
+                questionTimeTotal={qTimeTotal}
+                locked={liveLocked}
+                onPromptLoaded={(prompt) => {
+                  const p = String(prompt || "").trim();
+                  if (!p) return;
 
-          {isMCQ ? (
-            <>
-              <p className="text-xs text-gray-400">
-                Select all answers you believe are correct.
-              </p>
-
-              <div className="space-y-3 mt-1">
-                {currentQuestion.options.map((opt) => {
-                  const picked = selectedById[currentQuestion.id] || [];
-                  return (
-                    <label
-                      key={opt.id}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-700 bg-gray-950/60 hover:bg-gray-800/70 cursor-pointer text-xs md:text-sm font-mono whitespace-pre-wrap"
-                    >
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 accent-blue-500"
-                        checked={picked.includes(opt.id)}
-                        onChange={() => toggleOption(currentQuestion.id, opt.id)}
-                      />
-                      <span>{opt.text}</span>
-                    </label>
+                  setQuestions((prev) =>
+                    prev.map((q) =>
+                      q.id === currentQuestion.id && q.question !== p
+                        ? { ...q, question: p }
+                        : q
+                    )
                   );
-                })}
-              </div>
-            </>
-          ) : (
-            <LiveCheckerQuestion
-              question={currentQuestion}
-              attempt={attemptById[currentQuestion.id] || ""}
-              onAttemptChange={(val) =>
-                setAttemptById((p) => ({ ...p, [currentQuestion.id]: val }))
-              }
-              status={liveStatusObj}
-              onRun={() => runLive(currentQuestion)}
-              attemptsLeft={attemptsLeft}
-              attemptsLimit={attemptsLimit}
-              questionTimeLeft={qTimeLeft}
-              questionTimeTotal={qTimeTotal}
-              locked={liveLocked}
-              onPromptLoaded={(prompt) => {
-                const p = String(prompt || "").trim();
-                if (!p) return;
-
-                setQuestions((prev) =>
-                  prev.map((q) =>
-                    q.id === currentQuestion.id && q.question !== p
-                      ? { ...q, question: p }
-                      : q
-                  )
-                );
-              }}
-            />
-          )}
+                }}
+              />
+            )}
+          </div>
         </div>
 
-        {/* NAV */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex gap-2">
-            <button
-              onClick={goBack}
-              disabled={currentIndex === 0 || isSubmitting || transitionLock}
-              className="px-5 py-2 rounded-md cursor-pointer bg-gray-700 disabled:opacity-40"
-            >
-              Back
-            </button>
-
-            <button
-              onClick={skipQuestion}
-              disabled={skipDisabled || isSubmitting}
-              className="px-5 py-2 rounded-md bg-gray-700 cursor-pointer disabled:opacity-40"
-            >
-              Skip
-            </button>
-
+        {/* RIGHT: sticky vertical controls */}
+        <aside className={`sticky ${railTopClass} h-fit`}>
+          <div className="space-y-2">
+            {/* Next / Submit */}
             {!isLast ? (
               <button
                 onClick={goNext}
                 disabled={nextDisabled || isSubmitting}
-                className="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 transition cursor-pointer disabled:opacity-40 disabled:hover:bg-blue-600"
+                className="w-full px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 transition cursor-pointer disabled:opacity-40 disabled:hover:bg-blue-600"
               >
                 Next
               </button>
             ) : (
               <button
                 onClick={() => handleSubmit("manual")}
-                className="px-5 py-2 rounded-md bg-green-600 hover:bg-green-700 cursor-pointer transition disabled:opacity-40 disabled:hover:bg-green-600"
+                className="w-full px-4 py-2 rounded-md bg-green-600 hover:bg-green-700 cursor-pointer transition disabled:opacity-40 disabled:hover:bg-green-600"
                 disabled={submitDisabled}
               >
-                {isSubmitting ? "Submitting..." : "Submit Quiz"}
+                {isSubmitting ? "Submitting..." : "Submit"}
               </button>
             )}
-          </div>
 
-          <span className="text-xs text-gray-500" />
-        </div>
+            <button
+              onClick={skipQuestion}
+              disabled={skipDisabled || isSubmitting}
+              className="w-full px-4 py-2 rounded-md bg-gray-700 cursor-pointer disabled:opacity-40"
+            >
+              Skip
+            </button>
+
+            <button
+              onClick={goBack}
+              disabled={currentIndex === 0 || isSubmitting || transitionLock}
+              className="w-full px-4 py-2 rounded-md cursor-pointer bg-gray-700 disabled:opacity-40"
+            >
+              Back
+            </button>
+          </div>
+        </aside>
       </div>
     </div>
   );
