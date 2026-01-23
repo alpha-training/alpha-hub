@@ -1,5 +1,5 @@
 // src/components/LiveCheckerQuestion.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { LIVE_CHECKER_API } from "../config";
 import InlinePrompt from "./InlinePrompt";
 
@@ -28,6 +28,8 @@ export default function LiveCheckerQuestion({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const textareaRef = useRef(null);
+
   // ---------------- load format (POST) ----------------
   useEffect(() => {
     if (!question?.apiId) return;
@@ -55,16 +57,16 @@ export default function LiveCheckerQuestion({
         // emit prompt up to Quiz so it gets stored in questions state & Firestore
         const r =
           data?.result && typeof data.result === "object" ? data.result : data;
-          const prompt = r?.prompt ?? r?.question ?? r?.title ?? r?.name ?? "";
-          if (prompt && typeof onPromptLoaded === "function") {
-            // Store a readable string for Firestore (for now)
-            if (Array.isArray(prompt)) {
-              onPromptLoaded(prompt.map((p) => p?.value ?? "").join(""));
-            } else {
-              onPromptLoaded(String(prompt));
-            }
+
+        const prompt = r?.prompt ?? r?.question ?? r?.title ?? r?.name ?? "";
+        if (prompt && typeof onPromptLoaded === "function") {
+          // Store a readable string for Firestore (for now)
+          if (Array.isArray(prompt)) {
+            onPromptLoaded(prompt.map((p) => p?.value ?? "").join(""));
+          } else {
+            onPromptLoaded(String(prompt));
           }
-          
+        }
       })
       .catch((e) => {
         if (!cancelled) setError(e?.message || "Failed to load format");
@@ -78,6 +80,17 @@ export default function LiveCheckerQuestion({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [question?.apiId]);
+
+  // ✅ Autofocus answer box whenever question changes
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      if (locked) return;
+      textareaRef.current?.focus?.();
+      textareaRef.current?.select?.();
+    }, 0);
+
+    return () => window.clearTimeout(t);
+  }, [question?.id, question?.apiId, locked]);
 
   // -------- helper: normalize anything to displayable text --------
   const toText = (v) => {
@@ -150,12 +163,11 @@ export default function LiveCheckerQuestion({
   const isOutOfAttempts =
     safeAttemptsLeft !== null ? safeAttemptsLeft <= 0 : false;
 
-    const runDisabled =
+  const runDisabled =
     locked ||
     status?.status === "running" ||
     isOutOfAttempts ||
     typeof onRun !== "function";
-  
 
   // Enter runs, Shift+Enter newline
   const onEditorKeyDown = (e) => {
@@ -199,20 +211,17 @@ export default function LiveCheckerQuestion({
   }, [status]);
 
   const showQuestionTimer = Number.isFinite(Number(questionTimeLeft));
-  const showAttempts =
-    safeAttemptsLeft !== null && safeAttemptsLimit !== null;
+  const showAttempts = safeAttemptsLeft !== null && safeAttemptsLimit !== null;
 
   return (
     <div className="space-y-3">
       {/* Prompt */}
       {fd?.prompt || promptText ? (
-        <div className="text-sm md:text-base text-gray-200">
+        <div className="text-sm md:text-base text-gray-300">
           {/* LIVE: do NOT parse backticks in strings (q uses backticks in syntax) */}
           <InlinePrompt value={fd?.promptParts ?? fd?.prompt ?? promptText} />
         </div>
       ) : null}
-
-      
 
       {/* Setup + Expected */}
       <div className="w-full grid md:grid-cols-3 gap-3">
@@ -234,22 +243,16 @@ export default function LiveCheckerQuestion({
       </div>
 
       {/* Meta row: timer centered, attempts on the right */}
-      {(showQuestionTimer || showAttempts) ? (
+      {showQuestionTimer || showAttempts ? (
         <div className="grid grid-cols-[1fr_auto_1fr] items-center">
           <div />
           <div className="justify-self-center text-xs font-mono text-gray-400">
             {showQuestionTimer ? (
               <>
                 Time left:{" "}
-                <span className="text-gray-200 font-semibold">
+                <span className="text-gray-300 font-semibold">
                   {formatMmSs(questionTimeLeft)}
                 </span>
-                {/* {Number.isFinite(Number(questionTimeTotal)) ? (
-                  <span className="text-gray-500">
-                    {" "}
-                    / {formatMmSs(questionTimeTotal)}
-                  </span>
-                ) : null} */}
               </>
             ) : null}
           </div>
@@ -260,7 +263,7 @@ export default function LiveCheckerQuestion({
                 Attempts left:{" "}
                 <span
                   className={
-                    safeAttemptsLeft <= 0 ? "text-rose-300" : "text-gray-200"
+                    safeAttemptsLeft <= 0 ? "text-rose-300" : "text-gray-300"
                   }
                 >
                   {safeAttemptsLeft}
@@ -273,14 +276,15 @@ export default function LiveCheckerQuestion({
       ) : null}
 
       {/* Editor */}
-      <div className="relative rounded-lg border border-gray-800 bg-gray-950/40 overflow-hidden">
-        <div className="absolute left-0 top-0 bottom-0 w-10 bg-black/20 border-r border-gray-800 flex items-start justify-center pt-1.5">
+      <div className="relative rounded-lg border border-black/60 bg-gray-950 ring-1 ring-black/40 overflow-hidden">
+      <div className="absolute left-0 top-0 bottom-0 w-10 bg-black/20 border-r border-gray-800 flex items-start justify-center pt-1.5">
           <span className="text-xs text-gray-500" style={monoStyle}>
             1
           </span>
         </div>
 
         <textarea
+          ref={textareaRef}
           value={attempt}
           onChange={(e) => onAttemptChange?.(e.target.value)}
           onKeyDown={onEditorKeyDown}
@@ -292,39 +296,12 @@ export default function LiveCheckerQuestion({
           rows={1}
         />
 
-        {/* Controls row: Run always centered, pill appears close to it without moving it */}
-        <div className="px-3 pb-3 pt-2">
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center">
-            <div />
-
-            <div className="justify-self-center">
-              <button
-                type="button"
-                onClick={() => {
-                  if (!runDisabled) onRun?.();
-                }}
-                disabled={runDisabled}
-                title={isOutOfAttempts ? "No attempts left" : ""}
-                className={[
-                  "px-5 py-2 rounded-md text-xs cursor-pointer font-medium transition",
-                  runDisabled
-                    ? "bg-gray-800 text-gray-300 cursor-not-allowed opacity-60"
-                    : "bg-blue-600 hover:bg-blue-700 text-white",
-                ].join(" ")}
-              >
-                Run
-              </button>
-            </div>
-
-            <div className="justify-self-start ml-6 min-h-[36px] flex items-center">
-              {pill ? (
-                <StatusPill variant={pill.variant} text={pill.text} />
-              ) : (
-                <div className="h-[36px]" />
-              )}
-            </div>
+        {/* Status only (Run button removed) */}
+        {pill ? (
+          <div className="px-3 pb-3 pt-2 flex justify-center">
+            <StatusPill variant={pill.variant} text={pill.text} />
           </div>
-        </div>
+        ) : null}
       </div>
     </div>
   );
@@ -333,7 +310,7 @@ export default function LiveCheckerQuestion({
 function PreBlock({ text, dim, monoStyle }) {
   return (
     <pre
-      className={`w-full rounded-lg bg-gray-950/50 border border-gray-800 p-3 text-xs text-gray-200 whitespace-pre-wrap break-words ${
+      className={`w-full rounded-lg bg-gray-950 border border-black/60 p-3 text-xs text-gray-300 whitespace-pre-wrap break-words ${
         dim ? "opacity-90" : ""
       }`}
       style={monoStyle}
@@ -346,9 +323,9 @@ function PreBlock({ text, dim, monoStyle }) {
 function Panel({ title, className = "", children, titleStyle }) {
   return (
     <div
-      className={`rounded-xl border border-gray-800 bg-gray-950/30 p-3 ${className}`}
+      className={`rounded-xl border border-gray-800 bg-gray-950/10 p-3 ${className}`}
     >
-      <div className="text-sm text-gray-200 mb-2" style={titleStyle}>
+      <div className="text-sm text-gray-300 mb-2" style={titleStyle}>
         {title}
       </div>
       {children}

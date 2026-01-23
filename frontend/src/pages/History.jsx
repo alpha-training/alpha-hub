@@ -126,13 +126,13 @@ export default function History({ user }) {
                     {/* ✅ SECONDARY: accuracy */}
                     <p className="text-[12px] text-gray-400">
                       Accuracy:{" "}
-                      <span className="text-gray-200 font-semibold">
+                      <span className="text-gray-300 font-semibold">
                         {formatPct(accuracy)}
                       </span>{" "}
                       · Correct:{" "}
                       <span className="text-green-400">{breakdown.correct}</span>{" "}
                       /{" "}
-                      <span className="text-gray-200">{breakdown.attempted}</span>{" "}
+                      <span className="text-gray-300">{breakdown.attempted}</span>{" "}
                       <span className="text-[11px] text-gray-500">(attempted)</span>
                     </p>
 

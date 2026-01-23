@@ -154,7 +154,7 @@ export default function Home({ user, profile }) {
 
         {/* LAST RESULT */}
         <div className="w-full max-w-xl bg-gray-900 border border-gray-800 rounded-xl p-1 text-left">
-          <h2 className="font-semibold text-gray-200 m-2">Last attempt</h2>
+          <h2 className="font-semibold text-gray-300 m-2">Last attempt</h2>
 
           {loadingResult ? (
             <p className="text-xs text-gray-400 m-2">Loading...</p>
@@ -165,7 +165,7 @@ export default function Home({ user, profile }) {
           ) : (
             <div className="text-xs text-gray-300 space-y-1 m-2">
               {/* ✅ Points first */}
-              <p className="text-gray-200">
+              <p className="text-gray-300">
                 Points:{" "}
                 <span className="font-semibold text-white">{lastPoints}</span>{" "}
                 / {safeMaxPoints}
@@ -174,7 +174,7 @@ export default function Home({ user, profile }) {
               {/* ✅ Accuracy (still useful), but not presented as “Score” */}
               <p className="text-gray-400">
                 Accuracy:{" "}
-                <span className="font-semibold text-gray-200">
+                <span className="font-semibold text-gray-300">
                   {lastBreakdown?.attempted
                     ? `${lastBreakdown.correct} / ${lastBreakdown.attempted}`
                     : "—"}
@@ -211,7 +211,7 @@ export default function Home({ user, profile }) {
 
         {/* TOPIC SELECTION */}
         <div className="bg-gray-900 p-4 rounded-lg border border-gray-700 w-full max-w-xl text-left">
-          <h3 className="font-semibold mb-2 text-gray-200 text-center">
+          <h3 className="font-semibold mb-2 text-gray-300 text-center">
             Select topics
           </h3>
 

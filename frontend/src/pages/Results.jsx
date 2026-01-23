@@ -49,7 +49,7 @@ export default function Results() {
 
   if (!state) {
     return (
-      <div className="min-h-[calc(100vh-56px)] flex flex-col items-center justify-center text-gray-200 pt-24">
+      <div className="min-h-[calc(100vh-56px)] flex flex-col items-center justify-center text-gray-300 pt-24">
         <p className="mb-4 text-sm">No result data available.</p>
         <button
           onClick={() => navigate("/home")}
@@ -176,10 +176,10 @@ export default function Results() {
           {/* ✅ SECONDARY */}
           <p className="text-xs text-gray-400 mt-1">
             Accuracy:{" "}
-            <span className="text-gray-200 font-semibold">{formatPct(accuracy)}</span>{" "}
+            <span className="text-gray-300 font-semibold">{formatPct(accuracy)}</span>{" "}
             · Correct:{" "}
             <span className="text-green-400">{breakdown.correct}</span> /{" "}
-            <span className="text-gray-200">{breakdown.attempted}</span>{" "}
+            <span className="text-gray-300">{breakdown.attempted}</span>{" "}
             <span className="text-[11px] text-gray-500">(attempted)</span>
           </p>
 
@@ -280,7 +280,7 @@ export default function Results() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2 gap-2">
-                    <p className="font-medium text-gray-200">
+                    <p className="font-medium text-gray-300">
                       {idx + 1}. <InlinePrompt value={q.questionText} />
                     </p>
 
