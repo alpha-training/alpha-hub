@@ -21,21 +21,78 @@ function looksLikeId(text) {
   return false;
 }
 
-async function fetchLivePrompt(apiId) {
-  if (!apiId) return "";
+// robust stringify for prompt/alfs shapes
+const toText = (v) => {
+  if (v == null) return "";
+  if (typeof v === "string") return v;
+  if (Array.isArray(v)) return v.map(toText).join("");
+  if (typeof v === "object") {
+    // common backend shape: { value: "..." }
+    if (typeof v.value === "string") return v.value;
+    // or { values: [...] }
+    if (Array.isArray(v.values)) return v.values.map(toText).join("\n");
+    try {
+      return JSON.stringify(v, null, 2);
+    } catch {
+      return String(v);
+    }
+  }
+  return String(v);
+};
+
+// unwrap result several times (some backends wrap more than once)
+function unwrapResult(data) {
+  let raw = data;
+  for (let i = 0; i < 3; i++) {
+    if (raw && typeof raw === "object" && raw !== null && "result" in raw) {
+      raw = raw.result;
+    }
+  }
+  return raw;
+}
+
+// ✅ fetch BOTH prompt + alfs from the format API
+async function fetchLiveFormat(apiId) {
+  if (!apiId) return { prompt: "", alfs: "" };
+
   try {
     const res = await fetch(`${LIVE_CHECKER_API}/format/${apiId}`, {
       method: "POST",
     });
-    if (!res.ok) return "";
+    if (!res.ok) return { prompt: "", alfs: "" };
+
     const data = await res.json().catch(() => null);
-    const r =
-      data?.result && typeof data.result === "object" ? data.result : data;
+    const r = unwrapResult(data);
+
     const prompt = r?.prompt ?? r?.question ?? r?.title ?? r?.name ?? "";
-    return prompt ? String(prompt) : "";
+    const alfs = r?.alfs ?? "";
+
+    return {
+      prompt: toText(prompt).trim(),
+      alfs: toText(alfs).trim(),
+    };
   } catch {
-    return "";
+    return { prompt: "", alfs: "" };
   }
+}
+
+function CodeBlock({ label, text }) {
+  const mono =
+    '"Courier New", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace';
+
+  return (
+    <div className="space-y-1">
+      {label ? (
+        <div className="text-xs font-mono text-gray-300">{label}</div>
+      ) : null}
+      <pre
+        className="w-full rounded-lg border border-black/60 bg-gray-950 ring-1 ring-black/40 p-3 text-xs text-gray-100 whitespace-pre-wrap break-words"
+        style={{ fontFamily: mono }}
+      >
+        {text || ""}
+      </pre>
+    </div>
+  );
 }
 
 /* =================== RESULTS =================== */
@@ -46,6 +103,8 @@ export default function Results() {
 
   const [hydratedResults, setHydratedResults] = useState(null);
   const [reviewIndex, setReviewIndex] = useState(null); // 🔍 live-only review
+  const [revealAlf, setRevealAlf] = useState(false);
+  const [reviewLoading, setReviewLoading] = useState(false);
 
   if (!state) {
     return (
@@ -67,29 +126,38 @@ export default function Results() {
     .map((t) => TOPICS.find((x) => x.id === t)?.label || t)
     .join(", ");
 
-  // hydrate results array (prompts)
+  // ✅ Background hydrate: patch prompt + alfs for ALL live questions (best effort)
   useEffect(() => {
     let cancelled = false;
 
     const run = async () => {
-      const needs = resultsRaw
+      const liveOnes = resultsRaw
         .map((q, i) => ({ q, i }))
-        .filter(
-          ({ q }) =>
-            q?.type === "live" && q?.apiId && looksLikeId(q?.questionText)
-        );
+        .filter(({ q }) => q?.type === "live" && q?.apiId);
 
-      if (!needs.length) {
+      if (!liveOnes.length) {
         setHydratedResults(resultsRaw);
         return;
       }
 
       const updated = [...resultsRaw];
 
-      for (const { q, i } of needs) {
-        const prompt = await fetchLivePrompt(q.apiId);
+      for (const { q, i } of liveOnes) {
+        // Only fetch if we might need something (reduces calls)
+        const needPrompt =
+          looksLikeId(q?.questionText) || !(q?.questionText || "").trim();
+        const needAlfs = !(q?.alfs || "").trim();
+
+        if (!needPrompt && !needAlfs) continue;
+
+        const { prompt, alfs } = await fetchLiveFormat(q.apiId);
         if (cancelled) return;
-        if (prompt) updated[i] = { ...q, questionText: prompt };
+
+        updated[i] = {
+          ...q,
+          questionText: needPrompt && prompt ? prompt : q.questionText,
+          alfs: needAlfs && alfs ? alfs : q.alfs || "",
+        };
       }
 
       setHydratedResults(updated);
@@ -101,12 +169,62 @@ export default function Results() {
     };
   }, [resultsRaw]);
 
+  // ✅ On-demand hydrate for the selected review question
+  useEffect(() => {
+    if (reviewIndex == null) return;
+
+    const base = hydratedResults ?? resultsRaw;
+    const q = base?.[reviewIndex];
+    if (!q || q.type !== "live" || !q.apiId) return;
+
+    const needPrompt =
+      looksLikeId(q?.questionText) || !(q?.questionText || "").trim();
+    const needAlfs = !(q?.alfs || "").trim();
+
+    if (!needPrompt && !needAlfs) return;
+
+    let cancelled = false;
+    setReviewLoading(true);
+
+    (async () => {
+      const { prompt, alfs } = await fetchLiveFormat(q.apiId);
+      if (cancelled) return;
+
+      setHydratedResults((prev) => {
+        const arr = prev ?? resultsRaw;
+        const next = [...arr];
+        const cur = next[reviewIndex];
+        if (!cur) return arr;
+
+        const curNeedPrompt =
+          looksLikeId(cur?.questionText) || !(cur?.questionText || "").trim();
+        const curNeedAlfs = !(cur?.alfs || "").trim();
+
+        next[reviewIndex] = {
+          ...cur,
+          questionText:
+            curNeedPrompt && prompt ? prompt : cur.questionText,
+          alfs: curNeedAlfs && alfs ? alfs : cur.alfs || "",
+        };
+
+        return next;
+      });
+    })()
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setReviewLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reviewIndex]);
+
   const displayResults = hydratedResults ?? resultsRaw;
 
   // ✅ compute breakdown + points consistently
   const breakdown = useMemo(() => {
-    // state includes all summary fields, but we want consistency:
-    // use results when present to avoid “timeout counted as skipped” etc.
     return getDisplayBreakdown({ ...state, results: resultsRaw });
   }, [state, resultsRaw]);
 
@@ -122,8 +240,20 @@ export default function Results() {
 
   /* =================== LIVE REVIEW MODE =================== */
 
+  useEffect(() => {
+    setRevealAlf(false);
+  }, [reviewIndex]);
+
   if (reviewIndex != null && displayResults[reviewIndex]) {
     const q = displayResults[reviewIndex];
+
+    const yours = (q.attempt || "").trim() || "(no answer)";
+    const alf = (q.alfs || "").trim();
+    const alfReady = Boolean(alf);
+
+    // show Alf section only if correct
+    const showAlfSection = Boolean(q.isCorrect);
+    const solutionsTitle = q.isCorrect ? "Solution(s)" : "Solution";
 
     return (
       <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-14 pb-10 px-4 flex justify-center">
@@ -135,7 +265,7 @@ export default function Results() {
             ← Back to review
           </button>
 
-          <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-4">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-4 space-y-4">
             <LiveCheckerQuestion
               question={{ ...q, question: q.questionText }}
               attempt={q.attempt || ""}
@@ -149,6 +279,44 @@ export default function Results() {
               locked={true}
               onPromptLoaded={() => {}}
             />
+
+            {/* ✅ Solution area */}
+            <div className="pt-4 border-t border-gray-800">
+              <div className="text-sm font-semibold text-gray-200 mb-2">
+                {solutionsTitle}:
+              </div>
+
+              <div className="space-y-3">
+                <CodeBlock label="Yours:" text={yours} />
+
+                {showAlfSection ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="text-xs font-mono text-gray-300">
+                        Alf&apos;s:
+                      </div>
+
+                      {reviewLoading && !alfReady ? (
+                        <span className="text-xs text-gray-500">(loading...)</span>
+                      ) : !alfReady ? (
+                        <span className="text-xs text-gray-500">
+                          (not available)
+                        </span>
+                      ) : !revealAlf ? (
+                        <button
+                          onClick={() => setRevealAlf(true)}
+                          className="px-2 py-1 rounded-md bg-gray-700 text-xs hover:bg-gray-600"
+                        >
+                          Reveal
+                        </button>
+                      ) : null}
+                    </div>
+
+                    {revealAlf && alfReady ? <CodeBlock label="" text={alf} /> : null}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -167,16 +335,16 @@ export default function Results() {
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           <h1 className="text-2xl font-bold mb-2">Quiz Results</h1>
 
-          {/* ✅ PRIMARY */}
           <p className="text-sm text-gray-300">
             Score: <b>{points}</b> / <b>{maxPoints}</b>{" "}
             <span className="text-gray-400 text-xs">pts</span>
           </p>
 
-          {/* ✅ SECONDARY */}
           <p className="text-xs text-gray-400 mt-1">
             Accuracy:{" "}
-            <span className="text-gray-300 font-semibold">{formatPct(accuracy)}</span>{" "}
+            <span className="text-gray-300 font-semibold">
+              {formatPct(accuracy)}
+            </span>{" "}
             · Correct:{" "}
             <span className="text-green-400">{breakdown.correct}</span> /{" "}
             <span className="text-gray-300">{breakdown.attempted}</span>{" "}
@@ -252,15 +420,7 @@ export default function Results() {
                   badgeText = "Correct";
                   badgeClass =
                     "bg-green-500/10 text-green-400 border border-green-500/40";
-                } else if (wasAnswered === false) {
-                  badgeText = "Skipped";
-                  badgeClass =
-                    "bg-yellow-500/10 text-yellow-300 border border-yellow-500/40";
-                } else if (wasAnswered === true) {
-                  badgeText = "Wrong";
-                  badgeClass =
-                    "bg-red-500/10 text-red-400 border border-red-500/40";
-                } else if (picked.length === 0) {
+                } else if (wasAnswered === false || picked.length === 0) {
                   badgeText = "Skipped";
                   badgeClass =
                     "bg-yellow-500/10 text-yellow-300 border border-yellow-500/40";
