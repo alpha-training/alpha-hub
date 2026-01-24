@@ -98,6 +98,28 @@ export default function Quiz({ user, profile }) {
     return prompt ? String(prompt) : "";
   }, []);
 
+  const fetchLiveFormat = useCallback(async (apiId) => {
+    if (!apiId) return { prompt: "", alfs: "" };
+  
+    try {
+      const res = await fetch(`${LIVE_CHECKER_API}/format/${apiId}`, {
+        method: "POST",
+      });
+      if (!res.ok) return { prompt: "", alfs: "" };
+  
+      const data = await res.json().catch(() => null);
+      const r = data?.result && typeof data.result === "object" ? data.result : data;
+  
+      return {
+        prompt: String(r?.prompt ?? r?.question ?? r?.title ?? r?.name ?? "").trim(),
+        alfs: String(r?.alfs ?? "").trim(),
+      };
+    } catch {
+      return { prompt: "", alfs: "" };
+    }
+  }, []);
+
+  
   const sanitizeForFirestore = useCallback((value) => {
     if (value === undefined) return null;
     if (value === null) return null;
@@ -122,13 +144,21 @@ export default function Quiz({ user, profile }) {
       const patchedQuestions = await Promise.all(
         questions.map(async (q) => {
           if (q.type !== "live") return q;
+      
           const text = (q.question || "").trim();
           const looksMissing = !text || text === String(q.apiId || "").trim();
-          if (!looksMissing || !q.apiId) return q;
-          const prompt = await fetchLivePrompt(q.apiId);
-          return prompt ? { ...q, question: prompt } : q;
+      
+          // fetch format once, use it for both prompt + alfs
+          const { prompt, alfs } = await fetchLiveFormat(q.apiId);
+      
+          return {
+            ...q,
+            question: (!looksMissing || !prompt) ? q.question : prompt,
+            alfs: alfs || q.alfs || "",
+          };
         })
       );
+      
 
       const totalTimeAllowedInSeconds = patchedQuestions.reduce(
         (acc, q) => acc + getQuestionSeconds(q),
@@ -171,19 +201,17 @@ export default function Quiz({ user, profile }) {
 
           return {
             questionId: q.id,
-            questionText:
-              q.question && String(q.question).trim()
-                ? q.question
-                : q.apiId || q.id,
+            questionText: q.question && String(q.question).trim() ? q.question : q.apiId || q.id,
             type: "live",
             apiId: q.apiId || null,
             attempt,
+            alfs: q.alfs || "",        // ✅ add this
             liveStatus: statusObj,
             attemptsUsed: Number(liveAttemptsUsedById[q.id] ?? 0),
             attemptsLimit: getAttemptsLimit(q),
             seconds: getQuestionSeconds(q),
             isCorrect,
-          };
+          };          
         }
 
         const correctIds = (q.options || [])

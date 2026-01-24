@@ -15,6 +15,7 @@ import {
   getPoints,
   getMaxPointsForAttempt,
   getDisplayBreakdown,
+  formatPct,
 } from "../utils/scoring";
 
 function toMillis(ts) {
@@ -108,7 +109,7 @@ export default function Home({ user, profile }) {
   const noTopicsSelected = selectedTopics.length === 0;
   const lastAttemptMs = toMillis(lastResult?.startedAt);
 
-  // ✅ NEW: consistent score display (points-first) using utils/scoring
+  // Consistent breakdown + points (same utils as History/Results)
   const lastBreakdown = useMemo(() => {
     return lastResult ? getDisplayBreakdown(lastResult) : null;
   }, [lastResult]);
@@ -121,8 +122,14 @@ export default function Home({ user, profile }) {
     return lastResult ? getMaxPointsForAttempt(lastResult, QUIZ_CONFIG) : 0;
   }, [lastResult]);
 
-  // For “/ max” labels (points can be negative if wrong=-1; keep max >= 0)
   const safeMaxPoints = Math.max(0, Number(lastMaxPoints || 0));
+
+  const lastAccuracy = useMemo(() => {
+    if (!lastBreakdown) return 0;
+    return lastBreakdown.attempted > 0
+      ? lastBreakdown.correct / lastBreakdown.attempted
+      : 0;
+  }, [lastBreakdown]);
 
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white flex flex-col items-center justify-start px-4 pt-14 pb-16">
@@ -132,6 +139,7 @@ export default function Home({ user, profile }) {
           <h1 className="text-3xl md:text-5xl font-bold mb-3">
             Welcome, {displayName}!
           </h1>
+
           <p className="text-sm md:text-base text-gray-300 max-w-3xl mx-auto mt-3">
             Scoring:
             <br />•{" "}
@@ -150,6 +158,11 @@ export default function Home({ user, profile }) {
             </span>{" "}
             for skipping
           </p>
+
+          {/* Optional: if you want to show the estimate like elsewhere, keep it subtle */}
+          {/* <p className="text-xs text-gray-500 mt-2">
+            Est. total time: {formattedTotalTime}
+          </p> */}
         </div>
 
         {/* LAST RESULT */}
@@ -163,31 +176,35 @@ export default function Home({ user, profile }) {
               You haven&apos;t taken the quiz yet.
             </p>
           ) : (
-            <div className="text-xs text-gray-300 space-y-1 m-2">
-              {/* ✅ Points first */}
-              <p className="text-gray-300">
+            <div className="m-2 space-y-1">
+              {/* ✅ PRIMARY: points (same idea as History/Results) */}
+              <p className="text-sm text-gray-300">
                 Points:{" "}
                 <span className="font-semibold text-white">{lastPoints}</span>{" "}
-                / {safeMaxPoints}
+                /{" "}
+                <span className="font-semibold text-white">{safeMaxPoints}</span>{" "}
+                <span className="text-[11px] text-gray-400">pts</span>
               </p>
 
-              {/* ✅ Accuracy (still useful), but not presented as “Score” */}
-              <p className="text-gray-400">
+              {/* ✅ SECONDARY: accuracy as % + correct/attempted (matches History/Results) */}
+              <p className="text-xs text-gray-400">
                 Accuracy:{" "}
-                <span className="font-semibold text-gray-300">
-                  {lastBreakdown?.attempted
-                    ? `${lastBreakdown.correct} / ${lastBreakdown.attempted}`
-                    : "—"}
+                <span className="text-gray-300 font-semibold">
+                  {formatPct(lastAccuracy)}
                 </span>{" "}
-                <span className="text-[11px] text-gray-500">(correct / attempted)</span>
-              </p>
-
-              <p>
-                Correct:{" "}
-                <span className="text-green-400 font-semibold">
+                · Correct:{" "}
+                <span className="text-green-400">
                   {lastBreakdown?.correct ?? 0}
                 </span>{" "}
-                · Wrong:{" "}
+                /{" "}
+                <span className="text-gray-300">
+                  {lastBreakdown?.attempted ?? 0}
+                </span>{" "}
+                <span className="text-[11px] text-gray-500">(attempted)</span>
+              </p>
+
+              <p className="text-xs text-gray-400">
+                Wrong:{" "}
                 <span className="text-red-400 font-semibold">
                   {lastBreakdown?.wrong ?? 0}
                 </span>{" "}
@@ -201,7 +218,7 @@ export default function Home({ user, profile }) {
                 </span>
               </p>
 
-              <p className="text-gray-400">
+              <p className="text-xs text-gray-400">
                 Taken at:{" "}
                 {lastAttemptMs ? new Date(lastAttemptMs).toLocaleString() : "—"}
               </p>

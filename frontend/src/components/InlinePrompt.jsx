@@ -24,10 +24,11 @@ export default function InlinePrompt({ value, className = "" }) {
           return (
             <code
               key={i}
-              className="px-1.5 py-0.5 rounded-sm border border-black/70 bg-gray-950 ring-black/50 text-gray-100 font-mono text-[0.95em]"
+              className="px-1.5 py-0.5 rounded-md border border-black/60 bg-gray-950 ring-1 ring-black/40 text-gray-100 font-mono text-[0.95em]"
             >
               {p.value}
             </code>
+
           );
         }
 
