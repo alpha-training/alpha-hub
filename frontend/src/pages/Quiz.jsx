@@ -48,12 +48,53 @@ export default function Quiz({ user, profile }) {
 
   const currentIndexRef = useRef(currentIndex);
   const questionsRef = useRef(questions);
+
+  // ✅ IMPORTANT: refs to avoid stale state during auto-submit on last question
+  const selectedByIdRef = useRef(selectedById);
+  const answeredByIdRef = useRef(answeredById);
+  const attemptByIdRef = useRef(attemptById);
+  const liveStatusByIdRef = useRef(liveStatusById);
+  const liveAttemptsUsedByIdRef = useRef(liveAttemptsUsedById);
+
   useEffect(() => {
     currentIndexRef.current = currentIndex;
   }, [currentIndex]);
   useEffect(() => {
     questionsRef.current = questions;
   }, [questions]);
+
+  useEffect(() => {
+    selectedByIdRef.current = selectedById;
+  }, [selectedById]);
+  useEffect(() => {
+    answeredByIdRef.current = answeredById;
+  }, [answeredById]);
+  useEffect(() => {
+    attemptByIdRef.current = attemptById;
+  }, [attemptById]);
+  useEffect(() => {
+    liveStatusByIdRef.current = liveStatusById;
+  }, [liveStatusById]);
+  useEffect(() => {
+    liveAttemptsUsedByIdRef.current = liveAttemptsUsedById;
+  }, [liveAttemptsUsedById]);
+
+  // ✅ helper setters that update state + ref in sync (prevents last-question race)
+  const setLiveStatus = useCallback((qid, nextStatusObj) => {
+    setLiveStatusById((prev) => {
+      const next = { ...prev, [qid]: nextStatusObj };
+      liveStatusByIdRef.current = next;
+      return next;
+    });
+  }, []);
+
+  const setLiveAttemptsUsed = useCallback((qid, nextUsed) => {
+    setLiveAttemptsUsedById((prev) => {
+      const next = { ...prev, [qid]: nextUsed };
+      liveAttemptsUsedByIdRef.current = next;
+      return next;
+    });
+  }, []);
 
   const perTypeSeconds = QUIZ_CONFIG.timePerQuestionSecondsByType || {
     mcq: 15,
@@ -100,16 +141,17 @@ export default function Quiz({ user, profile }) {
 
   const fetchLiveFormat = useCallback(async (apiId) => {
     if (!apiId) return { prompt: "", alfs: "" };
-  
+
     try {
       const res = await fetch(`${LIVE_CHECKER_API}/format/${apiId}`, {
         method: "POST",
       });
       if (!res.ok) return { prompt: "", alfs: "" };
-  
+
       const data = await res.json().catch(() => null);
-      const r = data?.result && typeof data.result === "object" ? data.result : data;
-  
+      const r =
+        data?.result && typeof data.result === "object" ? data.result : data;
+
       return {
         prompt: String(r?.prompt ?? r?.question ?? r?.title ?? r?.name ?? "").trim(),
         alfs: String(r?.alfs ?? "").trim(),
@@ -119,7 +161,6 @@ export default function Quiz({ user, profile }) {
     }
   }, []);
 
-  
   const sanitizeForFirestore = useCallback((value) => {
     if (value === undefined) return null;
     if (value === null) return null;
@@ -141,16 +182,22 @@ export default function Quiz({ user, profile }) {
 
       setIsSubmitting(true);
 
+      // ✅ read latest values from refs (fixes last-question stale state)
+      const latestSelectedById = selectedByIdRef.current || {};
+      const latestAnsweredById = answeredByIdRef.current || {};
+      const latestAttemptById = attemptByIdRef.current || {};
+      const latestLiveStatusById = liveStatusByIdRef.current || {};
+      const latestLiveAttemptsUsedById = liveAttemptsUsedByIdRef.current || {};
+
       const patchedQuestions = await Promise.all(
         questions.map(async (q) => {
           if (q.type !== "live") return q;
-      
+
           const text = (q.question || "").trim();
           const looksMissing = !text || text === String(q.apiId || "").trim();
-      
-          // fetch format once, use it for both prompt + alfs
+
           const { prompt, alfs } = await fetchLiveFormat(q.apiId);
-      
+
           return {
             ...q,
             question: (!looksMissing || !prompt) ? q.question : prompt,
@@ -158,7 +205,6 @@ export default function Quiz({ user, profile }) {
           };
         })
       );
-      
 
       const totalTimeAllowedInSeconds = patchedQuestions.reduce(
         (acc, q) => acc + getQuestionSeconds(q),
@@ -182,8 +228,8 @@ export default function Quiz({ user, profile }) {
         const type = q.type || "mcq";
 
         if (type === "live") {
-          const statusObj = liveStatusById[q.id] || { status: "idle" };
-          const attempt = attemptById[q.id] || "";
+          const statusObj = latestLiveStatusById[q.id] || { status: "idle" };
+          const attempt = latestAttemptById[q.id] || "";
 
           let isCorrect = false;
 
@@ -201,29 +247,32 @@ export default function Quiz({ user, profile }) {
 
           return {
             questionId: q.id,
-            questionText: q.question && String(q.question).trim() ? q.question : q.apiId || q.id,
+            questionText:
+              q.question && String(q.question).trim()
+                ? q.question
+                : q.apiId || q.id,
             type: "live",
             apiId: q.apiId || null,
             attempt,
-            alfs: q.alfs || "",        // ✅ add this
+            alfs: q.alfs || "",
             liveStatus: statusObj,
-            attemptsUsed: Number(liveAttemptsUsedById[q.id] ?? 0),
+            attemptsUsed: Number(latestLiveAttemptsUsedById[q.id] ?? 0),
             attemptsLimit: getAttemptsLimit(q),
             seconds: getQuestionSeconds(q),
             isCorrect,
-          };          
+          };
         }
 
         const correctIds = (q.options || [])
           .filter((o) => o.isCorrect)
           .map((o) => o.id);
 
-        const picked = selectedById[q.id] || [];
+        const picked = latestSelectedById[q.id] || [];
         const pickedSet = new Set(picked);
 
         const wasAnswered =
-          answeredById[q.id] !== undefined
-            ? Boolean(answeredById[q.id])
+          latestAnsweredById[q.id] !== undefined
+            ? Boolean(latestAnsweredById[q.id])
             : picked.length > 0;
 
         let isCorrect = false;
@@ -281,9 +330,9 @@ export default function Quiz({ user, profile }) {
         reason,
 
         results: perQuestionResults,
-        liveAttempts: attemptById,
-        liveStatuses: liveStatusById,
-        liveAttemptsUsed: liveAttemptsUsedById,
+        liveAttempts: latestAttemptById,
+        liveStatuses: latestLiveStatusById,
+        liveAttemptsUsed: latestLiveAttemptsUsedById,
       });
 
       await addDoc(collection(db, "quizResults"), payload);
@@ -302,16 +351,11 @@ export default function Quiz({ user, profile }) {
       questions,
       user,
       startedAt,
-      fetchLivePrompt,
-      liveStatusById,
-      attemptById,
-      liveAttemptsUsedById,
+      fetchLiveFormat,
       profile?.firstName,
       profile?.lastName,
       topics,
       navigate,
-      selectedById,
-      answeredById,
       sanitizeForFirestore,
     ]
   );
@@ -410,6 +454,13 @@ export default function Quiz({ user, profile }) {
       setQuestionTimeLeftById({});
       setTransitionLock(false);
       setIsSubmitting(false);
+
+      // also reset refs
+      selectedByIdRef.current = {};
+      answeredByIdRef.current = {};
+      attemptByIdRef.current = {};
+      liveStatusByIdRef.current = {};
+      liveAttemptsUsedByIdRef.current = {};
 
       const now = new Date();
       setStartedAt(now);
@@ -524,13 +575,10 @@ export default function Quiz({ user, profile }) {
     if (status === "correct" || status === "timeout") return;
 
     if (left === 0) {
-      setLiveStatusById((p) => ({
-        ...p,
-        [qid]: { status: "timeout", message: "Timed out" },
-      }));
+      setLiveStatus(qid, { status: "timeout", message: "Timed out" });
       scheduleAutoAdvance(900);
     }
-  }, [currentQuestion, questionTimeLeftById, liveStatusById, scheduleAutoAdvance]);
+  }, [currentQuestion, questionTimeLeftById, liveStatusById, scheduleAutoAdvance, setLiveStatus]);
 
   const toggleOption = (questionId, optionId) => {
     setSelectedById((prev) => {
@@ -545,38 +593,29 @@ export default function Quiz({ user, profile }) {
     const apiId = question.apiId;
 
     const limit = getAttemptsLimit(question);
-    const used = Number(liveAttemptsUsedById[qid] ?? 0);
+    const used = Number(liveAttemptsUsedByIdRef.current[qid] ?? 0);
 
-    const currentStatus = liveStatusById[qid]?.status || "idle";
+    const currentStatus = liveStatusByIdRef.current[qid]?.status || "idle";
     if (currentStatus === "correct" || currentStatus === "timeout") return;
 
     if (used >= limit) {
-      setLiveStatusById((p) => ({
-        ...p,
-        [qid]: { status: "error", message: "No attempts left." },
-      }));
+      setLiveStatus(qid, { status: "error", message: "No attempts left." });
       scheduleAutoAdvance(900);
       return;
     }
 
-    const attempt = (attemptById[qid] || "").trim();
+    const attempt = (attemptByIdRef.current[qid] || "").trim();
     if (!attempt) {
-      setLiveStatusById((p) => ({
-        ...p,
-        [qid]: { status: "error", message: "Type an answer first." },
-      }));
+      setLiveStatus(qid, { status: "error", message: "Type an answer first." });
       return;
     }
 
     if (!apiId) {
-      setLiveStatusById((p) => ({
-        ...p,
-        [qid]: { status: "error", message: "Missing apiId for this question." },
-      }));
+      setLiveStatus(qid, { status: "error", message: "Missing apiId for this question." });
       return;
     }
 
-    setLiveStatusById((p) => ({ ...p, [qid]: { status: "running" } }));
+    setLiveStatus(qid, { status: "running" });
 
     try {
       const res = await fetch(`${LIVE_CHECKER_API}/check/${apiId}`, {
@@ -592,31 +631,28 @@ export default function Quiz({ user, profile }) {
 
       const data = await res.json();
       const nextUsed = used + 1;
-      setLiveAttemptsUsedById((p) => ({ ...p, [qid]: nextUsed }));
+      setLiveAttemptsUsed(qid, nextUsed);
 
       const result = data?.result;
 
       if (result === "Success") {
-        setLiveStatusById((p) => ({ ...p, [qid]: { status: "correct" } }));
+        setLiveStatus(qid, { status: "correct" });
         scheduleAutoAdvance(900);
       } else {
         const noAttemptsLeftAfter = nextUsed >= limit;
 
-        setLiveStatusById((p) => ({
-          ...p,
-          [qid]: { status: "incorrect", message: result || "Incorrect" },
-        }));
+        setLiveStatus(qid, {
+          status: "incorrect",
+          message: result || "Incorrect",
+        });
 
         if (noAttemptsLeftAfter) scheduleAutoAdvance(900);
       }
     } catch (e) {
-      setLiveStatusById((p) => ({
-        ...p,
-        [qid]: {
-          status: "error",
-          message: e?.message || "API error. Is the live-checker backend running?",
-        },
-      }));
+      setLiveStatus(qid, {
+        status: "error",
+        message: e?.message || "API error. Is the live-checker backend running?",
+      });
     }
   };
 
@@ -662,7 +698,6 @@ export default function Quiz({ user, profile }) {
   const skipDisabled = transitionLock;
   const submitDisabled = isSubmitting || transitionLock;
 
-  // ✅ slightly narrower so there's room for the right rail
   const containerWidth = isMCQ ? "max-w-4xl" : "max-w-7xl";
   const railTopClass = isLiveOnly ? "top-39" : "top-44";
 
@@ -705,11 +740,8 @@ export default function Quiz({ user, profile }) {
 
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-10 pb-6 px-4 flex justify-center">
-      {/* ✅ 2-column layout: content + right rail */}
       <div className={`w-full ${containerWidth} grid grid-cols-[minmax(0,1fr)_140px] gap-6`}>
-        {/* LEFT: quiz content */}
         <div className="space-y-3">
-          {/* TOP BAR */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div className="flex-1">
               <div className="flex justify-between text-sm md:text-base text-gray-400 mb-1">
@@ -744,7 +776,6 @@ export default function Quiz({ user, profile }) {
             </div>
           </div>
 
-          {/* QUESTION CARD */}
           <div className="bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-3 space-y-3">
             {isMCQ ? (
               <h2 className="text-sm md:text-base text-gray-300">
@@ -809,10 +840,8 @@ export default function Quiz({ user, profile }) {
           </div>
         </div>
 
-        {/* RIGHT: sticky vertical controls */}
         <aside className={`sticky ${railTopClass} h-fit`}>
           <div className="space-y-2">
-            {/* Next / Submit */}
             {!isLast ? (
               <button
                 onClick={goNext}
