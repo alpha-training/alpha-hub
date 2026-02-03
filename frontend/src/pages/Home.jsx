@@ -1,22 +1,10 @@
 // src/pages/Home.jsx
 import { useEffect, useState, useMemo } from "react";
 import { db } from "../firebase";
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  limit,
-  getDocs,
-} from "firebase/firestore";
+import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
-import { QUIZ_CONFIG, TOPICS } from "../config";
-import {
-  getPoints,
-  getMaxPointsForAttempt,
-  getDisplayBreakdown,
-  formatPct,
-} from "../utils/scoring";
+import { QUIZ_CONFIG, TOPICS, LIVE_CHECKER_API } from "../config";
+import { getDisplayBreakdown, formatPct } from "../utils/scoring";
 
 function toMillis(ts) {
   if (!ts) return null;
@@ -28,6 +16,44 @@ function toMillis(ts) {
     return isNaN(d.getTime()) ? null : d.getTime();
   }
   return null;
+}
+
+async function recheckLiveAttempt(apiId, attempt) {
+  if (!apiId) return { ok: false };
+  const a = String(attempt || "").trim();
+  if (!a) return { ok: false };
+
+  try {
+    const res = await fetch(`${LIVE_CHECKER_API}/check/${apiId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ attempt: a }),
+    });
+    if (!res.ok) return { ok: false };
+    const data = await res.json().catch(() => null);
+    return { ok: data?.result === "Success", raw: data?.result };
+  } catch {
+    return { ok: false };
+  }
+}
+
+function calcPointsFromBreakdown(breakdown, quizConfig) {
+  const scoring = quizConfig?.scoring || {};
+  const ptsCorrect = Number(scoring.correct ?? 1) || 1;
+  const ptsWrong = Number(scoring.wrong ?? -1) || -1;
+  const ptsSkipped = Number(scoring.skipped ?? 0) || 0;
+
+  const c = Number(breakdown?.correct ?? 0) || 0;
+  const w = Number(breakdown?.wrong ?? 0) || 0;
+  const s = Number(breakdown?.skipped ?? 0) || 0;
+
+  return c * ptsCorrect + w * ptsWrong + s * ptsSkipped;
+}
+
+function calcMaxPointsFromBreakdown(breakdown, quizConfig) {
+  const ptsCorrect = Number(quizConfig?.scoring?.correct ?? 1) || 1;
+  const attempted = Number(breakdown?.attempted ?? 0) || 0;
+  return attempted * ptsCorrect;
 }
 
 export default function Home({ user, profile }) {
@@ -82,20 +108,87 @@ export default function Home({ user, profile }) {
     load();
   }, [user]);
 
+  // ✅ repair old live wrong answers for LAST result
+  useEffect(() => {
+    let cancelled = false;
+  
+    const shouldRecheck = (q) => {
+      if (q?.type !== "live") return false;
+      if (!q?.apiId) return false;
+  
+      const st = q?.liveStatus?.status || "idle";
+      if (st === "timeout" || st === "correct") return false;
+  
+      const attempt = String(q?.attempt || "").trim();
+      if (!attempt) return false;
+  
+      return q?.isCorrect !== true; // only recheck "not correct"
+    };
+  
+    const repairAttempt = async (attemptLike) => {
+      const arr = Array.isArray(attemptLike?.results) ? attemptLike.results : [];
+      if (!arr.length) return attemptLike;
+  
+      const next = [...arr];
+      let changed = false;
+  
+      for (let i = 0; i < next.length; i++) {
+        const q = next[i];
+        if (!shouldRecheck(q)) continue;
+  
+        const check = await recheckLiveAttempt(q.apiId, q.attempt);
+        if (cancelled) return attemptLike;
+  
+        if (check.ok) {
+          next[i] = {
+            ...q,
+            isCorrect: true,
+            liveStatus: { ...(q.liveStatus || {}), status: "correct" },
+          };
+          changed = true;
+        }
+      }
+  
+      return changed ? { ...attemptLike, results: next } : attemptLike;
+    };
+  
+    const load = async () => {
+      if (!user) return;
+      setLoadingResult(true);
+  
+      try {
+        const q = query(
+          collection(db, "quizResults"),
+          where("uid", "==", user.uid),
+          orderBy("startedAt", "desc"),
+          limit(1)
+        );
+  
+        const snap = await getDocs(q);
+        const raw = !snap.empty ? snap.docs[0].data() : null;
+  
+        if (!raw) {
+          if (!cancelled) setLastResult(null);
+          return;
+        }
+  
+        const repaired = await repairAttempt(raw);
+        if (!cancelled) setLastResult(repaired);
+      } catch (e) {
+        console.error("Error loading last result:", e);
+      } finally {
+        if (!cancelled) setLoadingResult(false);
+      }
+    };
+  
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+  
+
   if (!user) return null;
-
-  const perTypeSeconds = QUIZ_CONFIG.timePerQuestionSecondsByType || {
-    mcq: 15,
-    live: 20,
-  };
-  const defaultPerQuestionSeconds = Number(perTypeSeconds.mcq ?? 15) || 15;
-
-  // Home screen estimate (overall timer estimate)
-  const totalSeconds =
-    (Number(QUIZ_CONFIG.questionsPerAttempt) || 0) * defaultPerQuestionSeconds;
-  const m = Math.floor(totalSeconds / 60);
-  const s = totalSeconds % 60;
-  const formattedTotalTime = `${m}:${s.toString().padStart(2, "0")}`;
 
   const toggleTopic = (id) => {
     setSelectedTopics((prev) =>
@@ -109,18 +202,17 @@ export default function Home({ user, profile }) {
   const noTopicsSelected = selectedTopics.length === 0;
   const lastAttemptMs = toMillis(lastResult?.startedAt);
 
-  // Consistent breakdown + points (same utils as History/Results)
   const lastBreakdown = useMemo(() => {
     return lastResult ? getDisplayBreakdown(lastResult) : null;
   }, [lastResult]);
 
   const lastPoints = useMemo(() => {
-    return lastResult ? getPoints(lastResult, QUIZ_CONFIG) : 0;
-  }, [lastResult]);
+    return lastBreakdown ? calcPointsFromBreakdown(lastBreakdown, QUIZ_CONFIG) : 0;
+  }, [lastBreakdown]);
 
   const lastMaxPoints = useMemo(() => {
-    return lastResult ? getMaxPointsForAttempt(lastResult, QUIZ_CONFIG) : 0;
-  }, [lastResult]);
+    return lastBreakdown ? calcMaxPointsFromBreakdown(lastBreakdown, QUIZ_CONFIG) : 0;
+  }, [lastBreakdown]);
 
   const safeMaxPoints = Math.max(0, Number(lastMaxPoints || 0));
 
@@ -134,7 +226,6 @@ export default function Home({ user, profile }) {
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white flex flex-col items-center justify-start px-4 pt-14 pb-16">
       <div className="max-w-3xl w-full flex flex-col items-center text-center gap-6">
-        {/* WELCOME */}
         <div>
           <h1 className="text-3xl md:text-5xl font-bold mb-3">
             Welcome, {displayName}!
@@ -158,14 +249,8 @@ export default function Home({ user, profile }) {
             </span>{" "}
             for skipping
           </p>
-
-          {/* Optional: if you want to show the estimate like elsewhere, keep it subtle */}
-          {/* <p className="text-xs text-gray-500 mt-2">
-            Est. total time: {formattedTotalTime}
-          </p> */}
         </div>
 
-        {/* LAST RESULT */}
         <div className="w-full max-w-xl bg-gray-900 border border-gray-800 rounded-xl p-1 text-left">
           <h2 className="font-semibold text-gray-300 m-2">Last attempt</h2>
 
@@ -177,16 +262,13 @@ export default function Home({ user, profile }) {
             </p>
           ) : (
             <div className="m-2 space-y-1">
-              {/* ✅ PRIMARY: points (same idea as History/Results) */}
               <p className="text-sm text-gray-300">
                 Points:{" "}
-                <span className="font-semibold text-white">{lastPoints}</span>{" "}
-                /{" "}
+                <span className="font-semibold text-white">{lastPoints}</span> /{" "}
                 <span className="font-semibold text-white">{safeMaxPoints}</span>{" "}
                 <span className="text-[11px] text-gray-400">pts</span>
               </p>
 
-              {/* ✅ SECONDARY: accuracy as % + correct/attempted (matches History/Results) */}
               <p className="text-xs text-gray-400">
                 Accuracy:{" "}
                 <span className="text-gray-300 font-semibold">
@@ -226,7 +308,6 @@ export default function Home({ user, profile }) {
           )}
         </div>
 
-        {/* TOPIC SELECTION */}
         <div className="bg-gray-900 p-4 rounded-lg border border-gray-700 w-full max-w-xl text-left">
           <h3 className="font-semibold mb-2 text-gray-300 text-center">
             Select topics
@@ -236,7 +317,6 @@ export default function Home({ user, profile }) {
             You must select at least one topic before starting the quiz.
           </p>
 
-          {/* 4 left / 3 right */}
           <div className="grid grid-rows-4 grid-flow-col gap-y-2 gap-x-8">
             {TOPICS.map((t) => (
               <label
@@ -272,7 +352,6 @@ export default function Home({ user, profile }) {
           </div>
         </div>
 
-        {/* ACTION BUTTONS */}
         <div className="flex flex-col md:flex-row gap-4 items-center w-full">
           <Link
             to={noTopicsSelected ? "#" : "/quiz"}
