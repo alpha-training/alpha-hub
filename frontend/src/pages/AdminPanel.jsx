@@ -1,5 +1,5 @@
 // src/pages/AdminPanel.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import { isAdmin } from "../utils/admin";
@@ -11,7 +11,8 @@ import {
   formatPct,
 } from "../utils/scoring";
 
-// --- helpers ---
+/* ---------------- helpers ---------------- */
+
 function toJsDate(value) {
   if (!value) return null;
   if (value instanceof Date) return value;
@@ -84,27 +85,105 @@ function getProfileDisplayName(uid, profilesByUid, fallbackResult) {
 function looksLikeId(text) {
   const t = String(text || "").trim();
   if (!t) return true;
-  if (t.length <= 5) return true; // q11, k7
+  if (t.length <= 5) return true;
   if (/^[a-z]\d+$/i.test(t)) return true;
   return false;
 }
 
-async function fetchLivePrompt(apiId) {
-  if (!apiId) return "";
+// robust stringify for backend shapes
+const toText = (v) => {
+  if (v == null) return "";
+  if (typeof v === "string") return v;
+  if (Array.isArray(v)) return v.map(toText).join("");
+  if (typeof v === "object") {
+    if (typeof v.value === "string") return v.value;
+    if (Array.isArray(v.values)) return v.values.map(toText).join("\n");
+    try {
+      return JSON.stringify(v, null, 2);
+    } catch {
+      return String(v);
+    }
+  }
+  return String(v);
+};
+
+// unwrap { result: ... } a few times
+function unwrapResult(data) {
+  let raw = data;
+  for (let i = 0; i < 3; i++) {
+    if (raw && typeof raw === "object" && raw !== null && "result" in raw) {
+      raw = raw.result;
+    }
+  }
+  return raw;
+}
+
+// fetch prompt+alfs
+async function fetchLiveFormat(apiId) {
+  if (!apiId) return { prompt: "", alfs: "" };
+
   try {
     const res = await fetch(`${LIVE_CHECKER_API}/format/${apiId}`, {
       method: "POST",
     });
-    if (!res.ok) return "";
+    if (!res.ok) return { prompt: "", alfs: "" };
+
     const data = await res.json().catch(() => null);
-    const r =
-      data?.result && typeof data.result === "object" ? data.result : data;
+    const r = unwrapResult(data);
+
     const prompt = r?.prompt ?? r?.question ?? r?.title ?? r?.name ?? "";
-    return prompt ? String(prompt) : "";
+    const alfs = r?.alfs ?? "";
+
+    return {
+      prompt: toText(prompt).trim(),
+      alfs: toText(alfs).trim(),
+    };
   } catch {
-    return "";
+    return { prompt: "", alfs: "" };
   }
 }
+
+// ✅ re-check a previously saved live attempt against backend
+async function recheckLiveAttempt(apiId, attempt) {
+  if (!apiId) return { ok: false };
+  const a = String(attempt || "").trim();
+  if (!a) return { ok: false };
+
+  try {
+    const res = await fetch(`${LIVE_CHECKER_API}/check/${apiId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ attempt: a }),
+    });
+
+    if (!res.ok) return { ok: false };
+
+    const data = await res.json().catch(() => null);
+    // backend returns { result: "Success" } or similar
+    return { ok: data?.result === "Success", raw: data?.result };
+  } catch {
+    return { ok: false };
+  }
+}
+
+// decide if a live question needs recheck
+function shouldRecheckLive(q) {
+  if (q?.type !== "live") return false;
+  if (!q?.apiId) return false;
+
+  const st = q?.liveStatus?.status || "idle";
+  if (st === "timeout" || st === "correct") return false; // don't touch timeouts/correct
+
+  const attempt = String(q?.attempt || "").trim();
+  if (!attempt) return false; // skipped
+
+  // if it's already correct, skip
+  if (q?.isCorrect === true) return false;
+
+  return true;
+}
+
+/* =================== ADMIN PANEL =================== */
 
 export default function AdminPanel({ user }) {
   const [loading, setLoading] = useState(true);
@@ -120,6 +199,10 @@ export default function AdminPanel({ user }) {
   const [sortDir, setSortDir] = useState("desc");
 
   const [expandedId, setExpandedId] = useState(null);
+
+  // background repair state (optional indicator)
+  const [repairing, setRepairing] = useState(false);
+  const repairedOnceRef = useRef(false);
 
   useEffect(() => {
     if (!user || !isAdmin(user)) {
@@ -163,40 +246,127 @@ export default function AdminPanel({ user }) {
     return map;
   }, [results]);
 
-  // ✅ Hydrate prompts when expanded (only for that attempt)
+  // ✅ Background repair: recheck old live answers once after results load
   useEffect(() => {
+    if (!results.length) return;
+    if (repairedOnceRef.current) return;
+    repairedOnceRef.current = true;
+
     let cancelled = false;
 
     const run = async () => {
+      // Collect candidate jobs (only those that look wrong but have attempt & not timeout)
+      const jobs = [];
+      for (let ri = 0; ri < results.length; ri++) {
+        const row = results[ri];
+        const arr = Array.isArray(row?.results) ? row.results : [];
+        for (let qi = 0; qi < arr.length; qi++) {
+          const q = arr[qi];
+          if (shouldRecheckLive(q)) {
+            jobs.push({ ri, qi, apiId: q.apiId, attempt: q.attempt });
+          }
+        }
+      }
+
+      if (!jobs.length) return;
+
+      setRepairing(true);
+
+      // clone shallowly so we can patch in place
+      const patched = results.map((r) => ({
+        ...r,
+        results: Array.isArray(r.results) ? [...r.results] : r.results,
+      }));
+
+      const CONCURRENCY = 4;
+      let cursor = 0;
+
+      const worker = async () => {
+        while (cursor < jobs.length && !cancelled) {
+          const job = jobs[cursor++];
+          const check = await recheckLiveAttempt(job.apiId, job.attempt);
+          if (cancelled) return;
+
+          if (check.ok) {
+            const row = patched[job.ri];
+            const q = row?.results?.[job.qi];
+            if (!q) continue;
+
+            row.results[job.qi] = {
+              ...q,
+              isCorrect: true,
+              liveStatus: { ...(q.liveStatus || {}), status: "correct" },
+            };
+          }
+        }
+      };
+
+      await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+
+      if (cancelled) return;
+
+      setResults(patched);
+      setRepairing(false);
+    };
+
+    run().catch((e) => {
+      console.error("Repair pass failed:", e);
+      setRepairing(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [results]);
+
+  // ✅ Hydrate prompts/alfs for expanded attempt only (no re-check here)
+  useEffect(() => {
+    let cancelled = false;
+
+    const shouldHydrate = (q) => {
+      if (q?.type !== "live") return false;
+      if (!q?.apiId) return false;
+
+      const qt = String(q?.questionText || "").trim();
+      const apiId = String(q?.apiId || "").trim();
+
+      const needPrompt = !qt || (apiId && qt === apiId) || looksLikeId(qt);
+      const needAlfs = !(String(q?.alfs || "").trim());
+
+      return needPrompt || needAlfs;
+    };
+
+    const run = async () => {
       if (!expandedId) return;
+
       const row = results.find((x) => x.id === expandedId);
       if (!row?.results?.length) return;
 
-      const liveNeeding = row.results
-        .map((q, idx) => ({ q, idx }))
-        .filter(({ q }) => q?.type === "live" && q?.apiId)
-        .filter(({ q }) => {
-          const qt = String(q?.questionText || "").trim();
-          const apiId = String(q?.apiId || "").trim();
-          if (!qt) return true;
-          if (apiId && qt === apiId) return true;
-          return looksLikeId(qt);
-        });
-
-      if (liveNeeding.length === 0) return;
-
       const updatedRow = { ...row, results: [...row.results] };
+      let changed = false;
 
-      for (const { q, idx } of liveNeeding) {
-        const prompt = await fetchLivePrompt(q.apiId);
+      for (let idx = 0; idx < updatedRow.results.length; idx++) {
+        const q = updatedRow.results[idx];
+        if (!(q?.type === "live" && q?.apiId)) continue;
+        if (!shouldHydrate(q)) continue;
+
+        const { prompt, alfs } = await fetchLiveFormat(q.apiId);
         if (cancelled) return;
-        if (prompt) {
-          updatedRow.results[idx] = {
-            ...updatedRow.results[idx],
-            questionText: prompt,
-          };
-        }
+
+        const qt = String(q?.questionText || "").trim();
+        const apiId = String(q?.apiId || "").trim();
+        const needPrompt = !qt || (apiId && qt === apiId) || looksLikeId(qt);
+        const needAlfs = !(String(q?.alfs || "").trim());
+
+        updatedRow.results[idx] = {
+          ...q,
+          questionText: needPrompt && prompt ? prompt : q.questionText,
+          alfs: needAlfs && alfs ? alfs : q.alfs || "",
+        };
+        changed = true;
       }
+
+      if (!changed) return;
 
       setResults((prev) =>
         prev.map((x) => (x.id === expandedId ? updatedRow : x))
@@ -208,7 +378,7 @@ export default function AdminPanel({ user }) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [expandedId, results]);
+  }, [expandedId]);
 
   const filteredResults = useMemo(() => {
     const now = new Date();
@@ -242,7 +412,6 @@ export default function AdminPanel({ user }) {
       let valA, valB;
 
       if (sortField === "score") {
-        // Sort by accuracy (correct / attempted)
         const breakdownA = getDisplayBreakdown(a);
         const breakdownB = getDisplayBreakdown(b);
 
@@ -294,7 +463,9 @@ export default function AdminPanel({ user }) {
 
   if (loading) {
     return (
-      <div className="pt-20 text-center text-gray-400">Loading admin data…</div>
+      <div className="pt-20 text-center text-gray-400">
+        Loading admin data…
+      </div>
     );
   }
 
@@ -304,10 +475,18 @@ export default function AdminPanel({ user }) {
 
   return (
     <div className="max-w-4xl mx-auto pt-16 md:pt-24 pb-10 px-4 space-y-6">
-      <h1 className="text-2xl md:text-3xl font-bold">Admin Panel</h1>
-      <p className="text-gray-400 text-sm">
-        View and inspect all trainees&apos; quiz results.
-      </p>
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold">Admin Panel</h1>
+          <p className="text-gray-400 text-sm">
+            View and inspect all trainees&apos; quiz results.
+          </p>
+        </div>
+
+        {repairing ? (
+          <div className="text-xs text-gray-500">Repairing old live results…</div>
+        ) : null}
+      </div>
 
       {error && (
         <div className="text-sm text-red-400 bg-red-950/40 border border-red-800 rounded-md px-3 py-2">
@@ -411,9 +590,7 @@ export default function AdminPanel({ user }) {
 
         {/* Sort */}
         <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-800 mt-2">
-          <span className="text-xs text-gray-300 mr-2 self-center">
-            Sort by:
-          </span>
+          <span className="text-xs text-gray-300 mr-2 self-center">Sort by:</span>
           {[
             { field: "date", label: "Date" },
             { field: "score", label: "Accuracy" },
@@ -452,6 +629,7 @@ export default function AdminPanel({ user }) {
           const topicLabel = formatTopics(topicsArr);
           const displayName = getProfileDisplayName(r.uid, profilesByUid, r);
 
+          // ✅ scoring utils (derived logic from your scoring.js)
           const breakdown = getDisplayBreakdown(r);
           const points = getPoints(r, QUIZ_CONFIG);
           const maxPoints = getMaxPointsForAttempt(r, QUIZ_CONFIG);
@@ -492,7 +670,6 @@ export default function AdminPanel({ user }) {
                   </div>
                 </div>
 
-                {/* ✅ points-first header */}
                 <div className="text-right text-xs md:text-sm">
                   <div className={`font-bold ${scoreColor}`}>
                     {points} / {maxPoints}{" "}
@@ -500,11 +677,6 @@ export default function AdminPanel({ user }) {
                       pts
                     </span>
                   </div>
-                  {/* *
-                  <div className="text-gray-400 text-[11px]">
-                    {formatPct(accuracy)} · {breakdown.correct}/{breakdown.attempted}{" "}
-                    correct
-              </div>*/}
                   <div className="text-gray-400 text-xs">
                     {formatDuration(r.durationSeconds)}
                   </div>
@@ -530,7 +702,6 @@ export default function AdminPanel({ user }) {
                     </div>
                   </div>
 
-                  {/* ✅ consistent breakdown */}
                   <div className="flex flex-wrap gap-4">
                     <div>
                       <span className="text-gray-400">Correct: </span>
@@ -566,10 +737,8 @@ export default function AdminPanel({ user }) {
 
                   <div className="text-xs text-gray-400">
                     Points:{" "}
-                    <span className="text-gray-300 font-semibold">
-                      {points}
-                    </span>{" "}
-                    / {maxPoints}
+                    <span className="text-gray-300 font-semibold">{points}</span> /{" "}
+                    {maxPoints}
                     <span className="text-gray-500"> (pts)</span>
                     {" · "}
                     Accuracy:{" "}
@@ -586,32 +755,49 @@ export default function AdminPanel({ user }) {
 
                       <div className="max-h-60 overflow-y-auto space-y-1 pr-1">
                         {r.results.map((qRes, idx2) => {
-                          const type = qRes.type || "mcq";
-                          const liveTimedOut =
-                            type === "live" &&
-                            qRes?.liveStatus?.status === "timeout";
+                          const type = qRes?.type || "mcq";
 
-                          const isSkipped =
-                            !liveTimedOut &&
-                            (type === "live"
-                              ? !(qRes.attempt || "").trim()
-                              : (qRes.selectedOptionIds || []).length === 0);
+                          let status = "Wrong";
+                          let statusColor = "text-red-400";
 
-                          const status = qRes.isCorrect
-                            ? "Correct"
-                            : liveTimedOut
-                            ? "Timed out"
-                            : isSkipped
-                            ? "Skipped"
-                            : "Wrong";
+                          if (type === "live") {
+                            const st = qRes?.liveStatus?.status || "idle";
+                            const liveTimedOut = st === "timeout";
+                            const hasAttempt =
+                              (qRes?.attempt || "").trim().length > 0;
+                            const liveIsCorrect =
+                              st === "correct" || qRes?.isCorrect === true;
 
-                          const statusColor = qRes.isCorrect
-                            ? "text-green-400"
-                            : liveTimedOut
-                            ? "text-amber-300"
-                            : isSkipped
-                            ? "text-yellow-300"
-                            : "text-red-400";
+                            if (liveTimedOut) {
+                              status = "Timed out";
+                              statusColor = "text-amber-300";
+                            } else if (!hasAttempt) {
+                              status = "Skipped";
+                              statusColor = "text-yellow-300";
+                            } else if (liveIsCorrect) {
+                              status = "Correct";
+                              statusColor = "text-green-400";
+                            } else {
+                              status = "Wrong";
+                              statusColor = "text-red-400";
+                            }
+                          } else {
+                            // MCQ
+                            const picked = Array.isArray(qRes?.selectedOptionIds)
+                              ? qRes.selectedOptionIds
+                              : [];
+
+                            if (picked.length === 0) {
+                              status = "Skipped";
+                              statusColor = "text-yellow-300";
+                            } else if (qRes?.isCorrect) {
+                              status = "Correct";
+                              statusColor = "text-green-400";
+                            } else {
+                              status = "Wrong";
+                              statusColor = "text-red-400";
+                            }
+                          }
 
                           return (
                             <div

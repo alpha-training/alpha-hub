@@ -1,14 +1,10 @@
-import { useEffect, useState, useMemo } from "react";
+// src/pages/History.jsx
+import { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-import { TOPICS, QUIZ_CONFIG } from "../config";
-import {
-  getPoints,
-  getMaxPointsForAttempt,
-  getDisplayBreakdown,
-  formatPct,
-} from "../utils/scoring";
+import { TOPICS, QUIZ_CONFIG, LIVE_CHECKER_API } from "../config";
+import { getDisplayBreakdown, formatPct } from "../utils/scoring";
 
 function formatDuration(seconds) {
   if (seconds == null) return "-";
@@ -25,9 +21,48 @@ function toMillis(ts) {
   return null;
 }
 
+async function recheckLiveAttempt(apiId, attempt) {
+  if (!apiId) return { ok: false };
+  const a = String(attempt || "").trim();
+  if (!a) return { ok: false };
+
+  try {
+    const res = await fetch(`${LIVE_CHECKER_API}/check/${apiId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ attempt: a }),
+    });
+    if (!res.ok) return { ok: false };
+    const data = await res.json().catch(() => null);
+    return { ok: data?.result === "Success", raw: data?.result };
+  } catch {
+    return { ok: false };
+  }
+}
+
+function calcPointsFromBreakdown(breakdown, quizConfig) {
+  const scoring = quizConfig?.scoring || {};
+  const ptsCorrect = Number(scoring.correct ?? 1) || 1;
+  const ptsWrong = Number(scoring.wrong ?? -1) || -1;
+  const ptsSkipped = Number(scoring.skipped ?? 0) || 0;
+
+  const c = Number(breakdown?.correct ?? 0) || 0;
+  const w = Number(breakdown?.wrong ?? 0) || 0;
+  const s = Number(breakdown?.skipped ?? 0) || 0;
+
+  return c * ptsCorrect + w * ptsWrong + s * ptsSkipped;
+}
+
+function calcMaxPointsFromBreakdown(breakdown, quizConfig) {
+  const ptsCorrect = Number(quizConfig?.scoring?.correct ?? 1) || 1;
+  const attempted = Number(breakdown?.attempted ?? 0) || 0;
+  return attempted * ptsCorrect;
+}
+
 export default function History({ user }) {
   const [attempts, setAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [repairing, setRepairing] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,10 +70,54 @@ export default function History({ user }) {
   }, [user, navigate]);
 
   useEffect(() => {
-    const fetchAttempts = async () => {
+    let cancelled = false;
+
+    const shouldRecheck = (q) => {
+      if (q?.type !== "live") return false;
+      if (!q?.apiId) return false;
+
+      const st = q?.liveStatus?.status || "idle";
+      if (st === "timeout" || st === "correct") return false;
+
+      const attempt = String(q?.attempt || "").trim();
+      if (!attempt) return false;
+
+      return q?.isCorrect !== true; // only recheck "not correct"
+    };
+
+    const repairAttempt = async (attemptLike) => {
+      const arr = Array.isArray(attemptLike?.results) ? attemptLike.results : [];
+      if (!arr.length) return attemptLike;
+
+      const next = [...arr];
+      let changed = false;
+
+      for (let i = 0; i < next.length; i++) {
+        const q = next[i];
+        if (!shouldRecheck(q)) continue;
+
+        const check = await recheckLiveAttempt(q.apiId, q.attempt);
+        if (cancelled) return attemptLike;
+
+        if (check.ok) {
+          next[i] = {
+            ...q,
+            isCorrect: true,
+            liveStatus: { ...(q.liveStatus || {}), status: "correct" },
+          };
+          changed = true;
+        }
+      }
+
+      return changed ? { ...attemptLike, results: next } : attemptLike;
+    };
+
+    const load = async () => {
       if (!user) return;
 
       setLoading(true);
+      setRepairing(true);
+
       try {
         const q = query(
           collection(db, "quizResults"),
@@ -47,15 +126,31 @@ export default function History({ user }) {
         );
 
         const snap = await getDocs(q);
-        setAttempts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        const rawAttempts = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+        // Repair before showing, to avoid UI "jump"
+        const repaired = [];
+        for (const a of rawAttempts) {
+          repaired.push(await repairAttempt(a));
+          if (cancelled) return;
+        }
+
+        if (!cancelled) setAttempts(repaired);
       } catch (e) {
         console.error("History load error:", e);
+        if (!cancelled) setAttempts([]);
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setRepairing(false);
+          setLoading(false);
+        }
       }
     };
 
-    fetchAttempts();
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   if (!user) return null;
@@ -68,7 +163,7 @@ export default function History({ user }) {
           All your quiz attempts are listed below.
         </p>
 
-        {loading ? (
+        {loading || repairing ? (
           <p className="text-sm text-gray-400">Loading…</p>
         ) : attempts.length === 0 ? (
           <p className="text-sm text-gray-400">No attempts yet.</p>
@@ -82,8 +177,8 @@ export default function History({ user }) {
               const startedAtMs = toMillis(a.startedAt);
 
               const breakdown = getDisplayBreakdown(a);
-              const points = getPoints(a, QUIZ_CONFIG);
-              const maxPoints = getMaxPointsForAttempt(a, QUIZ_CONFIG);
+              const points = calcPointsFromBreakdown(breakdown, QUIZ_CONFIG);
+              const maxPoints = calcMaxPointsFromBreakdown(breakdown, QUIZ_CONFIG);
 
               const accuracy =
                 breakdown.attempted > 0
@@ -110,20 +205,14 @@ export default function History({ user }) {
                   </div>
 
                   <div className="text-xs md:text-sm text-gray-300 space-y-1 w-full max-w-md">
-                    {/* ✅ PRIMARY: points */}
                     <p>
                       Score:{" "}
-                      <span className="font-semibold text-white">
-                        {points}
-                      </span>{" "}
+                      <span className="font-semibold text-white">{points}</span>{" "}
                       /{" "}
-                      <span className="font-semibold text-white">
-                        {maxPoints}
-                      </span>{" "}
+                      <span className="font-semibold text-white">{maxPoints}</span>{" "}
                       <span className="text-[11px] text-gray-400">pts</span>
                     </p>
 
-                    {/* ✅ SECONDARY: accuracy */}
                     <p className="text-[12px] text-gray-400">
                       Accuracy:{" "}
                       <span className="text-gray-300 font-semibold">
