@@ -10,6 +10,7 @@ import {
   getDisplayBreakdown,
   formatPct,
 } from "../utils/scoring";
+import InlinePrompt from "../components/InlinePrompt";
 
 /* ---------------- helpers ---------------- */
 
@@ -805,13 +806,13 @@ export default function AdminPanel({ user }) {
                               className="border border-gray-800 rounded-md px-2 py-1"
                             >
                               <div className="flex justify-between gap-3">
-                                <div className="text-[11px] md:text-xs text-gray-300 whitespace-pre-wrap">
-                                  {idx2 + 1}.{" "}
-                                  {qRes.questionText ||
-                                    qRes.apiId ||
-                                    qRes.questionId ||
-                                    "(missing question)"}
-                                </div>
+                              <div className="text-[11px] md:text-xs text-gray-300 whitespace-pre-wrap">
+                              {idx2 + 1}.{" "}
+                              <InlinePrompt
+                                value={qRes.questionText || qRes.apiId || qRes.questionId || "(missing question)"}
+                              />
+                            </div>
+                            
                                 <div
                                   className={`text-[11px] md:text-xs font-semibold ${statusColor}`}
                                 >
