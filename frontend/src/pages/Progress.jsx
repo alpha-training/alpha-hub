@@ -1,6 +1,11 @@
 // src/pages/Progress.jsx
 import { useEffect, useState } from "react";
-import { XMarkIcon, ClipboardDocumentIcon, CheckIcon } from "@heroicons/react/24/outline";
+import {
+  XMarkIcon,
+  ClipboardDocumentIcon,
+  CheckIcon,
+  ArrowTopRightOnSquareIcon,
+} from "@heroicons/react/24/outline";
 import { isAdmin } from "../utils/admin";
 import {
   fetchProgress,
@@ -20,6 +25,8 @@ const STATUS_STYLES = {
   incorrect: "bg-red-900/60 text-red-300",
   correct: "bg-green-900/60 text-green-300",
 };
+
+const courseUrl = (course) => `https://github.com/alpha-training/${course}`;
 
 const readingUrl = (course, id) =>
   `https://github.com/alpha-training/${course}/blob/main/reading/${id}.md`;
@@ -195,7 +202,16 @@ function CourseSection({ course, onReveal, onView, adminView }) {
 
   return (
     <section className="bg-gray-900 border border-gray-800 rounded-lg">
-      <div className="flex flex-wrap items-baseline justify-end gap-2 px-4 py-3 border-b border-gray-800">
+      <div className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-3 border-b border-gray-800">
+        <a
+          href={courseUrl(course.course)}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-1 text-sm text-blue-300 hover:text-blue-400"
+        >
+          {COURSE_LABELS[course.course] || course.course} course material
+          <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+        </a>
         <p className="text-xs text-gray-400">
           {attempted.length} / {course.exercises.length} attempted · {revealed} revealed · latest push{" "}
           <code className="text-blue-300">{shortSha(course.commit)}</code>
