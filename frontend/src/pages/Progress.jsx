@@ -5,6 +5,7 @@ import {
   ClipboardDocumentIcon,
   CheckIcon,
   ArrowTopRightOnSquareIcon,
+  Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 import { isAdmin } from "../utils/admin";
 import {
@@ -40,7 +41,8 @@ function formatDate(iso) {
   return isNaN(d.getTime()) ? "" : d.toLocaleDateString();
 }
 
-// "Don't show this again" for the reveal confirmation, per user, per browser
+// "Don't show this explanation again": later reveals get the short confirmation instead.
+// Per user, per browser.
 const skipConfirmKey = (uid) => `alphahub.skipRevealConfirm.${uid}`;
 
 function loadSkipConfirm(uid) {
@@ -51,9 +53,10 @@ function loadSkipConfirm(uid) {
   }
 }
 
-function saveSkipConfirm(uid) {
+function saveSkipConfirm(uid, skip = true) {
   try {
-    localStorage.setItem(skipConfirmKey(uid), "1");
+    if (skip) localStorage.setItem(skipConfirmKey(uid), "1");
+    else localStorage.removeItem(skipConfirmKey(uid));
   } catch {
     // storage unavailable (e.g. private mode): the confirmation just shows again next time
   }
@@ -83,8 +86,46 @@ function Modal({ title, onClose, children, wide, extraWide }) {
   );
 }
 
-function ConfirmReveal({ exercise, commit, busy, error, onConfirm, onClose }) {
+function ConfirmReveal({ exercise, commit, short, busy, error, onConfirm, onClose }) {
   const [dontAsk, setDontAsk] = useState(false);
+
+  const buttons = (
+    <div className="flex justify-end gap-2 pt-2">
+      {/* Cancel has focus, so a reflex Enter doesn't reveal */}
+      <button
+        type="button"
+        onClick={onClose}
+        disabled={busy}
+        autoFocus
+        className="px-3 py-1.5 rounded bg-gray-800 hover:bg-gray-700 disabled:opacity-50"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        onClick={() => onConfirm(dontAsk)}
+        disabled={busy}
+        className="px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 disabled:opacity-50"
+      >
+        {busy ? "Revealing…" : "Show solution"}
+      </button>
+    </div>
+  );
+
+  if (short) {
+    return (
+      <Modal title="Show solution?" onClose={busy ? () => {} : onClose}>
+        <div className="space-y-3 text-gray-300">
+          <p>
+            Are you sure you want to see the solution for{" "}
+            <span className="font-semibold text-white">{exercise.title}</span>? This can't be undone.
+          </p>
+          {error && <p className="text-red-400">{error}</p>}
+          {buttons}
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal title={`Show solution: ${exercise.title}`} onClose={busy ? () => {} : onClose}>
@@ -111,26 +152,9 @@ function ConfirmReveal({ exercise, commit, busy, error, onConfirm, onClose }) {
             disabled={busy}
             className="accent-blue-600"
           />
-          Don't show this again
+          Don't show this explanation again
         </label>
-        <div className="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={busy}
-            className="px-3 py-1.5 rounded bg-gray-800 hover:bg-gray-700 disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => onConfirm(dontAsk)}
-            disabled={busy}
-            className="px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 disabled:opacity-50"
-          >
-            {busy ? "Revealing…" : "Show solution"}
-          </button>
-        </div>
+        {buttons}
       </div>
     </Modal>
   );
@@ -302,7 +326,7 @@ function CompareViewer({ comparison, onClose }) {
 
 /* ---------------- exercise list ---------------- */
 
-function SolutionCell({ ex, onReveal, onView, onCompare, canView, busy }) {
+function SolutionCell({ ex, onReveal, onView, onCompare, canView }) {
   const base = "px-2.5 py-1 rounded text-xs whitespace-nowrap";
 
   if (ex.solution === "revealed" || canView) {
@@ -326,13 +350,8 @@ function SolutionCell({ ex, onReveal, onView, onCompare, canView, busy }) {
   }
   if (ex.solution === "available") {
     return (
-      <button
-        type="button"
-        onClick={onReveal}
-        disabled={busy}
-        className={`${base} bg-blue-600 hover:bg-blue-500 disabled:opacity-50`}
-      >
-        {busy ? "Revealing…" : "Show solution"}
+      <button type="button" onClick={onReveal} className={`${base} bg-blue-600 hover:bg-blue-500`}>
+        Show solution
       </button>
     );
   }
@@ -343,7 +362,7 @@ function SolutionCell({ ex, onReveal, onView, onCompare, canView, busy }) {
   );
 }
 
-function CourseSection({ course, onReveal, onView, onCompare, adminView, revealingId }) {
+function CourseSection({ course, onReveal, onView, onCompare, adminView }) {
   // Only exercises the trainee has pushed an attempt at
   const attempted = course.exercises.filter((e) => e.files.length);
   const revealed = attempted.filter((e) => e.revealedAt).length;
@@ -394,7 +413,6 @@ function CourseSection({ course, onReveal, onView, onCompare, adminView, reveali
               <SolutionCell
                 ex={ex}
                 canView={adminView && ex.solution !== "unavailable"}
-                busy={revealingId === ex.id}
                 onReveal={() => onReveal(course, ex)}
                 onView={() => onView(course, ex)}
                 onCompare={() => onCompare(course, ex)}
@@ -424,9 +442,14 @@ export default function Progress({ user }) {
   const [revealError, setRevealError] = useState(null);
   const [viewing, setViewing] = useState(null);   // admin, unrevealed: { ex, files }
   const [skipConfirm, setSkipConfirm] = useState(() => loadSkipConfirm(user.uid));
-  const [revealingId, setRevealingId] = useState(null); // exercise being revealed without the modal
   const [notice, setNotice] = useState(null);     // reveal/view error shown above the tabs
   const [comparing, setComparing] = useState(null); // { ex, left, options }
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const setShowExplanation = (show) => {
+    saveSkipConfirm(user.uid, !show);
+    setSkipConfirm(!show);
+  };
 
   const load = async () => {
     setError(null);
@@ -470,25 +493,10 @@ export default function Progress({ user }) {
     }
   };
 
-  // Straight from the row, once the trainee has opted out of the confirmation
-  const handleDirectReveal = async (course, ex) => {
-    setNotice(null);
-    setRevealingId(ex.id);
-    try {
-      const res = await revealSolution(course.course, ex.id);
-      setComparing(traineeComparison(ex, res));
-      load();
-    } catch (e) {
-      setNotice(`${ex.title}: ${e.message}`);
-    } finally {
-      setRevealingId(null);
-    }
-  };
-
+  // Full explanation first; the short "Are you sure?" once they've opted out of it
   const handleRevealClick = (course, ex) => {
-    if (skipConfirm) return handleDirectReveal(course, ex);
     setRevealError(null);
-    setConfirm({ course, ex });
+    setConfirm({ course, ex, short: skipConfirm });
   };
 
   const handleView = async (course, ex) => {
@@ -520,7 +528,41 @@ export default function Progress({ user }) {
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-14 md:pt-24 pb-10 px-4 flex justify-center">
       <div className="w-full max-w-4xl">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <h1 className="text-2xl font-bold">Training progress</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">Training progress</h1>
+            {!admin && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setSettingsOpen((v) => !v)}
+                  className="p-1 rounded bg-transparent text-gray-400 hover:text-white"
+                  aria-label="Settings"
+                  aria-expanded={settingsOpen}
+                  title="Settings"
+                >
+                  <Cog6ToothIcon className="w-5 h-5" />
+                </button>
+                {settingsOpen && (
+                  <div className="absolute left-0 top-full mt-2 z-20 w-72 p-3 rounded-lg border border-gray-700 bg-gray-900 shadow-lg text-sm">
+                    <label className="flex items-start gap-2 text-gray-300 select-none">
+                      <input
+                        type="checkbox"
+                        checked={!skipConfirm}
+                        onChange={(e) => setShowExplanation(e.target.checked)}
+                        className="accent-blue-600 mt-0.5"
+                      />
+                      <span>
+                        Show the full explanation before revealing a solution
+                        <span className="block text-xs text-gray-500 mt-0.5">
+                          You'll always be asked "Are you sure?" either way.
+                        </span>
+                      </span>
+                    </label>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           {admin && all?.length > 0 && (
             <select
               value={selected}
@@ -604,7 +646,6 @@ export default function Progress({ user }) {
               key={activeCourse.course}
               course={activeCourse}
               adminView={admin}
-              revealingId={revealingId}
               onReveal={handleRevealClick}
               onView={handleView}
               onCompare={handleCompare}
@@ -617,6 +658,7 @@ export default function Progress({ user }) {
         <ConfirmReveal
           exercise={confirm.ex}
           commit={confirm.course.commit}
+          short={confirm.short}
           busy={revealing}
           error={revealError}
           onConfirm={handleConfirmReveal}
