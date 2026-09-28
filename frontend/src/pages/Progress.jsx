@@ -314,6 +314,21 @@ function CompareViewer({ comparison, onClose }) {
   const [pick, setPick] = useState(options[0].key);
   const right = options.find((o) => o.key === pick) ?? options[0];
 
+  // Nothing to compare against (no Alf solution, no pencils-down colleagues): just the attempt
+  if (options.length === 1 && !right.files.length) {
+    return (
+      <Modal title={`Attempt: ${ex.title}`} onClose={onClose} wide>
+        <div className="space-y-3">
+          <div>
+            <p className="font-semibold">{left.title}</p>
+            {left.subtitle && <p className="text-[11px] text-gray-400">{left.subtitle}</p>}
+          </div>
+          <FileList files={left.files} empty="No attempt found." />
+        </div>
+      </Modal>
+    );
+  }
+
   return (
     <Modal title={`Compare solutions: ${ex.title}`} onClose={onClose} extraWide>
       <div className="grid sm:grid-cols-2 gap-4">
@@ -362,7 +377,7 @@ function SolutionCell({ ex, course, username, onReveal, onCompare, adminView }) 
     return (
       <div className="flex flex-col items-end gap-0.5">
         <button type="button" onClick={onCompare} className={`${base} bg-gray-800 hover:bg-gray-700`}>
-          Compare solutions
+          {ex.solution === "unavailable" ? "View attempt" : "Compare solutions"}
         </button>
         {ex.revealedAt && (
           <span className="text-[11px] text-amber-300">
