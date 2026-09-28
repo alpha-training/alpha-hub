@@ -174,7 +174,11 @@ function CourseSection({ course, onReveal, onView, adminView }) {
                 {ex.title}
               </a>
               <p className="text-[11px] text-gray-500 truncate">
-                {ex.files.length ? ex.files.join(", ") : "No attempt pushed yet"}
+                {ex.files.length
+                  ? ex.files.join(", ")
+                  : ex.expected
+                    ? `No attempt pushed yet · expected file: ${ex.expected}`
+                    : "Not tracked yet"}
               </p>
             </div>
 
@@ -284,6 +288,28 @@ export default function Progress({ user }) {
             ? "Each trainee's exercises, their latest pushed attempts and any solutions they've revealed."
             : "Your exercises, based on what you've pushed to your training repos. Click an exercise to open its instructions."}
         </p>
+
+        {!admin && (
+          <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 mb-6 text-xs text-gray-300 space-y-1.5">
+            <p className="font-semibold text-white text-sm">How your work is picked up</p>
+            <p>
+              Name each solution file as shown under the exercise (e.g.{" "}
+              <code className="text-blue-300">myAbs.q</code>). Any folder in your repo is fine and
+              case doesn't matter, but don't use a folder called{" "}
+              <code className="text-blue-300">alf</code>: files there are treated as copies of Alf's.
+            </p>
+            <p>
+              Where an exercise asks for a function, use exactly the name it gives. Alf's versions end
+              in <code className="text-blue-300">2</code> (e.g.{" "}
+              <code className="text-blue-300">myAbs2</code>), so you can load both into one session and
+              compare.
+            </p>
+            <p>
+              Once you've pushed an attempt, you can reveal Alf's solution. That's final: we keep a copy
+              of your work as it was when you revealed.
+            </p>
+          </div>
+        )}
 
         {loading ? (
           <p className="text-sm text-gray-400">Loading…</p>
