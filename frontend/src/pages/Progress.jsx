@@ -1,6 +1,6 @@
 // src/pages/Progress.jsx
 import { useEffect, useState } from "react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon, ClipboardDocumentIcon, CheckIcon } from "@heroicons/react/24/outline";
 import { isAdmin } from "../utils/admin";
 import {
   fetchProgress,
@@ -97,6 +97,44 @@ function ConfirmReveal({ exercise, commit, busy, error, onConfirm, onClose }) {
   );
 }
 
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    // Fallback for browsers without clipboard API access
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+  }
+}
+
+function CopyButton({ text }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    await copyText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      title={copied ? "Copied" : "Copy"}
+      aria-label="Copy code"
+      className="absolute top-2 right-2 p-1.5 rounded bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white"
+    >
+      {copied ? <CheckIcon className="w-4 h-4 text-green-400" /> : <ClipboardDocumentIcon className="w-4 h-4" />}
+    </button>
+  );
+}
+
 function SolutionViewer({ exercise, files, onClose }) {
   return (
     <Modal title={`Alf's solution: ${exercise.title}`} onClose={onClose} wide>
@@ -104,9 +142,12 @@ function SolutionViewer({ exercise, files, onClose }) {
         {files.map((f) => (
           <div key={f.path}>
             <p className="text-xs text-blue-300 font-mono mb-1">{f.path}</p>
-            <pre className="bg-[#03080B] border border-gray-800 rounded p-3 overflow-auto text-xs font-mono text-gray-100 whitespace-pre">
-              {f.content}
-            </pre>
+            <div className="relative">
+              <pre className="bg-[#03080B] border border-gray-800 rounded p-3 pr-12 overflow-auto text-xs font-mono text-gray-100 whitespace-pre">
+                {f.content}
+              </pre>
+              <CopyButton text={f.content} />
+            </div>
           </div>
         ))}
       </div>
