@@ -211,11 +211,17 @@ const pencilsDown = (revealedAt, revealCommit) => (
   </>
 );
 
+// "Naman Jain" -> "Naman J"
+function shortName(name) {
+  const parts = (name || "").trim().split(/\s+/);
+  return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}` : parts[0] || "";
+}
+
 const alfOption = (files) => ({ key: "alf", label: "Alf", subtitle: "Alf's solution", files });
 
 const colleagueOption = (c) => ({
   key: c.username,
-  label: c.name,
+  label: shortName(c.name),
   subtitle: <>{pencilsDown(c.revealedAt, c.revealCommit)} · not checked, so it may not be correct</>,
   files: c.files,
 });
