@@ -13,3 +13,18 @@ html, body, #root {
     display: block !important;
   }
   
+/* Tailwind v4 gives buttons the default cursor; show a pointer on anything clickable */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a[href],
+  select,
+  summary,
+  label[for] {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
