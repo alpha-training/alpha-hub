@@ -5,6 +5,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "./firebase";
 
 import Navbar from "./components/Navbar";
+import UpdateBanner from "./components/UpdateBanner";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Quiz from "./pages/Quiz";
@@ -70,6 +71,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#03080B] text-white">
       <Navbar user={user} profile={profile} />
+      <UpdateBanner />
       <div className="pt-14">
         <Routes>
           <Route path="/" element={<Login />} />
