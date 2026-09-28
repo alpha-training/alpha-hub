@@ -192,14 +192,55 @@ function CodeFile({ file }) {
   );
 }
 
-function SolutionViewer({ exercise, files, onClose }) {
+// Alf's solution first, then colleagues who have revealed it (their attempt from just before revealing)
+function SolutionViewer({ exercise, files, colleagues = [], onClose }) {
+  const [tab, setTab] = useState("alf");
+  const colleague = colleagues.find((c) => c.username === tab);
+
+  const tabClass = (active) =>
+    `px-3 py-1.5 text-sm bg-transparent rounded-none border-b-2 -mb-px whitespace-nowrap ${
+      active ? "border-blue-500 text-white" : "border-transparent text-gray-400 hover:text-white"
+    }`;
+
   return (
-    <Modal title={`Alf's solution: ${exercise.title}`} onClose={onClose} wide>
-      <div className="space-y-4">
-        {files.map((f) => (
-          <CodeFile key={f.path} file={f} />
-        ))}
-      </div>
+    <Modal title={`Solutions: ${exercise.title}`} onClose={onClose} wide>
+      {colleagues.length > 0 && (
+        <div className="flex gap-1 overflow-x-auto border-b border-gray-800 mb-4">
+          <button type="button" onClick={() => setTab("alf")} className={tabClass(!colleague)}>
+            Alf
+          </button>
+          {colleagues.map((c) => (
+            <button
+              key={c.username}
+              type="button"
+              onClick={() => setTab(c.username)}
+              className={tabClass(colleague?.username === c.username)}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {colleague ? (
+        <div className="space-y-4">
+          <p className="text-xs text-gray-400">
+            {colleague.name}'s attempt from just before they revealed Alf's solution (
+            {formatDate(colleague.revealedAt)},{" "}
+            <code className="text-blue-300">{shortSha(colleague.revealCommit)}</code>). Not checked, so
+            it may not be correct.
+          </p>
+          {colleague.files.map((f) => (
+            <CodeFile key={f.path} file={f} />
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {files.map((f) => (
+            <CodeFile key={f.path} file={f} />
+          ))}
+        </div>
+      )}
     </Modal>
   );
 }
@@ -399,7 +440,7 @@ export default function Progress({ user }) {
         saveSkipConfirm(user.uid);
         setSkipConfirm(true);
       }
-      setViewing({ ex: confirm.ex, files: res.files });
+      setViewing({ ex: confirm.ex, files: res.files, colleagues: res.colleagues });
       setConfirm(null);
       load();
     } catch (e) {
@@ -415,7 +456,7 @@ export default function Progress({ user }) {
     setRevealingId(ex.id);
     try {
       const res = await revealSolution(course.course, ex.id);
-      setViewing({ ex, files: res.files });
+      setViewing({ ex, files: res.files, colleagues: res.colleagues });
       load();
     } catch (e) {
       setNotice(`${ex.title}: ${e.message}`);
@@ -433,7 +474,7 @@ export default function Progress({ user }) {
   const handleView = async (course, ex) => {
     try {
       const res = await fetchSolution(course.course, ex.id);
-      setViewing({ ex, files: res.files });
+      setViewing({ ex, files: res.files, colleagues: res.colleagues });
     } catch (e) {
       setNotice(`${ex.title}: ${e.message}`);
     }
@@ -495,7 +536,9 @@ export default function Progress({ user }) {
             </p>
             <p>
               Once you've pushed an attempt, you can reveal Alf's solution. That's final: we keep a copy
-              of your work as it was when you revealed.
+              of your work as it was when you revealed ("pencils down"). You'll also see the attempts of
+              up to 3 colleagues who have revealed it, and yours will be shown to colleagues who reveal
+              it after you.
             </p>
           </div>
         )}
@@ -558,7 +601,12 @@ export default function Progress({ user }) {
         />
       )}
       {viewing && (
-        <SolutionViewer exercise={viewing.ex} files={viewing.files} onClose={() => setViewing(null)} />
+        <SolutionViewer
+          exercise={viewing.ex}
+          files={viewing.files}
+          colleagues={viewing.colleagues}
+          onClose={() => setViewing(null)}
+        />
       )}
       {comparing && (
         <CompareViewer
