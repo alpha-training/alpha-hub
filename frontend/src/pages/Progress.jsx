@@ -148,21 +148,26 @@ function SolutionCell({ ex, onReveal, onView, canView }) {
 }
 
 function CourseSection({ course, onReveal, onView, adminView }) {
-  const pushed = course.exercises.filter((e) => e.files.length).length;
-  const revealed = course.exercises.filter((e) => e.revealedAt).length;
+  // Only exercises the trainee has pushed an attempt at
+  const attempted = course.exercises.filter((e) => e.files.length);
+  const revealed = attempted.filter((e) => e.revealedAt).length;
 
   return (
     <section className="bg-gray-900 border border-gray-800 rounded-lg">
       <div className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-3 border-b border-gray-800">
         <h2 className="font-semibold">{COURSE_LABELS[course.course] || course.course}</h2>
         <p className="text-xs text-gray-400">
-          {pushed} / {course.exercises.length} attempted · {revealed} revealed · latest push{" "}
+          {attempted.length} / {course.exercises.length} attempted · {revealed} revealed · latest push{" "}
           <code className="text-blue-300">{shortSha(course.commit)}</code>
         </p>
       </div>
 
+      {attempted.length === 0 && (
+        <p className="px-4 py-3 text-sm text-gray-400">No attempts pushed yet.</p>
+      )}
+
       <ul className="divide-y divide-gray-800">
-        {course.exercises.map((ex) => (
+        {attempted.map((ex) => (
           <li key={ex.id} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
             <div className="min-w-0">
               <a
@@ -173,13 +178,7 @@ function CourseSection({ course, onReveal, onView, adminView }) {
               >
                 {ex.title}
               </a>
-              <p className="text-[11px] text-gray-500 truncate">
-                {ex.files.length
-                  ? ex.files.join(", ")
-                  : ex.expected
-                    ? `No attempt pushed yet · expected file: ${ex.expected}`
-                    : "Not tracked yet"}
-              </p>
+              <p className="text-[11px] text-gray-500 truncate">{ex.files.join(", ")}</p>
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
@@ -293,10 +292,11 @@ export default function Progress({ user }) {
           <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 mb-6 text-xs text-gray-300 space-y-1.5">
             <p className="font-semibold text-white text-sm">How your work is picked up</p>
             <p>
-              Name each solution file as shown under the exercise (e.g.{" "}
-              <code className="text-blue-300">myAbs.q</code>). Any folder in your repo is fine and
-              case doesn't matter, but don't use a folder called{" "}
+              Exercises appear here once you've pushed an attempt. Name each solution file after the
+              exercise (e.g. <code className="text-blue-300">myAbs.q</code>). Any folder in your repo
+              is fine and case doesn't matter, but don't use a folder called{" "}
               <code className="text-blue-300">alf</code>: files there are treated as copies of Alf's.
+              If something you've pushed doesn't show up, check the file name.
             </p>
             <p>
               Where an exercise asks for a function, use exactly the name it gives. Alf's versions end
