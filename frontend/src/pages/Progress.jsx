@@ -154,8 +154,7 @@ function CourseSection({ course, onReveal, onView, adminView }) {
 
   return (
     <section className="bg-gray-900 border border-gray-800 rounded-lg">
-      <div className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-3 border-b border-gray-800">
-        <h2 className="font-semibold">{COURSE_LABELS[course.course] || course.course}</h2>
+      <div className="flex flex-wrap items-baseline justify-end gap-2 px-4 py-3 border-b border-gray-800">
         <p className="text-xs text-gray-400">
           {attempted.length} / {course.exercises.length} attempted · {revealed} revealed · latest push{" "}
           <code className="text-blue-300">{shortSha(course.commit)}</code>
@@ -207,6 +206,7 @@ export default function Progress({ user }) {
   const [data, setData] = useState(null);         // trainee: { name, username, courses }
   const [all, setAll] = useState(null);           // admin: [{ name, username, courses }]
   const [selected, setSelected] = useState("");   // admin: username being viewed
+  const [tab, setTab] = useState("");             // course tab
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -262,6 +262,8 @@ export default function Progress({ user }) {
   };
 
   const shown = admin ? all?.find((t) => t.username === selected) : data;
+  // Tabs are the courses the trainee has a repo for; fall back to the first if the selected one isn't there
+  const activeCourse = shown?.courses.find((c) => c.course === tab) ?? shown?.courses[0];
 
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-14 md:pt-24 pb-10 px-4 flex justify-center">
@@ -318,19 +320,34 @@ export default function Progress({ user }) {
         ) : !shown?.courses.length ? (
           <p className="text-sm text-gray-400">No training repos found yet.</p>
         ) : (
-          <div className="space-y-6">
-            {shown.courses.map((c) => (
-              <CourseSection
-                key={c.course}
-                course={c}
-                adminView={admin}
-                onReveal={(course, ex) => {
-                  setRevealError(null);
-                  setConfirm({ course, ex });
-                }}
-                onView={handleView}
-              />
-            ))}
+          <div>
+            <div className="flex gap-1 border-b border-gray-800 mb-4">
+              {shown.courses.map((c) => (
+                <button
+                  key={c.course}
+                  type="button"
+                  onClick={() => setTab(c.course)}
+                  className={`px-4 py-2 text-sm bg-transparent rounded-none border-b-2 -mb-px ${
+                    c.course === activeCourse.course
+                      ? "border-blue-500 text-white"
+                      : "border-transparent text-gray-400 hover:text-white"
+                  }`}
+                >
+                  {COURSE_LABELS[c.course] || c.course}
+                </button>
+              ))}
+            </div>
+
+            <CourseSection
+              key={activeCourse.course}
+              course={activeCourse}
+              adminView={admin}
+              onReveal={(course, ex) => {
+                setRevealError(null);
+                setConfirm({ course, ex });
+              }}
+              onView={handleView}
+            />
           </div>
         )}
       </div>
