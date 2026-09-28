@@ -5,7 +5,6 @@ import {
   ClipboardDocumentIcon,
   CheckIcon,
   ArrowTopRightOnSquareIcon,
-  Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 import { isAdmin } from "../utils/admin";
 import {
@@ -53,10 +52,9 @@ function loadSkipConfirm(uid) {
   }
 }
 
-function saveSkipConfirm(uid, skip = true) {
+function saveSkipConfirm(uid) {
   try {
-    if (skip) localStorage.setItem(skipConfirmKey(uid), "1");
-    else localStorage.removeItem(skipConfirmKey(uid));
+    localStorage.setItem(skipConfirmKey(uid), "1");
   } catch {
     // storage unavailable (e.g. private mode): the confirmation just shows again next time
   }
@@ -444,12 +442,6 @@ export default function Progress({ user }) {
   const [skipConfirm, setSkipConfirm] = useState(() => loadSkipConfirm(user.uid));
   const [notice, setNotice] = useState(null);     // reveal/view error shown above the tabs
   const [comparing, setComparing] = useState(null); // { ex, left, options }
-  const [settingsOpen, setSettingsOpen] = useState(false);
-
-  const setShowExplanation = (show) => {
-    saveSkipConfirm(user.uid, !show);
-    setSkipConfirm(!show);
-  };
 
   const load = async () => {
     setError(null);
@@ -528,41 +520,7 @@ export default function Progress({ user }) {
     <div className="min-h-[calc(100vh-56px)] bg-[#03080B] text-white pt-14 md:pt-24 pb-10 px-4 flex justify-center">
       <div className="w-full max-w-4xl">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">Training progress</h1>
-            {!admin && (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setSettingsOpen((v) => !v)}
-                  className="p-1 rounded bg-transparent text-gray-400 hover:text-white"
-                  aria-label="Settings"
-                  aria-expanded={settingsOpen}
-                  title="Settings"
-                >
-                  <Cog6ToothIcon className="w-5 h-5" />
-                </button>
-                {settingsOpen && (
-                  <div className="absolute left-0 top-full mt-2 z-20 w-72 p-3 rounded-lg border border-gray-700 bg-gray-900 shadow-lg text-sm">
-                    <label className="flex items-start gap-2 text-gray-300 select-none">
-                      <input
-                        type="checkbox"
-                        checked={!skipConfirm}
-                        onChange={(e) => setShowExplanation(e.target.checked)}
-                        className="accent-blue-600 mt-0.5"
-                      />
-                      <span>
-                        Show the full explanation before revealing a solution
-                        <span className="block text-xs text-gray-500 mt-0.5">
-                          You'll always be asked "Are you sure?" either way.
-                        </span>
-                      </span>
-                    </label>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          <h1 className="text-2xl font-bold">Training progress</h1>
           {admin && all?.length > 0 && (
             <select
               value={selected}
