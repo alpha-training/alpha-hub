@@ -537,8 +537,8 @@ export default function Progress({ user }) {
             <p>
               Once you've pushed an attempt, you can reveal Alf's solution. That's final: we keep a copy
               of your work as it was when you revealed ("pencils down"). You'll also see the attempts of
-              up to 3 colleagues who have revealed it, and yours will be shown to colleagues who reveal
-              it after you.
+              colleagues who have revealed it, and yours will be shown to colleagues who reveal it after
+              you.
             </p>
           </div>
         )}
