@@ -26,3 +26,5 @@ export const fetchProgress = () => call("GET", "/progress");
 export const fetchAllProgress = () => call("GET", "/admin/progress");
 export const revealSolution = (course, id) => call("POST", `/reveal/${course}/${id}`);
 export const fetchSolution = (course, id) => call("GET", `/solution/${course}/${id}`);
+export const fetchComparison = (username, course, id) =>
+  call("GET", `/admin/compare/${username}/${course}/${id}`);

@@ -12,6 +12,7 @@ import {
   fetchAllProgress,
   revealSolution,
   fetchSolution,
+  fetchComparison,
 } from "../api/feedback";
 
 const COURSE_LABELS = {
@@ -60,14 +61,14 @@ function saveSkipConfirm(uid) {
 
 /* ---------------- modals ---------------- */
 
-function Modal({ title, onClose, children, wide }) {
+function Modal({ title, onClose, children, wide, extraWide }) {
   return (
     <div
       className="fixed inset-0 z-30 bg-black/70 flex items-center justify-center p-4"
       onClick={onClose}
     >
       <div
-        className={`w-full ${wide ? "max-w-4xl" : "max-w-md"} max-h-[90vh] flex flex-col bg-gray-900 border border-gray-700 rounded-lg`}
+        className={`w-full ${extraWide ? "max-w-7xl" : wide ? "max-w-4xl" : "max-w-md"} max-h-[90vh] flex flex-col bg-gray-900 border border-gray-700 rounded-lg`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
@@ -173,21 +174,65 @@ function CopyButton({ text }) {
   );
 }
 
+function CodeFile({ file }) {
+  return (
+    <div>
+      <p className="text-xs text-blue-300 font-mono mb-1 break-all">{file.path}</p>
+      {file.content == null ? (
+        <p className="text-xs text-gray-500">File not found in the snapshot.</p>
+      ) : (
+        <div className="relative">
+          <pre className="bg-[#03080B] border border-gray-800 rounded p-3 pr-12 overflow-auto text-xs font-mono text-gray-100 whitespace-pre">
+            {file.content}
+          </pre>
+          <CopyButton text={file.content} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SolutionViewer({ exercise, files, onClose }) {
   return (
     <Modal title={`Alf's solution: ${exercise.title}`} onClose={onClose} wide>
       <div className="space-y-4">
         {files.map((f) => (
-          <div key={f.path}>
-            <p className="text-xs text-blue-300 font-mono mb-1">{f.path}</p>
-            <div className="relative">
-              <pre className="bg-[#03080B] border border-gray-800 rounded p-3 pr-12 overflow-auto text-xs font-mono text-gray-100 whitespace-pre">
-                {f.content}
-              </pre>
-              <CopyButton text={f.content} />
-            </div>
-          </div>
+          <CodeFile key={f.path} file={f} />
         ))}
+      </div>
+    </Modal>
+  );
+}
+
+// Admin: trainee's attempt as it was when they revealed (left) vs Alf's solution (right)
+function CompareViewer({ exercise, comparison, onClose }) {
+  const { trainee, revealCommit, revealedAt, attempt, alf } = comparison;
+  return (
+    <Modal title={`Compare solutions: ${exercise.title}`} onClose={onClose} extraWide>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="min-w-0 space-y-3">
+          <div>
+            <p className="font-semibold">{trainee.name}</p>
+            <p className="text-[11px] text-gray-400">
+              As revealed on {formatDate(revealedAt)} at{" "}
+              <code className="text-blue-300">{shortSha(revealCommit)}</code>
+            </p>
+          </div>
+          {attempt.map((f) => (
+            <CodeFile key={f.path} file={f} />
+          ))}
+        </div>
+        <div className="min-w-0 space-y-3">
+          <div>
+            <p className="font-semibold">Alf</p>
+            <p className="text-[11px] text-gray-400">Current solution</p>
+          </div>
+          {alf.length ? (
+            alf.map((f) => <CodeFile key={f.path} file={f} />)
+          ) : (
+            <p className="text-xs text-gray-500">Alf's solution isn't available.</p>
+          )}
+        </div>
       </div>
     </Modal>
   );
@@ -195,14 +240,19 @@ function SolutionViewer({ exercise, files, onClose }) {
 
 /* ---------------- exercise list ---------------- */
 
-function SolutionCell({ ex, onReveal, onView, canView, busy }) {
+function SolutionCell({ ex, onReveal, onView, onCompare, canView, adminView, busy }) {
   const base = "px-2.5 py-1 rounded text-xs whitespace-nowrap";
 
   if (ex.solution === "revealed" || canView) {
+    const compare = adminView && ex.solution === "revealed";
     return (
       <div className="flex flex-col items-end gap-0.5">
-        <button type="button" onClick={onView} className={`${base} bg-gray-800 hover:bg-gray-700`}>
-          View solution
+        <button
+          type="button"
+          onClick={compare ? onCompare : onView}
+          className={`${base} bg-gray-800 hover:bg-gray-700`}
+        >
+          {compare ? "Compare solutions" : "View solution"}
         </button>
         {ex.revealedAt && (
           <span className="text-[11px] text-amber-300">
@@ -231,7 +281,7 @@ function SolutionCell({ ex, onReveal, onView, canView, busy }) {
   );
 }
 
-function CourseSection({ course, onReveal, onView, adminView, revealingId }) {
+function CourseSection({ course, onReveal, onView, onCompare, adminView, revealingId }) {
   // Only exercises the trainee has pushed an attempt at
   const attempted = course.exercises.filter((e) => e.files.length);
   const revealed = attempted.filter((e) => e.revealedAt).length;
@@ -280,9 +330,11 @@ function CourseSection({ course, onReveal, onView, adminView, revealingId }) {
               <SolutionCell
                 ex={ex}
                 canView={adminView && ex.solution !== "unavailable"}
+                adminView={adminView}
                 busy={revealingId === ex.id}
                 onReveal={() => onReveal(course, ex)}
                 onView={() => onView(course, ex)}
+                onCompare={() => onCompare(course, ex)}
               />
             </div>
           </li>
@@ -311,6 +363,7 @@ export default function Progress({ user }) {
   const [skipConfirm, setSkipConfirm] = useState(() => loadSkipConfirm(user.uid));
   const [revealingId, setRevealingId] = useState(null); // exercise being revealed without the modal
   const [notice, setNotice] = useState(null);     // reveal/view error shown above the tabs
+  const [comparing, setComparing] = useState(null); // admin: { ex, comparison }
 
   const load = async () => {
     setError(null);
@@ -379,6 +432,15 @@ export default function Progress({ user }) {
     try {
       const res = await fetchSolution(course.course, ex.id);
       setViewing({ ex, files: res.files });
+    } catch (e) {
+      setNotice(`${ex.title}: ${e.message}`);
+    }
+  };
+
+  const handleCompare = async (course, ex) => {
+    try {
+      const comparison = await fetchComparison(selected, course.course, ex.id);
+      setComparing({ ex, comparison });
     } catch (e) {
       setNotice(`${ex.title}: ${e.message}`);
     }
@@ -477,6 +539,7 @@ export default function Progress({ user }) {
               revealingId={revealingId}
               onReveal={handleRevealClick}
               onView={handleView}
+              onCompare={handleCompare}
             />
           </div>
         )}
@@ -494,6 +557,13 @@ export default function Progress({ user }) {
       )}
       {viewing && (
         <SolutionViewer exercise={viewing.ex} files={viewing.files} onClose={() => setViewing(null)} />
+      )}
+      {comparing && (
+        <CompareViewer
+          exercise={comparing.ex}
+          comparison={comparing.comparison}
+          onClose={() => setComparing(null)}
+        />
       )}
     </div>
   );
