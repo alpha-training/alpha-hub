@@ -264,7 +264,7 @@ function CompareViewer({ comparison, onClose }) {
 
   return (
     <Modal title={`Compare solutions: ${ex.title}`} onClose={onClose} extraWide>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="min-w-0 space-y-3">
           <div className="min-h-[3rem]">
             <p className="font-semibold">{left.title}</p>
