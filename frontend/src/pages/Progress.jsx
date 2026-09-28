@@ -43,7 +43,8 @@ function formatDate(iso) {
 
 // "Don't show this explanation again": later reveals get the short confirmation instead.
 // Per user, per browser.
-const skipConfirmKey = (uid) => `alphahub.skipRevealConfirm.${uid}`;
+// v2: choices saved before the short confirmation existed meant "reveal in one click", so they are ignored
+const skipConfirmKey = (uid) => `alphahub.skipRevealExplanation.v2.${uid}`;
 
 function loadSkipConfirm(uid) {
   try {
