@@ -238,18 +238,6 @@ function CodeFile({ file }) {
   );
 }
 
-// Admin viewing Alf's solution for an exercise the trainee hasn't revealed
-function SolutionViewer({ exercise, files, onClose }) {
-  return (
-    <Modal title={`Alf's solution: ${exercise.title}`} onClose={onClose} wide>
-      <div className="space-y-4">
-        {files.map((f) => (
-          <CodeFile key={f.path} file={f} />
-        ))}
-      </div>
-    </Modal>
-  );
-}
 
 const pencilsDown = (revealedAt, revealCommit, course, username, plain) => (
   <>
@@ -298,7 +286,14 @@ function adminComparison(ex, c, course) {
     ex,
     left: {
       title: c.trainee.name,
-      subtitle: pencilsDown(c.revealedAt, c.revealCommit, course, c.trainee.username),
+      subtitle: c.pencilsDown ? (
+        pencilsDown(c.revealedAt, c.revealCommit, course, c.trainee.username)
+      ) : (
+        <>
+          Latest push <CommitLink course={course} username={c.trainee.username} sha={c.commit} /> · not
+          pencils down yet
+        </>
+      ),
       files: c.attempt,
     },
     options: [alfOption(c.alf), ...(c.colleagues ?? []).map(colleagueOption(course, true))],
@@ -359,19 +354,15 @@ function CompareViewer({ comparison, onClose }) {
 
 /* ---------------- exercise list ---------------- */
 
-function SolutionCell({ ex, course, username, onReveal, onView, onCompare, canView }) {
+// Admins can compare any attempted exercise; trainees once they've revealed
+function SolutionCell({ ex, course, username, onReveal, onCompare, adminView }) {
   const base = "px-2.5 py-1 rounded text-xs whitespace-nowrap";
 
-  if (ex.solution === "revealed" || canView) {
-    const compare = ex.solution === "revealed";
+  if (adminView || ex.solution === "revealed") {
     return (
       <div className="flex flex-col items-end gap-0.5">
-        <button
-          type="button"
-          onClick={compare ? onCompare : onView}
-          className={`${base} bg-gray-800 hover:bg-gray-700`}
-        >
-          {compare ? "Compare solutions" : "View solution"}
+        <button type="button" onClick={onCompare} className={`${base} bg-gray-800 hover:bg-gray-700`}>
+          Compare solutions
         </button>
         {ex.revealedAt && (
           <span className="text-[11px] text-amber-300">
@@ -396,7 +387,7 @@ function SolutionCell({ ex, course, username, onReveal, onView, onCompare, canVi
   );
 }
 
-function CourseSection({ course, username, onReveal, onView, onCompare, adminView }) {
+function CourseSection({ course, username, onReveal, onCompare, adminView }) {
   // Only exercises the trainee has pushed an attempt at
   const attempted = course.exercises.filter((e) => e.files.length);
   const revealed = attempted.filter((e) => e.revealedAt).length;
@@ -448,9 +439,8 @@ function CourseSection({ course, username, onReveal, onView, onCompare, adminVie
                 ex={ex}
                 course={course.course}
                 username={username}
-                canView={adminView && ex.solution !== "unavailable"}
+                adminView={adminView}
                 onReveal={() => onReveal(course, ex)}
-                onView={() => onView(course, ex)}
                 onCompare={() => onCompare(course, ex)}
               />
             </div>
@@ -476,7 +466,6 @@ export default function Progress({ user }) {
   const [confirm, setConfirm] = useState(null);   // { course, ex }
   const [revealing, setRevealing] = useState(false);
   const [revealError, setRevealError] = useState(null);
-  const [viewing, setViewing] = useState(null);   // admin, unrevealed: { ex, files }
   const [skipConfirm, setSkipConfirm] = useState(() => loadSkipConfirm(user.uid));
   const [notice, setNotice] = useState(null);     // reveal/view error shown above the tabs
   const [comparing, setComparing] = useState(null); // { ex, left, options }
@@ -551,15 +540,6 @@ export default function Progress({ user }) {
   const handleRevealClick = (course, ex) => {
     setRevealError(null);
     setConfirm({ course, ex, short: skipConfirm });
-  };
-
-  const handleView = async (course, ex) => {
-    try {
-      const res = await fetchSolution(course.course, ex.id);
-      setViewing({ ex, files: res.files });
-    } catch (e) {
-      setNotice(`${ex.title}: ${e.message}`);
-    }
   };
 
   const handleCompare = async (course, ex) => {
@@ -702,7 +682,6 @@ export default function Progress({ user }) {
               course={activeCourse}
               adminView={admin}
               onReveal={handleRevealClick}
-              onView={handleView}
               onCompare={handleCompare}
             />
           </div>
@@ -721,9 +700,6 @@ export default function Progress({ user }) {
           onConfirm={handleConfirmReveal}
           onClose={() => setConfirm(null)}
         />
-      )}
-      {viewing && (
-        <SolutionViewer exercise={viewing.ex} files={viewing.files} onClose={() => setViewing(null)} />
       )}
       {comparing && (
         <CompareViewer comparison={comparing} onClose={() => setComparing(null)} />
