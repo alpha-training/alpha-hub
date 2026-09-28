@@ -35,6 +35,27 @@ const readingUrl = (course, id) =>
 
 const shortSha = (sha) => (sha ? sha.slice(0, 7) : "");
 
+// The trainee's repo on GitHub as it was at that commit
+const commitUrl = (course, username, sha) =>
+  `https://github.com/alpha-training/${course}-${username}/tree/${sha}`;
+
+// plain: show the id without a link (trainees can't open colleagues' repos on GitHub)
+function CommitLink({ course, username, sha, plain }) {
+  if (!sha) return null;
+  if (plain) return <code className="text-blue-300">{shortSha(sha)}</code>;
+  return (
+    <a
+      href={commitUrl(course, username, sha)}
+      target="_blank"
+      rel="noreferrer"
+      title="Open this version on GitHub"
+      className="font-mono text-blue-300 hover:text-blue-400 hover:underline"
+    >
+      {shortSha(sha)}
+    </a>
+  );
+}
+
 function formatDate(iso) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -87,7 +108,7 @@ function Modal({ title, onClose, children, wide, extraWide }) {
   );
 }
 
-function ConfirmReveal({ exercise, commit, short, busy, error, onConfirm, onClose }) {
+function ConfirmReveal({ exercise, commit, course, username, short, busy, error, onConfirm, onClose }) {
   const [dontAsk, setDontAsk] = useState(false);
 
   const buttons = (
@@ -139,7 +160,7 @@ function ConfirmReveal({ exercise, commit, short, busy, error, onConfirm, onClos
           We'll keep a copy of your work as of your latest push
           {commit ? (
             <>
-              {" "}(currently <code className="text-blue-300">{shortSha(commit)}</code>)
+              {" "}(currently <CommitLink course={course} username={username} sha={commit} />)
             </>
           ) : null}
           . If you have local changes, push them first.
@@ -230,9 +251,10 @@ function SolutionViewer({ exercise, files, onClose }) {
   );
 }
 
-const pencilsDown = (revealedAt, revealCommit) => (
+const pencilsDown = (revealedAt, revealCommit, course, username, plain) => (
   <>
-    Pencils down {formatDate(revealedAt)} at <code className="text-blue-300">{shortSha(revealCommit)}</code>
+    Pencils down {formatDate(revealedAt)} at{" "}
+    <CommitLink course={course} username={username} sha={revealCommit} plain={plain} />
   </>
 );
 
@@ -244,32 +266,42 @@ function shortName(name) {
 
 const alfOption = (files) => ({ key: "alf", label: "Alf", subtitle: "Alf's solution", files });
 
-const colleagueOption = (c) => ({
+// linkCommit: admins can open any trainee's repo; trainees only their own
+const colleagueOption = (course, linkCommit) => (c) => ({
   key: c.username,
   label: shortName(c.name),
-  subtitle: <>{pencilsDown(c.revealedAt, c.revealCommit)} · not checked, so it may not be correct</>,
+  subtitle: (
+    <>
+      {pencilsDown(c.revealedAt, c.revealCommit, course, c.username, !linkCommit)} · not checked, so it may not
+      be correct
+    </>
+  ),
   files: c.files,
 });
 
 // Trainee: from /reveal or /solution
-function traineeComparison(ex, res) {
+function traineeComparison(ex, res, course, username) {
   return {
     ex,
     left: {
       title: "Mine",
-      subtitle: res.mine ? pencilsDown(res.mine.revealedAt, res.mine.revealCommit) : null,
+      subtitle: res.mine ? pencilsDown(res.mine.revealedAt, res.mine.revealCommit, course, username) : null,
       files: res.mine?.files ?? [],
     },
-    options: [alfOption(res.files), ...(res.colleagues ?? []).map(colleagueOption)],
+    options: [alfOption(res.files), ...(res.colleagues ?? []).map(colleagueOption(course, false))],
   };
 }
 
 // Admin: from /admin/compare
-function adminComparison(ex, c) {
+function adminComparison(ex, c, course) {
   return {
     ex,
-    left: { title: c.trainee.name, subtitle: pencilsDown(c.revealedAt, c.revealCommit), files: c.attempt },
-    options: [alfOption(c.alf), ...(c.colleagues ?? []).map(colleagueOption)],
+    left: {
+      title: c.trainee.name,
+      subtitle: pencilsDown(c.revealedAt, c.revealCommit, course, c.trainee.username),
+      files: c.attempt,
+    },
+    options: [alfOption(c.alf), ...(c.colleagues ?? []).map(colleagueOption(course, true))],
   };
 }
 
@@ -327,7 +359,7 @@ function CompareViewer({ comparison, onClose }) {
 
 /* ---------------- exercise list ---------------- */
 
-function SolutionCell({ ex, onReveal, onView, onCompare, canView }) {
+function SolutionCell({ ex, course, username, onReveal, onView, onCompare, canView }) {
   const base = "px-2.5 py-1 rounded text-xs whitespace-nowrap";
 
   if (ex.solution === "revealed" || canView) {
@@ -343,7 +375,8 @@ function SolutionCell({ ex, onReveal, onView, onCompare, canView }) {
         </button>
         {ex.revealedAt && (
           <span className="text-[11px] text-amber-300">
-            Revealed {formatDate(ex.revealedAt)} at {shortSha(ex.revealCommit)}
+            Revealed {formatDate(ex.revealedAt)} at{" "}
+            <CommitLink course={course} username={username} sha={ex.revealCommit} />
           </span>
         )}
       </div>
@@ -363,7 +396,7 @@ function SolutionCell({ ex, onReveal, onView, onCompare, canView }) {
   );
 }
 
-function CourseSection({ course, onReveal, onView, onCompare, adminView }) {
+function CourseSection({ course, username, onReveal, onView, onCompare, adminView }) {
   // Only exercises the trainee has pushed an attempt at
   const attempted = course.exercises.filter((e) => e.files.length);
   const revealed = attempted.filter((e) => e.revealedAt).length;
@@ -382,7 +415,7 @@ function CourseSection({ course, onReveal, onView, onCompare, adminView }) {
         </a>
         <p className="text-xs text-gray-400">
           {attempted.length} / {course.exercises.length} attempted · {revealed} revealed · latest push{" "}
-          <code className="text-blue-300">{shortSha(course.commit)}</code>
+          <CommitLink course={course.course} username={username} sha={course.commit} />
         </p>
       </div>
 
@@ -413,6 +446,8 @@ function CourseSection({ course, onReveal, onView, onCompare, adminView }) {
               )}
               <SolutionCell
                 ex={ex}
+                course={course.course}
+                username={username}
                 canView={adminView && ex.solution !== "unavailable"}
                 onReveal={() => onReveal(course, ex)}
                 onView={() => onView(course, ex)}
@@ -502,7 +537,7 @@ export default function Progress({ user }) {
         saveSkipConfirm(user.uid);
         setSkipConfirm(true);
       }
-      setComparing(traineeComparison(confirm.ex, res));
+      setComparing(traineeComparison(confirm.ex, res, confirm.course.course, data?.username));
       setConfirm(null);
       load();
     } catch (e) {
@@ -531,8 +566,8 @@ export default function Progress({ user }) {
     try {
       setComparing(
         admin
-          ? adminComparison(ex, await fetchComparison(selected, course.course, ex.id))
-          : traineeComparison(ex, await fetchSolution(course.course, ex.id))
+          ? adminComparison(ex, await fetchComparison(selected, course.course, ex.id), course.course)
+          : traineeComparison(ex, await fetchSolution(course.course, ex.id), course.course, data?.username)
       );
     } catch (e) {
       setNotice(`${ex.title}: ${e.message}`);
@@ -662,6 +697,7 @@ export default function Progress({ user }) {
             </div>
 
             <CourseSection
+              username={shown.username}
               key={activeCourse.course}
               course={activeCourse}
               adminView={admin}
@@ -677,6 +713,8 @@ export default function Progress({ user }) {
         <ConfirmReveal
           exercise={confirm.ex}
           commit={confirm.course.commit}
+          course={confirm.course.course}
+          username={data?.username}
           short={confirm.short}
           busy={revealing}
           error={revealError}
