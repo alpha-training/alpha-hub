@@ -21,8 +21,8 @@ const COURSE_LABELS = {
   advanced: "Advanced",
 };
 
+// Only graded statuses get a badge; "todo" (not graded yet) shows nothing
 const STATUS_STYLES = {
-  todo: "bg-gray-800 text-gray-300",
   incorrect: "bg-red-900/60 text-red-300",
   correct: "bg-green-900/60 text-green-300",
 };
@@ -324,9 +324,11 @@ function CourseSection({ course, onReveal, onView, onCompare, adminView, reveali
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
-              <span className={`px-2 py-0.5 rounded text-xs capitalize ${STATUS_STYLES[ex.status] || STATUS_STYLES.todo}`}>
-                {ex.status}
-              </span>
+              {STATUS_STYLES[ex.status] && (
+                <span className={`px-2 py-0.5 rounded text-xs capitalize ${STATUS_STYLES[ex.status]}`}>
+                  {ex.status}
+                </span>
+              )}
               <SolutionCell
                 ex={ex}
                 canView={adminView && ex.solution !== "unavailable"}
