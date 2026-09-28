@@ -192,87 +192,98 @@ function CodeFile({ file }) {
   );
 }
 
-// Alf's solution first, then colleagues who have revealed it (their attempt from just before revealing)
-function SolutionViewer({ exercise, files, colleagues = [], onClose }) {
-  const [tab, setTab] = useState("alf");
-  const colleague = colleagues.find((c) => c.username === tab);
-
-  const tabClass = (active) =>
-    `px-3 py-1.5 text-sm bg-transparent rounded-none border-b-2 -mb-px whitespace-nowrap ${
-      active ? "border-blue-500 text-white" : "border-transparent text-gray-400 hover:text-white"
-    }`;
-
+// Admin viewing Alf's solution for an exercise the trainee hasn't revealed
+function SolutionViewer({ exercise, files, onClose }) {
   return (
-    <Modal title={`Solutions: ${exercise.title}`} onClose={onClose} wide>
-      {colleagues.length > 0 && (
-        <div className="flex gap-1 overflow-x-auto border-b border-gray-800 mb-4">
-          <button type="button" onClick={() => setTab("alf")} className={tabClass(!colleague)}>
-            Alf
-          </button>
-          {colleagues.map((c) => (
-            <button
-              key={c.username}
-              type="button"
-              onClick={() => setTab(c.username)}
-              className={tabClass(colleague?.username === c.username)}
-            >
-              {c.name}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {colleague ? (
-        <div className="space-y-4">
-          <p className="text-xs text-gray-400">
-            {colleague.name}'s attempt from just before they revealed Alf's solution (
-            {formatDate(colleague.revealedAt)},{" "}
-            <code className="text-blue-300">{shortSha(colleague.revealCommit)}</code>). Not checked, so
-            it may not be correct.
-          </p>
-          {colleague.files.map((f) => (
-            <CodeFile key={f.path} file={f} />
-          ))}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {files.map((f) => (
-            <CodeFile key={f.path} file={f} />
-          ))}
-        </div>
-      )}
+    <Modal title={`Alf's solution: ${exercise.title}`} onClose={onClose} wide>
+      <div className="space-y-4">
+        {files.map((f) => (
+          <CodeFile key={f.path} file={f} />
+        ))}
+      </div>
     </Modal>
   );
 }
 
-// Admin: trainee's attempt as it was when they revealed (left) vs Alf's solution (right)
-function CompareViewer({ exercise, comparison, onClose }) {
-  const { trainee, revealCommit, revealedAt, attempt, alf } = comparison;
+const pencilsDown = (revealedAt, revealCommit) => (
+  <>
+    Pencils down {formatDate(revealedAt)} at <code className="text-blue-300">{shortSha(revealCommit)}</code>
+  </>
+);
+
+const alfOption = (files) => ({ key: "alf", label: "Alf", subtitle: "Alf's solution", files });
+
+const colleagueOption = (c) => ({
+  key: c.username,
+  label: c.name,
+  subtitle: <>{pencilsDown(c.revealedAt, c.revealCommit)} · not checked, so it may not be correct</>,
+  files: c.files,
+});
+
+// Trainee: from /reveal or /solution
+function traineeComparison(ex, res) {
+  return {
+    ex,
+    left: {
+      title: "Mine",
+      subtitle: res.mine ? pencilsDown(res.mine.revealedAt, res.mine.revealCommit) : null,
+      files: res.mine?.files ?? [],
+    },
+    options: [alfOption(res.files), ...(res.colleagues ?? []).map(colleagueOption)],
+  };
+}
+
+// Admin: from /admin/compare
+function adminComparison(ex, c) {
+  return {
+    ex,
+    left: { title: c.trainee.name, subtitle: pencilsDown(c.revealedAt, c.revealCommit), files: c.attempt },
+    options: [alfOption(c.alf), ...(c.colleagues ?? []).map(colleagueOption)],
+  };
+}
+
+function FileList({ files, empty }) {
+  return files.length ? (
+    files.map((f) => <CodeFile key={f.path} file={f} />)
+  ) : (
+    <p className="text-xs text-gray-500">{empty}</p>
+  );
+}
+
+// Left: the trainee's pencils-down attempt. Right: Alf or a pencils-down colleague, picked from a dropdown.
+function CompareViewer({ comparison, onClose }) {
+  const { ex, left, options } = comparison;
+  const [pick, setPick] = useState(options[0].key);
+  const right = options.find((o) => o.key === pick) ?? options[0];
+
   return (
-    <Modal title={`Compare solutions: ${exercise.title}`} onClose={onClose} extraWide>
+    <Modal title={`Compare solutions: ${ex.title}`} onClose={onClose} extraWide>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="min-w-0 space-y-3">
-          <div>
-            <p className="font-semibold">{trainee.name}</p>
-            <p className="text-[11px] text-gray-400">
-              As revealed on {formatDate(revealedAt)} at{" "}
-              <code className="text-blue-300">{shortSha(revealCommit)}</code>
-            </p>
+          <div className="min-h-[3rem]">
+            <p className="font-semibold">{left.title}</p>
+            {left.subtitle && <p className="text-[11px] text-gray-400">{left.subtitle}</p>}
           </div>
-          {attempt.map((f) => (
-            <CodeFile key={f.path} file={f} />
-          ))}
+          <FileList files={left.files} empty="No attempt found." />
         </div>
+
         <div className="min-w-0 space-y-3">
-          <div>
-            <p className="font-semibold">Alf</p>
-            <p className="text-[11px] text-gray-400">Current solution</p>
+          <div className="min-h-[3rem]">
+            <select
+              value={right.key}
+              onChange={(e) => setPick(e.target.value)}
+              className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm font-semibold"
+              aria-label="Compare with"
+            >
+              {options.map((o) => (
+                <option key={o.key} value={o.key}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-[11px] text-gray-400 mt-1">{right.subtitle}</p>
           </div>
-          {alf.length ? (
-            alf.map((f) => <CodeFile key={f.path} file={f} />)
-          ) : (
-            <p className="text-xs text-gray-500">Alf's solution isn't available.</p>
-          )}
+          <FileList files={right.files} empty="Not available." />
         </div>
       </div>
     </Modal>
@@ -281,11 +292,11 @@ function CompareViewer({ exercise, comparison, onClose }) {
 
 /* ---------------- exercise list ---------------- */
 
-function SolutionCell({ ex, onReveal, onView, onCompare, canView, adminView, busy }) {
+function SolutionCell({ ex, onReveal, onView, onCompare, canView, busy }) {
   const base = "px-2.5 py-1 rounded text-xs whitespace-nowrap";
 
   if (ex.solution === "revealed" || canView) {
-    const compare = adminView && ex.solution === "revealed";
+    const compare = ex.solution === "revealed";
     return (
       <div className="flex flex-col items-end gap-0.5">
         <button
@@ -373,7 +384,6 @@ function CourseSection({ course, onReveal, onView, onCompare, adminView, reveali
               <SolutionCell
                 ex={ex}
                 canView={adminView && ex.solution !== "unavailable"}
-                adminView={adminView}
                 busy={revealingId === ex.id}
                 onReveal={() => onReveal(course, ex)}
                 onView={() => onView(course, ex)}
@@ -402,11 +412,11 @@ export default function Progress({ user }) {
   const [confirm, setConfirm] = useState(null);   // { course, ex }
   const [revealing, setRevealing] = useState(false);
   const [revealError, setRevealError] = useState(null);
-  const [viewing, setViewing] = useState(null);   // { ex, files }
+  const [viewing, setViewing] = useState(null);   // admin, unrevealed: { ex, files }
   const [skipConfirm, setSkipConfirm] = useState(() => loadSkipConfirm(user.uid));
   const [revealingId, setRevealingId] = useState(null); // exercise being revealed without the modal
   const [notice, setNotice] = useState(null);     // reveal/view error shown above the tabs
-  const [comparing, setComparing] = useState(null); // admin: { ex, comparison }
+  const [comparing, setComparing] = useState(null); // { ex, left, options }
 
   const load = async () => {
     setError(null);
@@ -440,7 +450,7 @@ export default function Progress({ user }) {
         saveSkipConfirm(user.uid);
         setSkipConfirm(true);
       }
-      setViewing({ ex: confirm.ex, files: res.files, colleagues: res.colleagues });
+      setComparing(traineeComparison(confirm.ex, res));
       setConfirm(null);
       load();
     } catch (e) {
@@ -456,7 +466,7 @@ export default function Progress({ user }) {
     setRevealingId(ex.id);
     try {
       const res = await revealSolution(course.course, ex.id);
-      setViewing({ ex, files: res.files, colleagues: res.colleagues });
+      setComparing(traineeComparison(ex, res));
       load();
     } catch (e) {
       setNotice(`${ex.title}: ${e.message}`);
@@ -474,7 +484,7 @@ export default function Progress({ user }) {
   const handleView = async (course, ex) => {
     try {
       const res = await fetchSolution(course.course, ex.id);
-      setViewing({ ex, files: res.files, colleagues: res.colleagues });
+      setViewing({ ex, files: res.files });
     } catch (e) {
       setNotice(`${ex.title}: ${e.message}`);
     }
@@ -482,8 +492,11 @@ export default function Progress({ user }) {
 
   const handleCompare = async (course, ex) => {
     try {
-      const comparison = await fetchComparison(selected, course.course, ex.id);
-      setComparing({ ex, comparison });
+      setComparing(
+        admin
+          ? adminComparison(ex, await fetchComparison(selected, course.course, ex.id))
+          : traineeComparison(ex, await fetchSolution(course.course, ex.id))
+      );
     } catch (e) {
       setNotice(`${ex.title}: ${e.message}`);
     }
@@ -601,19 +614,10 @@ export default function Progress({ user }) {
         />
       )}
       {viewing && (
-        <SolutionViewer
-          exercise={viewing.ex}
-          files={viewing.files}
-          colleagues={viewing.colleagues}
-          onClose={() => setViewing(null)}
-        />
+        <SolutionViewer exercise={viewing.ex} files={viewing.files} onClose={() => setViewing(null)} />
       )}
       {comparing && (
-        <CompareViewer
-          exercise={comparing.ex}
-          comparison={comparing.comparison}
-          onClose={() => setComparing(null)}
-        />
+        <CompareViewer comparison={comparing} onClose={() => setComparing(null)} />
       )}
     </div>
   );
