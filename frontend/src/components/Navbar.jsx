@@ -4,8 +4,8 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import {
-  HomeIcon,
   ClockIcon,
+  AcademicCapIcon,
   Bars3Icon,
   XMarkIcon,
   ShieldCheckIcon,
@@ -65,14 +65,14 @@ export default function Navbar({ user, profile }) {
 
         {user && (
           <div className="hidden [@media(min-width:768px)]:flex items-center gap-6 text-sm text-gray-100">
-            <Link to="/home" className="flex items-center gap-1 hover:text-blue-400">
-              <HomeIcon className="w-5 h-5" />
-              Home
+            <Link to="/progress" className="flex items-center gap-1 hover:text-blue-400">
+              <AcademicCapIcon className="w-5 h-5" />
+              Training Progress
             </Link>
 
             <Link to="/history" className="flex items-center gap-1 hover:text-blue-400">
               <ClockIcon className="w-5 h-5" />
-              History
+              Quiz History
             </Link>
 
             {showAdmin && (
@@ -96,14 +96,14 @@ export default function Navbar({ user, profile }) {
 
       {user && isOpen && (
         <div className="md:hidden border-t border-gray-800 bg-gray-900 px-4 py-3 space-y-3 text-sm text-gray-100">
-          <Link to="/home" className="flex items-center gap-2 hover:text-blue-400">
-            <HomeIcon className="w-5 h-5" />
-            Home
+          <Link to="/progress" className="flex items-center gap-2 hover:text-blue-400">
+            <AcademicCapIcon className="w-5 h-5" />
+            Training Progress
           </Link>
 
           <Link to="/history" className="flex items-center gap-2 hover:text-blue-400">
             <ClockIcon className="w-5 h-5" />
-            History
+            Quiz History
           </Link>
 
           {showAdmin && (

@@ -13,6 +13,9 @@ import trading1 from "../../quiz/trading1.json";
 // ✅ Use relative /live (works with dev proxy + prod reverse-proxy)
 export const LIVE_CHECKER_API = import.meta.env.VITE_LIVE_CHECKER_API || "/live";
 
+// Training feedback API (live-checker/feedback): progress and solution reveals
+export const FEEDBACK_API = import.meta.env.VITE_FEEDBACK_API || "/feedback";
+
 // --- QUESTION POOLS ---
 export const QUESTION_POOLS = {
   git: buildPool("git", [git1]),
