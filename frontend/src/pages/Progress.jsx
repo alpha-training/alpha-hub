@@ -39,6 +39,25 @@ function formatDate(iso) {
   return isNaN(d.getTime()) ? "" : d.toLocaleDateString();
 }
 
+// "Don't show this again" for the reveal confirmation, per user, per browser
+const skipConfirmKey = (uid) => `alphahub.skipRevealConfirm.${uid}`;
+
+function loadSkipConfirm(uid) {
+  try {
+    return localStorage.getItem(skipConfirmKey(uid)) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function saveSkipConfirm(uid) {
+  try {
+    localStorage.setItem(skipConfirmKey(uid), "1");
+  } catch {
+    // storage unavailable (e.g. private mode): the confirmation just shows again next time
+  }
+}
+
 /* ---------------- modals ---------------- */
 
 function Modal({ title, onClose, children, wide }) {
@@ -64,6 +83,8 @@ function Modal({ title, onClose, children, wide }) {
 }
 
 function ConfirmReveal({ exercise, commit, busy, error, onConfirm, onClose }) {
+  const [dontAsk, setDontAsk] = useState(false);
+
   return (
     <Modal title={`Show solution: ${exercise.title}`} onClose={busy ? () => {} : onClose}>
       <div className="space-y-3 text-gray-300">
@@ -81,6 +102,16 @@ function ConfirmReveal({ exercise, commit, busy, error, onConfirm, onClose }) {
           . If you have local changes, push them first.
         </p>
         {error && <p className="text-red-400">{error}</p>}
+        <label className="flex items-center gap-2 text-xs text-gray-400 select-none">
+          <input
+            type="checkbox"
+            checked={dontAsk}
+            onChange={(e) => setDontAsk(e.target.checked)}
+            disabled={busy}
+            className="accent-blue-600"
+          />
+          Don't show this again
+        </label>
         <div className="flex justify-end gap-2 pt-2">
           <button
             type="button"
@@ -92,7 +123,7 @@ function ConfirmReveal({ exercise, commit, busy, error, onConfirm, onClose }) {
           </button>
           <button
             type="button"
-            onClick={onConfirm}
+            onClick={() => onConfirm(dontAsk)}
             disabled={busy}
             className="px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 disabled:opacity-50"
           >
@@ -164,7 +195,7 @@ function SolutionViewer({ exercise, files, onClose }) {
 
 /* ---------------- exercise list ---------------- */
 
-function SolutionCell({ ex, onReveal, onView, canView }) {
+function SolutionCell({ ex, onReveal, onView, canView, busy }) {
   const base = "px-2.5 py-1 rounded text-xs whitespace-nowrap";
 
   if (ex.solution === "revealed" || canView) {
@@ -183,8 +214,13 @@ function SolutionCell({ ex, onReveal, onView, canView }) {
   }
   if (ex.solution === "available") {
     return (
-      <button type="button" onClick={onReveal} className={`${base} bg-blue-600 hover:bg-blue-500`}>
-        Show solution
+      <button
+        type="button"
+        onClick={onReveal}
+        disabled={busy}
+        className={`${base} bg-blue-600 hover:bg-blue-500 disabled:opacity-50`}
+      >
+        {busy ? "Revealing…" : "Show solution"}
       </button>
     );
   }
@@ -195,7 +231,7 @@ function SolutionCell({ ex, onReveal, onView, canView }) {
   );
 }
 
-function CourseSection({ course, onReveal, onView, adminView }) {
+function CourseSection({ course, onReveal, onView, adminView, revealingId }) {
   // Only exercises the trainee has pushed an attempt at
   const attempted = course.exercises.filter((e) => e.files.length);
   const revealed = attempted.filter((e) => e.revealedAt).length;
@@ -244,6 +280,7 @@ function CourseSection({ course, onReveal, onView, adminView }) {
               <SolutionCell
                 ex={ex}
                 canView={adminView && ex.solution !== "unavailable"}
+                busy={revealingId === ex.id}
                 onReveal={() => onReveal(course, ex)}
                 onView={() => onView(course, ex)}
               />
@@ -271,6 +308,9 @@ export default function Progress({ user }) {
   const [revealing, setRevealing] = useState(false);
   const [revealError, setRevealError] = useState(null);
   const [viewing, setViewing] = useState(null);   // { ex, files }
+  const [skipConfirm, setSkipConfirm] = useState(() => loadSkipConfirm(user.uid));
+  const [revealingId, setRevealingId] = useState(null); // exercise being revealed without the modal
+  const [notice, setNotice] = useState(null);     // reveal/view error shown above the tabs
 
   const load = async () => {
     setError(null);
@@ -294,11 +334,16 @@ export default function Progress({ user }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [admin]);
 
-  const handleReveal = async () => {
+  // From the confirmation modal
+  const handleConfirmReveal = async (dontAsk) => {
     setRevealing(true);
     setRevealError(null);
     try {
       const res = await revealSolution(confirm.course.course, confirm.ex.id);
+      if (dontAsk) {
+        saveSkipConfirm(user.uid);
+        setSkipConfirm(true);
+      }
       setViewing({ ex: confirm.ex, files: res.files });
       setConfirm(null);
       load();
@@ -309,12 +354,33 @@ export default function Progress({ user }) {
     }
   };
 
+  // Straight from the row, once the trainee has opted out of the confirmation
+  const handleDirectReveal = async (course, ex) => {
+    setNotice(null);
+    setRevealingId(ex.id);
+    try {
+      const res = await revealSolution(course.course, ex.id);
+      setViewing({ ex, files: res.files });
+      load();
+    } catch (e) {
+      setNotice(`${ex.title}: ${e.message}`);
+    } finally {
+      setRevealingId(null);
+    }
+  };
+
+  const handleRevealClick = (course, ex) => {
+    if (skipConfirm) return handleDirectReveal(course, ex);
+    setRevealError(null);
+    setConfirm({ course, ex });
+  };
+
   const handleView = async (course, ex) => {
     try {
       const res = await fetchSolution(course.course, ex.id);
       setViewing({ ex, files: res.files });
     } catch (e) {
-      setError(e.message);
+      setNotice(`${ex.title}: ${e.message}`);
     }
   };
 
@@ -378,6 +444,15 @@ export default function Progress({ user }) {
           <p className="text-sm text-gray-400">No training repos found yet.</p>
         ) : (
           <div>
+            {notice && (
+              <div className="flex items-start justify-between gap-3 mb-4 px-3 py-2 rounded border border-red-900 bg-red-950/40 text-sm text-red-300">
+                <span>{notice}</span>
+                <button type="button" onClick={() => setNotice(null)} className="bg-transparent p-0" aria-label="Dismiss">
+                  <XMarkIcon className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
             <div className="flex gap-1 border-b border-gray-800 mb-4">
               {shown.courses.map((c) => (
                 <button
@@ -399,10 +474,8 @@ export default function Progress({ user }) {
               key={activeCourse.course}
               course={activeCourse}
               adminView={admin}
-              onReveal={(course, ex) => {
-                setRevealError(null);
-                setConfirm({ course, ex });
-              }}
+              revealingId={revealingId}
+              onReveal={handleRevealClick}
               onView={handleView}
             />
           </div>
@@ -415,7 +488,7 @@ export default function Progress({ user }) {
           commit={confirm.course.commit}
           busy={revealing}
           error={revealError}
-          onConfirm={handleReveal}
+          onConfirm={handleConfirmReveal}
           onClose={() => setConfirm(null)}
         />
       )}
