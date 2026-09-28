@@ -1,5 +1,5 @@
 // src/pages/Progress.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   XMarkIcon,
   ClipboardDocumentIcon,
@@ -446,6 +446,24 @@ export default function Progress({ user }) {
   const [notice, setNotice] = useState(null);     // reveal/view error shown above the tabs
   const [comparing, setComparing] = useState(null); // { ex, left, options }
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsRef = useRef(null);
+
+  // Close the settings box on a click outside it or on Escape
+  useEffect(() => {
+    if (!settingsOpen) return;
+    const onPointerDown = (e) => {
+      if (!settingsRef.current?.contains(e.target)) setSettingsOpen(false);
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") setSettingsOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [settingsOpen]);
 
   const setShowExplanation = (show) => {
     saveSkipConfirm(user.uid, !show);
@@ -532,7 +550,7 @@ export default function Progress({ user }) {
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold">Training progress</h1>
             {!admin && (
-              <div className="relative">
+              <div className="relative" ref={settingsRef}>
                 <button
                   type="button"
                   onClick={() => setSettingsOpen((v) => !v)}
