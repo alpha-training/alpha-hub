@@ -13,6 +13,7 @@ import History from "./pages/History";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ForgotPassword from "./pages/ForgotPassword";
 import AdminPanel from "./pages/AdminPanel";
+import Progress from "./pages/Progress";
 
 import { isAdmin } from "./utils/admin";
 import { ensureUserProfile } from "./services/userProfile";
@@ -106,6 +107,15 @@ export default function App() {
             element={
               <ProtectedRoute user={user}>
                 <History user={user} profile={profile} />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/progress"
+            element={
+              <ProtectedRoute user={user}>
+                <Progress user={user} profile={profile} />
               </ProtectedRoute>
             }
           />

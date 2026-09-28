@@ -6,6 +6,7 @@ import { auth } from "../firebase";
 import {
   HomeIcon,
   ClockIcon,
+  AcademicCapIcon,
   Bars3Icon,
   XMarkIcon,
   ShieldCheckIcon,
@@ -75,6 +76,11 @@ export default function Navbar({ user, profile }) {
               History
             </Link>
 
+            <Link to="/progress" className="flex items-center gap-1 hover:text-blue-400">
+              <AcademicCapIcon className="w-5 h-5" />
+              Progress
+            </Link>
+
             {showAdmin && (
               <Link to="/admin" className="flex items-center gap-1 hover:text-blue-400">
                 <ShieldCheckIcon className="w-5 h-5" />
@@ -104,6 +110,11 @@ export default function Navbar({ user, profile }) {
           <Link to="/history" className="flex items-center gap-2 hover:text-blue-400">
             <ClockIcon className="w-5 h-5" />
             History
+          </Link>
+
+          <Link to="/progress" className="flex items-center gap-2 hover:text-blue-400">
+            <AcademicCapIcon className="w-5 h-5" />
+            Progress
           </Link>
 
           {showAdmin && (
