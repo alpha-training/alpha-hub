@@ -275,18 +275,22 @@ function CompareViewer({ comparison, onClose }) {
 
         <div className="min-w-0 space-y-3">
           <div className="min-h-[3rem]">
-            <select
-              value={right.key}
-              onChange={(e) => setPick(e.target.value)}
-              className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm font-semibold"
-              aria-label="Compare with"
-            >
-              {options.map((o) => (
-                <option key={o.key} value={o.key}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+            {options.length > 1 ? (
+              <select
+                value={right.key}
+                onChange={(e) => setPick(e.target.value)}
+                className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm font-semibold"
+                aria-label="Compare with"
+              >
+                {options.map((o) => (
+                  <option key={o.key} value={o.key}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="font-semibold">{right.label}</p>
+            )}
             <p className="text-[11px] text-gray-400 mt-1">{right.subtitle}</p>
           </div>
           <FileList files={right.files} empty="Not available." />
