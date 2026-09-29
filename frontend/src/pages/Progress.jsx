@@ -14,6 +14,8 @@ import {
   revealSolution,
   fetchSolution,
   fetchComparison,
+  fetchFeedback,
+  saveFeedback,
 } from "../api/feedback";
 
 const COURSE_LABELS = {
@@ -35,17 +37,32 @@ const readingUrl = (course, id) =>
 
 const shortSha = (sha) => (sha ? sha.slice(0, 7) : "");
 
-// The trainee's repo on GitHub as it was at that commit
-const commitUrl = (course, username, sha) =>
-  `https://github.com/alpha-training/${course}-${username}/tree/${sha}`;
+// The folder all these files are in: ["solutions/pubsub/pubsub1.q", "solutions/pubsub/client1.q"] -> "solutions/pubsub"
+function commonDir(paths = []) {
+  const dirs = paths.map((p) => p.split("/").slice(0, -1));
+  if (!dirs.length) return "";
+  const common = [];
+  for (let i = 0; dirs.every((d) => i < d.length && d[i] === dirs[0][i]); i++) common.push(dirs[0][i]);
+  return common.join("/");
+}
+
+// The trainee's repo on GitHub as it was at that commit, opened at the folder holding `files`
+const commitUrl = (course, username, sha, files) => {
+  const dir = commonDir(files);
+  const tail = dir ? `/${dir.split("/").map(encodeURIComponent).join("/")}` : "";
+  return `https://github.com/alpha-training/${course}-${username}/tree/${sha}${tail}`;
+};
+
+const paths = (files) => (files ?? []).map((f) => (typeof f === "string" ? f : f.path));
 
 // plain: show the id without a link (trainees can't open colleagues' repos on GitHub)
-function CommitLink({ course, username, sha, plain }) {
+// files: the attempt's files (paths or { path }), so the link opens their folder
+function CommitLink({ course, username, sha, plain, files }) {
   if (!sha) return null;
   if (plain) return <code className="text-blue-300">{shortSha(sha)}</code>;
   return (
     <a
-      href={commitUrl(course, username, sha)}
+      href={commitUrl(course, username, sha, paths(files))}
       target="_blank"
       rel="noreferrer"
       title="Open this version on GitHub"
@@ -160,7 +177,7 @@ function ConfirmReveal({ exercise, commit, course, username, short, busy, error,
           We'll keep a copy of your work as of your latest push
           {commit ? (
             <>
-              {" "}(currently <CommitLink course={course} username={username} sha={commit} />)
+              {" "}(currently <CommitLink course={course} username={username} sha={commit} files={exercise.files} />)
             </>
           ) : null}
           . If you have local changes, push them first.
@@ -239,10 +256,10 @@ function CodeFile({ file }) {
 }
 
 
-const pencilsDown = (revealedAt, revealCommit, course, username, plain) => (
+const pencilsDown = (revealedAt, revealCommit, course, username, plain, files) => (
   <>
     Pencils down {formatDate(revealedAt)} at{" "}
-    <CommitLink course={course} username={username} sha={revealCommit} plain={plain} />
+    <CommitLink course={course} username={username} sha={revealCommit} plain={plain} files={files} />
   </>
 );
 
@@ -260,7 +277,7 @@ const colleagueOption = (course, linkCommit) => (c) => ({
   label: shortName(c.name),
   subtitle: (
     <>
-      {pencilsDown(c.revealedAt, c.revealCommit, course, c.username, !linkCommit)} · not checked, so it may not
+      {pencilsDown(c.revealedAt, c.revealCommit, course, c.username, !linkCommit, c.files)} · not checked, so it may not
       be correct
     </>
   ),
@@ -273,30 +290,63 @@ function traineeComparison(ex, res, course, username) {
     ex,
     left: {
       title: "Mine",
-      subtitle: res.mine ? pencilsDown(res.mine.revealedAt, res.mine.revealCommit, course, username) : null,
+      subtitle: res.mine ? pencilsDown(res.mine.revealedAt, res.mine.revealCommit, course, username, false, res.mine.files) : null,
       files: res.mine?.files ?? [],
+      commit: res.mine?.revealCommit,
     },
     options: [alfOption(res.files), ...(res.colleagues ?? []).map(colleagueOption(course, false))],
+    feedback: res.mine && { data: res.mine.feedback, status: res.mine.status, course, username },
   };
 }
 
 // Admin: from /admin/compare
 function adminComparison(ex, c, course) {
+  const { username } = c.trainee;
   return {
     ex,
     left: {
       title: c.trainee.name,
       subtitle: c.pencilsDown ? (
-        pencilsDown(c.revealedAt, c.revealCommit, course, c.trainee.username)
+        pencilsDown(c.revealedAt, c.revealCommit, course, username, false, c.attempt)
       ) : (
         <>
-          Latest push <CommitLink course={course} username={c.trainee.username} sha={c.commit} /> · not
+          Latest push <CommitLink course={course} username={username} sha={c.commit} files={c.attempt} /> · not
           pencils down yet
         </>
       ),
       files: c.attempt,
+      commit: c.commit,
     },
     options: [alfOption(c.alf), ...(c.colleagues ?? []).map(colleagueOption(course, true))],
+    feedback: {
+      data: c.feedback,
+      status: c.status,
+      commit: c.commit,
+      course,
+      username,
+      save: (body) => saveFeedback(username, course, ex.id, body),
+    },
+  };
+}
+
+// Trainee: from /feedback. Just their attempt at the commit the feedback was on.
+function feedbackComparison(ex, res, course, username) {
+  return {
+    ex,
+    title: "Feedback",
+    left: {
+      title: "Mine",
+      subtitle: (
+        <>
+          Feedback on <CommitLink course={course} username={username} sha={res.feedback.commit} files={res.files} /> ·{" "}
+          {formatDate(res.feedback.at)}
+        </>
+      ),
+      files: res.files,
+      commit: res.feedback.commit,
+    },
+    options: [alfOption([])],
+    feedback: { data: res.feedback, status: res.status, course, username },
   };
 }
 
@@ -308,22 +358,189 @@ function FileList({ files, empty }) {
   );
 }
 
+/* ---------------- feedback ---------------- */
+
+const STATUS_LABELS = { todo: "Not graded", incorrect: "Incorrect", correct: "Correct" };
+
+function StatusBadge({ status }) {
+  if (!STATUS_STYLES[status]) return null;
+  return <span className={`px-2 py-0.5 rounded text-xs capitalize ${STATUS_STYLES[status]}`}>{status}</span>;
+}
+
+function FeedbackNote({ text, label }) {
+  if (!text) return null;
+  return (
+    <div className="mt-1.5 border-l-2 border-amber-500 bg-amber-950/20 rounded-r px-3 py-2 text-xs text-gray-200 whitespace-pre-wrap">
+      {label && <p className="text-[11px] text-amber-300 font-mono mb-1 break-all">{label}</p>}
+      {text}
+    </div>
+  );
+}
+
+const inputClass =
+  "w-full bg-[#03080B] border border-gray-700 rounded px-2 py-1.5 text-xs text-gray-100 focus:outline-none focus:border-blue-500";
+
+// feedback: { data, status, commit, course, username }, plus save() for admins
+function FeedbackEditor({ files, feedback, onSaved }) {
+  const initial = Object.fromEntries((feedback.data?.files ?? []).map((f) => [f.path, f.comment]));
+  const [comments, setComments] = useState(initial);
+  const [overall, setOverall] = useState(feedback.data?.overall ?? "");
+  const [status, setStatus] = useState(feedback.status ?? "todo");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState(null);   // { ok, text }
+
+  const handleSave = async () => {
+    setSaving(true);
+    setMessage(null);
+    try {
+      await feedback.save({
+        commit: feedback.commit,
+        status,
+        overall,
+        files: files.map((f) => ({ path: f.path, comment: comments[f.path] ?? "" })),
+      });
+      setMessage({ ok: true, text: "Saved" });
+      onSaved?.();
+    } catch (e) {
+      setMessage({ ok: false, text: e.message });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const moved = feedback.data && feedback.data.commit !== feedback.commit;
+
+  return (
+    <>
+      {files.map((f) => (
+        <div key={f.path}>
+          <CodeFile file={f} />
+          <textarea
+            value={comments[f.path] ?? ""}
+            onChange={(e) => setComments((c) => ({ ...c, [f.path]: e.target.value }))}
+            placeholder={`Feedback on ${f.path.split("/").pop()}`}
+            rows={2}
+            className={`${inputClass} mt-1.5`}
+          />
+        </div>
+      ))}
+      <div className="space-y-2 pt-2 border-t border-gray-800">
+        <p className="font-semibold text-xs">Overall feedback</p>
+        <textarea
+          value={overall}
+          onChange={(e) => setOverall(e.target.value)}
+          rows={3}
+          className={inputClass}
+        />
+        {moved && (
+          <p className="text-[11px] text-amber-300">
+            The last feedback was on{" "}
+            <CommitLink course={feedback.course} username={feedback.username} sha={feedback.data.commit} files={files} />.
+            Saving attaches it to{" "}
+            <CommitLink course={feedback.course} username={feedback.username} sha={feedback.commit} files={files} />.
+          </p>
+        )}
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {message && (
+            <span className={`text-xs ${message.ok ? "text-green-400" : "text-red-400"}`}>{message.text}</span>
+          )}
+          {feedback.data && (
+            <span className="text-[11px] text-gray-500 mr-auto">
+              Last saved {formatDate(feedback.data.at)} by {feedback.data.by}
+            </span>
+          )}
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-xs"
+            aria-label="Status"
+          >
+            {Object.entries(STATUS_LABELS).map(([k, label]) => (
+              <option key={k} value={k}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="px-3 py-1 rounded text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50"
+          >
+            {saving ? "Saving…" : "Save feedback"}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// Trainee: comments under each file they apply to, then the overall comment
+function FeedbackView({ files, feedback, shownCommit }) {
+  const fb = feedback.data;
+  const byPath = Object.fromEntries((fb?.files ?? []).filter((f) => f.comment).map((f) => [f.path, f.comment]));
+  // Comments on files that aren't shown here (e.g. feedback on a different push)
+  const elsewhere = (fb?.files ?? []).filter((f) => f.comment && !files.some((s) => s.path === f.path));
+  const hasAny = fb && (fb.overall || Object.keys(byPath).length);
+
+  return (
+    <>
+      {files.length ? (
+        files.map((f) => (
+          <div key={f.path}>
+            <CodeFile file={f} />
+            <FeedbackNote text={byPath[f.path]} />
+          </div>
+        ))
+      ) : (
+        <p className="text-xs text-gray-500">No attempt found.</p>
+      )}
+      {hasAny && (
+        <div className="space-y-1 pt-2 border-t border-gray-800">
+          <div className="flex items-center gap-2">
+            <p className="font-semibold text-xs">Feedback</p>
+            <StatusBadge status={feedback.status} />
+            <span className="text-[11px] text-gray-500">{formatDate(fb.at)}</span>
+          </div>
+          {shownCommit && fb.commit !== shownCommit && (
+            <p className="text-[11px] text-amber-300">
+              Given on an earlier push,{" "}
+              <CommitLink course={feedback.course} username={feedback.username} sha={fb.commit} files={files} />.
+            </p>
+          )}
+          <FeedbackNote text={fb.overall} />
+          {elsewhere.map((f) => (
+            <FeedbackNote key={f.path} label={f.path} text={f.comment} />
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+// The left column's files: with feedback boxes for admins, feedback notes for trainees
+function AttemptFiles({ left, feedback, onSaved }) {
+  if (feedback?.save) return <FeedbackEditor files={left.files} feedback={feedback} onSaved={onSaved} />;
+  if (feedback?.data) return <FeedbackView files={left.files} feedback={feedback} shownCommit={left.commit} />;
+  return <FileList files={left.files} empty="No attempt found." />;
+}
+
 // Left: the trainee's pencils-down attempt. Right: Alf or a pencils-down colleague, picked from a dropdown.
-function CompareViewer({ comparison, onClose }) {
-  const { ex, left, options } = comparison;
+function CompareViewer({ comparison, onClose, onSaved }) {
+  const { ex, left, options, feedback } = comparison;
   const [pick, setPick] = useState(options[0].key);
   const right = options.find((o) => o.key === pick) ?? options[0];
 
   // Nothing to compare against (no Alf solution, no pencils-down colleagues): just the attempt
   if (options.length === 1 && !right.files.length) {
     return (
-      <Modal title={`Attempt: ${ex.title}`} onClose={onClose} wide>
+      <Modal title={`${comparison.title ?? "Attempt"}: ${ex.title}`} onClose={onClose} wide>
         <div className="space-y-3">
           <div>
             <p className="font-semibold">{left.title}</p>
             {left.subtitle && <p className="text-[11px] text-gray-400">{left.subtitle}</p>}
           </div>
-          <FileList files={left.files} empty="No attempt found." />
+          <AttemptFiles left={left} feedback={feedback} onSaved={onSaved} />
         </div>
       </Modal>
     );
@@ -337,7 +554,7 @@ function CompareViewer({ comparison, onClose }) {
             <p className="font-semibold">{left.title}</p>
             {left.subtitle && <p className="text-[11px] text-gray-400">{left.subtitle}</p>}
           </div>
-          <FileList files={left.files} empty="No attempt found." />
+          <AttemptFiles left={left} feedback={feedback} onSaved={onSaved} />
         </div>
 
         <div className="min-w-0 space-y-3">
@@ -382,8 +599,11 @@ function SolutionCell({ ex, course, username, onReveal, onCompare, adminView }) 
         {ex.revealedAt && (
           <span className="text-[11px] text-amber-300">
             Revealed {formatDate(ex.revealedAt)} at{" "}
-            <CommitLink course={course} username={username} sha={ex.revealCommit} />
+            <CommitLink course={course} username={username} sha={ex.revealCommit} files={ex.files} />
           </span>
+        )}
+        {adminView && ex.feedbackAt && (
+          <span className="text-[11px] text-gray-400">Feedback given {formatDate(ex.feedbackAt)}</span>
         )}
       </div>
     );
@@ -402,9 +622,26 @@ function SolutionCell({ ex, course, username, onReveal, onCompare, adminView }) 
   );
 }
 
-function CourseSection({ course, username, onReveal, onCompare, adminView }) {
-  // Only exercises the trainee has pushed an attempt at
-  const attempted = course.exercises.filter((e) => e.files.length);
+function FeedbackButton({ ex, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="relative px-2.5 py-1 rounded text-xs whitespace-nowrap bg-amber-900/50 hover:bg-amber-900/80 text-amber-200"
+    >
+      Feedback
+      {ex.feedbackNew && (
+        <span className="absolute -top-1.5 -right-1.5 px-1 rounded bg-amber-500 text-[10px] font-semibold text-black">
+          New
+        </span>
+      )}
+    </button>
+  );
+}
+
+function CourseSection({ course, username, onReveal, onCompare, onFeedback, adminView }) {
+  // Only exercises the trainee has pushed an attempt at (or has a problem to fix)
+  const attempted = course.exercises.filter((e) => e.files.length || e.problem);
   const revealed = attempted.filter((e) => e.revealedAt).length;
 
   return (
@@ -442,14 +679,17 @@ function CourseSection({ course, username, onReveal, onCompare, adminView }) {
                 {ex.title}
               </a>
               <p className="text-[11px] text-gray-500 truncate">{ex.files.join(", ")}</p>
+              {ex.problem && <p className="text-[11px] text-red-400">{ex.problem}</p>}
+              {ex.missing?.length > 0 && (
+                <p className="text-[11px] text-amber-300 truncate" title={ex.missing.join("\n")}>
+                  Missing: {ex.missing.join(", ")}
+                </p>
+              )}
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
-              {STATUS_STYLES[ex.status] && (
-                <span className={`px-2 py-0.5 rounded text-xs capitalize ${STATUS_STYLES[ex.status]}`}>
-                  {ex.status}
-                </span>
-              )}
+              <StatusBadge status={ex.status} />
+              {!adminView && ex.feedbackAt && <FeedbackButton ex={ex} onClick={() => onFeedback(course, ex)} />}
               <SolutionCell
                 ex={ex}
                 course={course.course}
@@ -564,6 +804,17 @@ export default function Progress({ user }) {
           ? adminComparison(ex, await fetchComparison(selected, course.course, ex.id), course.course)
           : traineeComparison(ex, await fetchSolution(course.course, ex.id), course.course, data?.username)
       );
+      if (!admin && ex.feedbackNew) load();
+    } catch (e) {
+      setNotice(`${ex.title}: ${e.message}`);
+    }
+  };
+
+  // Opening it marks it seen, so reload to clear "New"
+  const handleFeedback = async (course, ex) => {
+    try {
+      setComparing(feedbackComparison(ex, await fetchFeedback(course.course, ex.id), course.course, data?.username));
+      if (ex.feedbackNew) load();
     } catch (e) {
       setNotice(`${ex.title}: ${e.message}`);
     }
@@ -636,11 +887,13 @@ export default function Progress({ user }) {
           <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 mb-6 text-xs text-gray-300 space-y-1.5">
             <p className="font-semibold text-white text-sm">How your work is picked up</p>
             <p>
-              Exercises appear here once you've pushed an attempt. Name each solution file after the
-              exercise (e.g. <code className="text-blue-300">myAbs.q</code>). Any folder in your repo
-              is fine and case doesn't matter, but don't use a folder called{" "}
-              <code className="text-blue-300">alf</code>: files there are treated as copies of Alf's.
-              If something you've pushed doesn't show up, check the file name.
+              Exercises appear here once you've pushed an attempt, and each one has to be in exactly
+              the right place. In Fundamentals, every standalone exercise gets its own folder under{" "}
+              <code className="text-blue-300">solutions/</code> (e.g.{" "}
+              <code className="text-blue-300">solutions/myAbs/myAbs.q</code>), and the stack exercises
+              are all done in <code className="text-blue-300">stack1/</code> (e.g.{" "}
+              <code className="text-blue-300">stack1/proc/hdb.q</code>). Your course README explains
+              where solutions go. If something you've pushed doesn't show up, check its path.
             </p>
             <p>
               Where an exercise asks for a function, use exactly the name it gives. Alf's versions end
@@ -653,6 +906,11 @@ export default function Progress({ user }) {
               of your work as it was when you revealed ("pencils down"). You'll also see the attempts of
               colleagues who have revealed it, and yours will be shown to colleagues who reveal it after
               you.
+            </p>
+            <p>
+              When a trainer has looked at your attempt, a{" "}
+              <span className="text-amber-200">Feedback</span> button appears next to the exercise, with
+              comments on each file. This can happen before or after you reveal.
             </p>
           </div>
         )}
@@ -698,6 +956,7 @@ export default function Progress({ user }) {
               adminView={admin}
               onReveal={handleRevealClick}
               onCompare={handleCompare}
+              onFeedback={handleFeedback}
             />
           </div>
         )}
@@ -717,7 +976,7 @@ export default function Progress({ user }) {
         />
       )}
       {comparing && (
-        <CompareViewer comparison={comparing} onClose={() => setComparing(null)} />
+        <CompareViewer comparison={comparing} onClose={() => setComparing(null)} onSaved={load} />
       )}
     </div>
   );
