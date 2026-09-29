@@ -36,3 +36,4 @@ export const fetchFeedback = (course, id) => call("GET", `/feedback/${course}/${
 // feedback: { commit, status, overall, files: [{ path, comment }] }
 export const saveFeedback = (username, course, id, feedback) =>
   call("POST", `/admin/feedback/${username}/${course}/${id}`, feedback);
+export const fetchTests = (username, course, id) => call("GET", `/admin/tests/${username}/${course}/${id}`);

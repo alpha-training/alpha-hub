@@ -16,6 +16,7 @@ import {
   fetchComparison,
   fetchFeedback,
   saveFeedback,
+  fetchTests,
 } from "../api/feedback";
 
 const COURSE_LABELS = {
@@ -331,7 +332,6 @@ function adminComparison(ex, c, course) {
       commit: c.commit,
     },
     options: [alfOption(c.alf), ...(c.colleagues ?? []).map(colleagueOption(course, true))],
-    tests: c.tests,
     feedback: {
       data: c.feedback,
       status: c.status,
@@ -374,20 +374,48 @@ function FileList({ files, empty }) {
 
 /* ---------------- tests ---------------- */
 
-// Admin row: "Tests 6/9", or pending / error
-function TestsBadge({ tests }) {
+// Admin row: "Tests 6/9" (or pending / error), which opens the results
+function TestsButton({ tests, onClick }) {
   if (!tests) return null;
-  const base = "px-2 py-0.5 rounded text-xs whitespace-nowrap";
-  if (tests.pending) return <span className={`${base} bg-gray-800 text-gray-400`}>Testing…</span>;
-  if (tests.error) return <span className={`${base} bg-amber-900/60 text-amber-300`} title={tests.error}>Tests error</span>;
-  const all = tests.passed === tests.total;
+  const base = "px-2 py-0.5 rounded text-xs whitespace-nowrap hover:brightness-125";
+  const [style, label, title] = tests.pending
+    ? ["bg-gray-800 text-gray-400", "Testing…", "Not tested yet: click to run the tests now"]
+    : tests.error
+      ? ["bg-amber-900/60 text-amber-300", "Tests error", tests.error]
+      : [
+          tests.passed === tests.total ? "bg-green-900/60 text-green-300" : "bg-red-900/60 text-red-300",
+          `Tests ${tests.passed}/${tests.total}`,
+          tests.stale ? "For an earlier push: click for the latest" : `At ${shortSha(tests.commit)}`,
+        ];
   return (
-    <span
-      className={`${base} ${all ? "bg-green-900/60 text-green-300" : "bg-red-900/60 text-red-300"} ${tests.stale ? "opacity-60" : ""}`}
-      title={tests.stale ? "For an earlier push: re-testing the latest" : `At ${shortSha(tests.commit)}`}
-    >
-      Tests {tests.passed}/{tests.total}
-    </span>
+    <button type="button" onClick={onClick} title={title} className={`${base} ${style} ${tests.stale ? "opacity-60" : ""}`}>
+      {label}
+    </button>
+  );
+}
+
+// The results for the trainee's latest push. data: from /admin/tests, or null while loading
+function TestsViewer({ ex, course, data, error, onClose }) {
+  return (
+    <Modal title={`Tests: ${ex.title}`} onClose={onClose} wide>
+      {error ? (
+        <p className="text-sm text-red-400">{error}</p>
+      ) : !data ? (
+        <p className="text-sm text-gray-400">Running the tests…</p>
+      ) : (
+        <div className="space-y-3">
+          <div>
+            <p className="font-semibold">{data.trainee.name}</p>
+            <p className="text-[11px] text-gray-400">
+              Latest push{" "}
+              <CommitLink course={course} username={data.trainee.username} sha={data.commit} files={data.files} /> ·
+              tested {formatWhen(data.at)}
+            </p>
+          </div>
+          <TestResults tests={data} />
+        </div>
+      )}
+    </Modal>
   );
 }
 
@@ -582,7 +610,7 @@ function AttemptFiles({ left, feedback, onSaved }) {
 
 // Left: the trainee's pencils-down attempt. Right: Alf or a pencils-down colleague, picked from a dropdown.
 function CompareViewer({ comparison, onClose, onSaved }) {
-  const { ex, left, options, feedback, tests } = comparison;
+  const { ex, left, options, feedback } = comparison;
   const [pick, setPick] = useState(options[0].key);
   const right = options.find((o) => o.key === pick) ?? options[0];
 
@@ -595,7 +623,6 @@ function CompareViewer({ comparison, onClose, onSaved }) {
             <p className="font-semibold">{left.title}</p>
             {left.subtitle && <p className="text-[11px] text-gray-400">{left.subtitle}</p>}
           </div>
-          <TestResults tests={tests} />
           <AttemptFiles left={left} feedback={feedback} onSaved={onSaved} />
         </div>
       </Modal>
@@ -610,7 +637,6 @@ function CompareViewer({ comparison, onClose, onSaved }) {
             <p className="font-semibold">{left.title}</p>
             {left.subtitle && <p className="text-[11px] text-gray-400">{left.subtitle}</p>}
           </div>
-          <TestResults tests={tests} />
           <AttemptFiles left={left} feedback={feedback} onSaved={onSaved} />
         </div>
 
@@ -696,7 +722,7 @@ function FeedbackButton({ ex, onClick }) {
   );
 }
 
-function CourseSection({ course, username, onReveal, onCompare, onFeedback, adminView }) {
+function CourseSection({ course, username, onReveal, onCompare, onFeedback, onTests, adminView }) {
   // Only exercises the trainee has pushed an attempt at (or has a problem to fix)
   const attempted = course.exercises.filter((e) => e.files.length || e.problem);
   const revealed = attempted.filter((e) => e.revealedAt).length;
@@ -750,7 +776,7 @@ function CourseSection({ course, username, onReveal, onCompare, onFeedback, admi
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
-              {adminView && <TestsBadge tests={ex.tests} />}
+              {adminView && <TestsButton tests={ex.tests} onClick={() => onTests(course, ex)} />}
               <StatusBadge status={ex.status} />
               {!adminView && ex.feedbackAt && <FeedbackButton ex={ex} onClick={() => onFeedback(course, ex)} />}
               <SolutionCell
@@ -787,6 +813,7 @@ export default function Progress({ user }) {
   const [skipConfirm, setSkipConfirm] = useState(() => loadSkipConfirm(user.uid));
   const [notice, setNotice] = useState(null);     // reveal/view error shown above the tabs
   const [comparing, setComparing] = useState(null); // { ex, left, options }
+  const [testing, setTesting] = useState(null);     // admin: { ex, course, data, error }
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsRef = useRef(null);
 
@@ -870,6 +897,18 @@ export default function Progress({ user }) {
       if (!admin && ex.feedbackNew) load();
     } catch (e) {
       setNotice(`${ex.title}: ${e.message}`);
+    }
+  };
+
+  // Admin: a trainee's test results (may run them, if their latest push isn't tested yet)
+  const handleTests = async (course, ex) => {
+    setTesting({ ex, course: course.course, data: null, error: null });
+    try {
+      const data = await fetchTests(selected, course.course, ex.id);
+      setTesting((t) => t && t.ex === ex && { ...t, data });
+      if (ex.tests?.pending || ex.tests?.stale) load();
+    } catch (e) {
+      setTesting((t) => t && t.ex === ex && { ...t, error: e.message });
     }
   };
 
@@ -1020,6 +1059,7 @@ export default function Progress({ user }) {
               onReveal={handleRevealClick}
               onCompare={handleCompare}
               onFeedback={handleFeedback}
+              onTests={handleTests}
             />
           </div>
         )}
@@ -1036,6 +1076,15 @@ export default function Progress({ user }) {
           error={revealError}
           onConfirm={handleConfirmReveal}
           onClose={() => setConfirm(null)}
+        />
+      )}
+      {testing && (
+        <TestsViewer
+          ex={testing.ex}
+          course={testing.course}
+          data={testing.data}
+          error={testing.error}
+          onClose={() => setTesting(null)}
         />
       )}
       {comparing && (
