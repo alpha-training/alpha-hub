@@ -17,6 +17,7 @@ import {
   fetchFeedback,
   saveFeedback,
   fetchTests,
+  fetchMyTests,
 } from "../api/feedback";
 
 const COURSE_LABELS = {
@@ -424,7 +425,7 @@ function PerfBadge({ tests }) {
 }
 
 // The results for the trainee's latest push. data: from /admin/tests, or null while loading
-function TestsViewer({ ex, course, data, error, onClose }) {
+function TestsViewer({ ex, course, data, error, onClose, mine }) {
   return (
     <Modal title={`Tests: ${ex.title}`} onClose={onClose} extraWide>
       {error ? (
@@ -434,7 +435,7 @@ function TestsViewer({ ex, course, data, error, onClose }) {
       ) : (
         <div className="space-y-3">
           <div>
-            <p className="font-semibold">{data.trainee.name}</p>
+            <p className="font-semibold">{mine ? "Mine" : data.trainee.name}</p>
             <p className="text-[11px] text-gray-400">
               Latest push{" "}
               <CommitLink course={course} username={data.trainee.username} sha={data.commit} files={data.files} /> ·
@@ -454,7 +455,7 @@ function TestsViewer({ ex, course, data, error, onClose }) {
               </>
             )}
           </p>}
-          <TestResults tests={data} who={shortName(data.trainee.name)} />
+          <TestResults tests={data} who={mine ? "Mine" : shortName(data.trainee.name)} />
         </div>
       )}
     </Modal>
@@ -841,7 +842,7 @@ function CourseSection({ course, username, onReveal, onCompare, onFeedback, onTe
 
             <div className="flex items-center gap-3 shrink-0">
               {adminView && SHOW_PERF && <PerfBadge tests={ex.tests} />}
-              {adminView && <TestsButton tests={ex.tests} onClick={() => onTests(course, ex)} />}
+              <TestsButton tests={ex.tests} onClick={() => onTests(course, ex)} />
               <StatusBadge status={ex.status} />
               {!adminView && ex.feedbackAt && <FeedbackButton ex={ex} onClick={() => onFeedback(course, ex)} />}
               <SolutionCell
@@ -965,11 +966,12 @@ export default function Progress({ user }) {
     }
   };
 
-  // Admin: a trainee's test results (may run them, if their latest push isn't tested yet)
+  // A trainee's test results: admins any trainee's, trainees their own (may run them, if the latest push
+  // isn't tested yet)
   const handleTests = async (course, ex) => {
-    setTesting({ ex, course: course.course, data: null, error: null });
+    setTesting({ ex, course: course.course, data: null, error: null, mine: !admin });
     try {
-      const data = await fetchTests(selected, course.course, ex.id);
+      const data = admin ? await fetchTests(selected, course.course, ex.id) : await fetchMyTests(course.course, ex.id);
       setTesting((t) => t && t.ex === ex && { ...t, data });
       if (ex.tests?.pending || ex.tests?.stale) load();
     } catch (e) {
@@ -1075,6 +1077,12 @@ export default function Progress({ user }) {
               you.
             </p>
             <p>
+              Most exercises have automated tests, which run each time you push:{" "}
+              <span className="text-green-300">Tests 7/7</span> means every check passed. Click it to
+              see each check, and for a failure, what your code did next to what Alf's does, so you
+              can try it yourself.
+            </p>
+            <p>
               When a trainer has looked at your attempt, a{" "}
               <span className="text-amber-200">Feedback</span> button appears next to the exercise, with
               comments on each file. This can happen before or after you reveal.
@@ -1145,6 +1153,7 @@ export default function Progress({ user }) {
       )}
       {testing && (
         <TestsViewer
+          mine={testing.mine}
           ex={testing.ex}
           course={testing.course}
           data={testing.data}
