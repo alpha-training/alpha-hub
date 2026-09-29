@@ -395,6 +395,9 @@ function TestsButton({ tests, onClick }) {
   );
 }
 
+// Performance figures are hidden for now (still measured by the feedback API): set to true to show them
+const SHOW_PERF = false;
+
 // "2.5x": how many times slower than Alf's solution; "<1x" beats it. Only when every test passes.
 const perfLabel = (r) => `${r < 1 ? "<1" : r.toFixed(1)}x`;
 const perfStyle = (r) =>
@@ -438,7 +441,7 @@ function TestsViewer({ ex, course, data, error, onClose }) {
               tested {formatWhen(data.at)}
             </p>
           </div>
-          <p className="text-xs text-gray-300">
+          {SHOW_PERF && <p className="text-xs text-gray-300">
             Performance:{" "}
             {data.perf == null ? (
               <span className="text-gray-500">{data.perfNote ?? "only timed once every test passes"}</span>
@@ -450,7 +453,7 @@ function TestsViewer({ ex, course, data, error, onClose }) {
                 </span>
               </>
             )}
-          </p>
+          </p>}
           <TestResults tests={data} who={shortName(data.trainee.name)} />
         </div>
       )}
@@ -837,7 +840,7 @@ function CourseSection({ course, username, onReveal, onCompare, onFeedback, onTe
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
-              {adminView && <PerfBadge tests={ex.tests} />}
+              {adminView && SHOW_PERF && <PerfBadge tests={ex.tests} />}
               {adminView && <TestsButton tests={ex.tests} onClick={() => onTests(course, ex)} />}
               <StatusBadge status={ex.status} />
               {!adminView && ex.feedbackAt && <FeedbackButton ex={ex} onClick={() => onFeedback(course, ex)} />}
