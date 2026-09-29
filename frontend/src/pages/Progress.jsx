@@ -434,7 +434,11 @@ function TestResults({ tests }) {
         {rows.map((t, i) => (
           <li key={i} className="text-xs">
             <span className={t.pass ? "text-green-400" : "text-red-400"}>{t.pass ? "✓" : "✗"}</span> {t.name}
-            {t.message && <p className="ml-4 font-mono text-[11px] text-gray-400 break-all">{t.message}</p>}
+            {t.message && (
+              <pre className="ml-4 mt-0.5 font-mono text-[11px] text-gray-300 whitespace-pre-wrap break-all bg-[#03080B] border border-gray-800 rounded px-2 py-1">
+                {t.message}
+              </pre>
+            )}
           </li>
         ))}
       </ul>
