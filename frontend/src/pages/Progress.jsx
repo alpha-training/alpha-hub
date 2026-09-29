@@ -395,6 +395,31 @@ function TestsButton({ tests, onClick }) {
   );
 }
 
+// "2.5x": how many times slower than Alf's solution; "<1x" beats it. Only when every test passes.
+const perfLabel = (r) => `${r < 1 ? "<1" : r.toFixed(1)}x`;
+const perfStyle = (r) =>
+  r < 1 ? "bg-green-900/60 text-green-300"
+  : r < 1.5 ? "bg-gray-800 text-gray-300"
+  : r < 3 ? "bg-amber-900/60 text-amber-300"
+  : "bg-red-900/60 text-red-300";
+
+// Admin row: a fixed-width slot, so the figures line up like a column
+function PerfBadge({ tests }) {
+  const r = tests?.perf;
+  return (
+    <span className="w-12 flex justify-end">
+      {r != null && (
+        <span
+          className={`px-2 py-0.5 rounded text-xs whitespace-nowrap ${perfStyle(r)} ${tests.stale ? "opacity-60" : ""}`}
+          title={r < 1 ? `Faster than Alf's (${r.toFixed(2)}x his time)` : `${r.toFixed(2)} times slower than Alf's`}
+        >
+          {perfLabel(r)}
+        </span>
+      )}
+    </span>
+  );
+}
+
 // The results for the trainee's latest push. data: from /admin/tests, or null while loading
 function TestsViewer({ ex, course, data, error, onClose }) {
   return (
@@ -413,6 +438,19 @@ function TestsViewer({ ex, course, data, error, onClose }) {
               tested {formatWhen(data.at)}
             </p>
           </div>
+          <p className="text-xs text-gray-300">
+            Performance:{" "}
+            {data.perf == null ? (
+              <span className="text-gray-500">only timed once every test passes</span>
+            ) : (
+              <>
+                <span className={`px-1.5 py-0.5 rounded ${perfStyle(data.perf)}`}>{perfLabel(data.perf)}</span>{" "}
+                <span className="text-gray-500">
+                  Alf's time, per call ({(data.perfDetail ?? []).map((p) => `${p.name}: ${p.ratio.toFixed(2)}x`).join("; ")})
+                </span>
+              </>
+            )}
+          </p>
           <TestResults tests={data} who={shortName(data.trainee.name)} />
         </div>
       )}
@@ -799,6 +837,7 @@ function CourseSection({ course, username, onReveal, onCompare, onFeedback, onTe
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
+              {adminView && <PerfBadge tests={ex.tests} />}
               {adminView && <TestsButton tests={ex.tests} onClick={() => onTests(course, ex)} />}
               <StatusBadge status={ex.status} />
               {!adminView && ex.feedbackAt && <FeedbackButton ex={ex} onClick={() => onFeedback(course, ex)} />}
