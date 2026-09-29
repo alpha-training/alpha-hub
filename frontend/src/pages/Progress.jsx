@@ -377,6 +377,7 @@ function FileList({ files, empty }) {
 // Admin row: "Tests 6/9" (or pending / error), which opens the results
 function TestsButton({ tests, onClick }) {
   if (!tests) return null;
+  if (tests.none) return <span className="px-2 py-0.5 rounded text-xs whitespace-nowrap bg-gray-800 text-gray-400">No tests</span>;
   const base = "px-2 py-0.5 rounded text-xs whitespace-nowrap hover:brightness-125";
   const [style, label, title] = tests.pending
     ? ["bg-gray-800 text-gray-400", "Testing…", "Not tested yet: click to run the tests now"]
