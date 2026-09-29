@@ -79,6 +79,19 @@ function formatDate(iso) {
   return isNaN(d.getTime()) ? "" : d.toLocaleDateString();
 }
 
+// "Today 14:32", "Yesterday 09:05", "Mon 22 Sep 16:10" (local time)
+function formatWhen(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const day = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const daysAgo = Math.round((day(new Date()) - day(d)) / 86_400_000);
+  if (daysAgo === 0) return `Today ${time}`;
+  if (daysAgo === 1) return `Yesterday ${time}`;
+  return `${d.toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" })} ${time}`;
+}
+
 // "Don't show this explanation again": later reveals get the short confirmation instead.
 // Per user, per browser.
 // v2: choices saved before the short confirmation existed meant "reveal in one click", so they are ignored
@@ -679,6 +692,11 @@ function CourseSection({ course, username, onReveal, onCompare, onFeedback, admi
                 {ex.title}
               </a>
               <p className="text-[11px] text-gray-500 truncate">{ex.files.join(", ")}</p>
+              {adminView && ex.lastCommitAt && (
+                <p className="text-[11px] text-gray-400" title={new Date(ex.lastCommitAt).toLocaleString()}>
+                  Last commit {formatWhen(ex.lastCommitAt)}
+                </p>
+              )}
               {ex.problem && <p className="text-[11px] text-red-400">{ex.problem}</p>}
               {ex.missing?.length > 0 && (
                 <p className="text-[11px] text-amber-300 truncate" title={ex.missing.join("\n")}>
