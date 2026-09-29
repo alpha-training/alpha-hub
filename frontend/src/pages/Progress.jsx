@@ -441,7 +441,7 @@ function TestsViewer({ ex, course, data, error, onClose }) {
           <p className="text-xs text-gray-300">
             Performance:{" "}
             {data.perf == null ? (
-              <span className="text-gray-500">only timed once every test passes</span>
+              <span className="text-gray-500">{data.perfNote ?? "only timed once every test passes"}</span>
             ) : (
               <>
                 <span className={`px-1.5 py-0.5 rounded ${perfStyle(data.perf)}`}>{perfLabel(data.perf)}</span>{" "}
