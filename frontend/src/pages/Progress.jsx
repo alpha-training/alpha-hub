@@ -398,7 +398,7 @@ function TestsButton({ tests, onClick }) {
 // The results for the trainee's latest push. data: from /admin/tests, or null while loading
 function TestsViewer({ ex, course, data, error, onClose }) {
   return (
-    <Modal title={`Tests: ${ex.title}`} onClose={onClose} wide>
+    <Modal title={`Tests: ${ex.title}`} onClose={onClose} extraWide>
       {error ? (
         <p className="text-sm text-red-400">{error}</p>
       ) : !data ? (
@@ -413,15 +413,27 @@ function TestsViewer({ ex, course, data, error, onClose }) {
               tested {formatWhen(data.at)}
             </p>
           </div>
-          <TestResults tests={data} />
+          <TestResults tests={data} who={shortName(data.trainee.name)} />
         </div>
       )}
     </Modal>
   );
 }
 
-// Compare view: every check, failures first
-function TestResults({ tests }) {
+// A q session, e.g. "q)removeAD \"\"\n'length"
+function Terminal({ label, text }) {
+  return (
+    <div className="min-w-0">
+      <p className="text-[10px] uppercase tracking-wide text-gray-500 mb-0.5">{label}</p>
+      <pre className="font-mono text-[11px] text-gray-200 whitespace-pre-wrap break-all bg-[#03080B] border border-gray-800 rounded px-2 py-1.5 h-full">
+        {text}
+      </pre>
+    </div>
+  );
+}
+
+// Every check, failures first. A failure shows the trainee's session next to Alf's.
+function TestResults({ tests, who = "Theirs" }) {
   if (!tests) return null;
   const rows = [...tests.results].sort((a, b) => a.pass - b.pass);
   return (
@@ -434,10 +446,16 @@ function TestResults({ tests }) {
         {rows.map((t, i) => (
           <li key={i} className="text-xs">
             <span className={t.pass ? "text-green-400" : "text-red-400"}>{t.pass ? "✓" : "✗"}</span> {t.name}
+            {!t.pass && (t.mine || t.alf) && (
+              <div className="ml-4 mt-1 grid sm:grid-cols-2 gap-2">
+                <Terminal label={who} text={t.mine || "(nothing)"} />
+                <Terminal label="Alf" text={t.alf || "(not compared)"} />
+              </div>
+            )}
             {t.message && (
-              <pre className="ml-4 mt-0.5 font-mono text-[11px] text-gray-300 whitespace-pre-wrap break-all bg-[#03080B] border border-gray-800 rounded px-2 py-1">
+              <p className={`ml-4 mt-0.5 text-[11px] text-gray-400 ${t.mine || t.alf ? "" : "font-mono whitespace-pre-wrap break-all"}`}>
                 {t.message}
-              </pre>
+              </p>
             )}
           </li>
         ))}
